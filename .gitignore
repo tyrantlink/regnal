@@ -3,6 +3,5 @@ __pycache__
 /images
 /log
 /mongo
-/premongo.json
 /utils2
 venv/*
