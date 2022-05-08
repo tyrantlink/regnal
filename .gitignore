@@ -1,4 +1,3 @@
-/.venv
 /.vscode
 __pycache__
 /images
@@ -6,4 +5,4 @@ __pycache__
 /mongo
 /premongo.json
 /utils2
-/venv
+venv/*
