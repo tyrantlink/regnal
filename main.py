@@ -15,10 +15,13 @@ from utils.data import db,env
 from datetime import datetime
 from asyncio import wait_for
 from discord import Intents
+from os.path import exists
 from inspect import stack
 from requests import get
 from os import urandom
 from sys import argv
+
+DEV_MODE = exists('dev')
 
 with open('mongo') as mongo:
 	mongo = MongoClient(mongo.read())['reg-nal']['INF']
@@ -33,7 +36,7 @@ class log:
 		self.reglog = reglog
 
 	async def _base(self,log:str,send:bool=True,short_log:str=None,custom:bool=False) -> None:
-		if not custom: log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if "--dev" in argv else " "}[{stack()[1].function.upper()}] {log}'
+		if not custom: log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[{stack()[1].function.upper()}] {log}'
 		with open('log','a') as f: f.write(log+'\n' if short_log is None else short_log+'\n')
 		if send:
 			try:
@@ -97,7 +100,7 @@ class client_cls(Bot):
 		cog = stack()[1].filename.replace('.py','').split('/')[-1]
 		if cog in self._raw_loaded_extensions: return
 		
-		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if "--dev" in argv else " "}[EXT] {cog} loaded')
+		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[EXT] {cog} loaded')
 		self._raw_loaded_extensions.append(cog)
 
 	async def embed_color(self,ctx:ApplicationContext) -> int:
@@ -114,7 +117,7 @@ class client_cls(Bot):
 			await self.db.inf.read('/reg/nal',['config','bypass_permissions']))
 		await self.change_presence(activity=Activity(type=ActivityType.listening,name='uptime: 0 hours'))
 		await self.log.info('successfully connected to /reg/log')
-		if '--dev' in argv:await self.log.debug('LAUNCHED IN DEV MODE')
+		if DEV_MODE: await self.log.debug('LAUNCHED IN DEV MODE')
 		await self.log.custom('\n'.join(self.loaded_extensions),short_log='loaded extensions: '+','.join(self._raw_loaded_extensions))
 		# await self.log.info(f'loaded extensions: {",".join(self.loaded_extensions)}')
 	
@@ -233,4 +236,4 @@ class message_handler(Cog):
 client = client_cls()
 
 if __name__ == '__main__':
-	client.run(client.env.dev_token if '--dev' in argv else client.env.token)
+	client.run(client.env.dev_token if DEV_MODE else client.env.token)
