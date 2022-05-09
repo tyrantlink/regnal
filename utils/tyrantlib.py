@@ -1,4 +1,4 @@
-from discord import Guild,User,ApplicationContext
+from discord import ApplicationContext
 from discord.ext.commands import check
 from os import path,walk
 import collections.abc
@@ -49,7 +49,7 @@ def convert_time(seconds:int|float,decimal=15) -> str:
 
 def has_perm(perm:str,ctx:ApplicationContext=None) -> bool:
 	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT HAS_PERM HAS TO BE AWAITED
-	async def perms(ctx,respond=True):
+	async def perms(ctx,respond=True) -> bool:
 		match perm:
 			case 'bot_owner':
 				if ctx.author.id == owner_id: return True

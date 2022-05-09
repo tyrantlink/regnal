@@ -6,16 +6,11 @@ from base64 import b64encode,b64decode
 from main import client_cls
 from io import BytesIO
 
-
-
-
-
-
 algo_list = ['base64','caesar cipher']
-
 
 class cryptography_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 
 	def caesar_cipher(self,encode:bool,input:str,shift:int=7) -> str:

@@ -1,17 +1,15 @@
 
 from pymongo.errors import DuplicateKeyError
-from pymongo.collection import Collection
 import motor.motor_asyncio,collections.abc
-from inspect import stack
-from time import time
+from pymongo.collection import Collection
 from typing import Any
-
+from time import time
 
 with open('mongo') as mongo:
 	client = motor.motor_asyncio.AsyncIOMotorClient(mongo.read(), serverSelectionTimeoutMS=5000)['reg-nal']
 
 class env:
-	def __init__(self,env_dict:dict):
+	def __init__(self,env_dict:dict) -> None:
 		self.token = None
 		self.dev_token = None
 		self.shortio_key = None
@@ -23,34 +21,6 @@ class env:
 		self.activities = None
 		for k,v in env_dict.items():
 			setattr(self,k,v)
-
-class db:
-	async def ready(self):
-		doc_count = await self.stats.raw.count_documents({})
-		if doc_count >= 2:
-			for doc in range(2,doc_count):
-				await self.stats.inc(1,['stats','db_reads'],await self.stats.read(doc,['stats','db_reads']))
-				await self.stats.inc(1,['stats','db_writes'],await self.stats.read(doc,['stats','db_writes']))
-				await self.stats.inc(1,['stats','messages_seen'],await self.stats.read(doc,['stats','messages_seen']))
-				await self.stats.inc(1,['stats','commands_used'],await self.stats.read(doc,['stats','commands_used']))
-				await self.stats.delete(doc)
-		await self.stats.new(2)
-		await self.stats.write(2,['timestamp'],time())
-
-	@property
-	def inf(self): return base(client.INF)
-	@property
-	def guilds(self): return base(client.guilds)
-	@property
-	def users(self): return base(client.users)
-	@property
-	def test(self): return base(client.test)
-	@property
-	def stats(self): return base(client.status_logs)
-	@property
-	def messages(self): return base(client.messages)
-	@property
-	def dd_roles(self): return base(client.dd_roles)
 
 class utils():
 	def merge(dict:dict,new:dict) -> dict:
@@ -73,13 +43,13 @@ class utils():
 				current = current[name]
 		return res
 
-class base():
-	def __init__(self,collection:Collection):
+class DataCollection():
+	def __init__(self,collection:Collection) -> None:
 		self.collection = collection
 		self.stats = client.status_logs
 
 	@property
-	def raw(self):
+	def raw(self) -> Collection:
 		return self.collection
 
 
@@ -145,3 +115,31 @@ class base():
 		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_reads'],1,True)})
 		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],3,True)})
 		return True
+
+class db:
+	async def ready(self) -> None:
+		doc_count = await self.stats.raw.count_documents({})
+		if doc_count >= 2:
+			for doc in range(2,doc_count):
+				await self.stats.inc(1,['stats','db_reads'],await self.stats.read(doc,['stats','db_reads']))
+				await self.stats.inc(1,['stats','db_writes'],await self.stats.read(doc,['stats','db_writes']))
+				await self.stats.inc(1,['stats','messages_seen'],await self.stats.read(doc,['stats','messages_seen']))
+				await self.stats.inc(1,['stats','commands_used'],await self.stats.read(doc,['stats','commands_used']))
+				await self.stats.delete(doc)
+		await self.stats.new(2)
+		await self.stats.write(2,['timestamp'],time())
+
+	@property
+	def inf(self) -> DataCollection: return DataCollection(client.INF)
+	@property
+	def guilds(self) -> DataCollection: return DataCollection(client.guilds)
+	@property
+	def users(self) -> DataCollection: return DataCollection(client.users)
+	@property
+	def test(self) -> DataCollection: return DataCollection(client.test)
+	@property
+	def stats(self) -> DataCollection: return DataCollection(client.status_logs)
+	@property
+	def messages(self) -> DataCollection: return DataCollection(client.messages)
+	@property
+	def dd_roles(self) -> DataCollection: return DataCollection(client.dd_roles)

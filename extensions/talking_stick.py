@@ -1,20 +1,22 @@
-from random import choice
-from datetime import datetime
-from utils.tyrantlib import has_perm,MakeshiftClass
-from discord.ext.tasks import loop
-from discord.errors import NotFound
-from discord.ext.commands import Cog
-from discord import Role,TextChannel,Embed
 from discord.commands import Option as option,SlashCommandGroup
+from discord import Role,TextChannel,Embed,ApplicationContext
+from utils.tyrantlib import has_perm,MakeshiftClass
+from discord.ext.commands import Cog
+from discord.errors import NotFound
+from discord.ext.tasks import loop
+from datetime import datetime
+from main import client_cls
+from random import choice
 
 class talking_stick_cog(Cog):
-	def __init__(self,client):
+	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 		self.talking_stick_loop.start()
 	
 	stick = SlashCommandGroup('stick','talking stick commands')
 	
-	async def check(self,ctx):
+	async def check(self,ctx:ApplicationContext) -> bool:
 		if not await self.client.db.guilds.read(ctx.guild.id,['config','talking_stick']):
 			await ctx.response.send_message('the talking stick is not enabled on this server. enable it with /config',ephemeral=await self.client.hide(ctx))
 			return False
@@ -30,7 +32,7 @@ class talking_stick_cog(Cog):
 			option(Role,name='limit_role',description='required role to be eligible for talking stick',default=None,required=False)])
 	@has_perm('manage_guild')
 	@has_perm('manage_roles')
-	async def slash_stick_setup(self,ctx,role,channel,limit_role):	
+	async def slash_stick_setup(self,ctx:ApplicationContext,role:Role,channel:TextChannel,limit_role:Role) -> None:	
 
 		if not await self.check(ctx): return
 		
@@ -46,7 +48,7 @@ class talking_stick_cog(Cog):
 		description='force reroll the talking stick')
 	@has_perm('manage_guild')
 	@has_perm('manage_roles')
-	async def slash_stick_reroll(self,ctx):
+	async def slash_stick_reroll(self,ctx) -> None:
 		if not await self.check(ctx): return
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		await self.roll_talking_stick(ctx.guild)
@@ -56,7 +58,7 @@ class talking_stick_cog(Cog):
 	@stick.command(
 		name='active',
 		description='list daily active members')
-	async def slash_stick_active(self,ctx):
+	async def slash_stick_active(self,ctx) -> None:
 		if not await self.check(ctx): return
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		output,nl = [],'\n'
@@ -73,7 +75,7 @@ class talking_stick_cog(Cog):
 				color=await self.client.embed_color(ctx)),
 			ephemeral=await self.client.hide(ctx))
 
-	async def roll_talking_stick(self,guild):
+	async def roll_talking_stick(self,guild) -> None:
 		role = guild.get_role(await self.client.db.guilds.read(guild.id,['roles','talking_stick']))
 		active_members = await self.client.db.guilds.read(guild.id,['active_members'])
 		if len(active_members) == 0: return
@@ -104,7 +106,7 @@ class talking_stick_cog(Cog):
 		await self.client.log.talking_stick(MakeshiftClass(guild=guild,user=member))
 
 	@loop(minutes=1)
-	async def talking_stick_loop(self):
+	async def talking_stick_loop(self) -> None:
 		if datetime.now().strftime("%H:%M") == '09:00':
 			for guild in self.client.guilds:
 				try:
@@ -115,4 +117,4 @@ class talking_stick_cog(Cog):
 					continue
 
 
-def setup(client): client.add_cog(talking_stick_cog(client))
+def setup(client) -> None: client.add_cog(talking_stick_cog(client))

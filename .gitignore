@@ -4,5 +4,5 @@ __pycache__
 /log
 /mongo
 /utils2
-venv/*
+venv
 /.testfiles

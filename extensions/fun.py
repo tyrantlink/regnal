@@ -10,6 +10,7 @@ from re import sub
 
 class fun_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 	
 	@slash_command(
@@ -37,7 +38,7 @@ class fun_cog(Cog):
 		description='invite an embedded application to voice channel',
 		options=[
 			option(str,name='activity_id',description='application id')])
-	async def slash_custom_activity(self,ctx:ApplicationContext,activity_id:str):
+	async def slash_custom_activity(self,ctx:ApplicationContext,activity_id:str) -> None:
 		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
 		try: cache = await self.client.db.guilds.read(0,['activity_cache',str(ctx.author.voice.channel.id)])
 		except: cache = []
@@ -147,7 +148,7 @@ class fun_cog(Cog):
 	@slash_command(
 		name='color',
 		description='generate a random color')
-	async def slash_color(self,ctx):
+	async def slash_color(self,ctx) -> None:
 		color = hex(randint(0,16777215)).upper()
 		res = [f'#{color[2:]}']
 		res.append(f'R: {int(color[2:4],16)}')

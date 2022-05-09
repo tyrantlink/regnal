@@ -7,7 +7,8 @@ from random import choice
 from json import dumps
 
 class commands_cog(Cog):
-	def __init__(self,client:client_cls):
+	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 
 	profile = SlashCommandGroup('profile','get profile of a user or server')

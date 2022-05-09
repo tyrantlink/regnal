@@ -1,4 +1,4 @@
-from discord.ui import View,Button,Select,button,select,Modal,InputText,Item
+from discord.ui import View,Button,Select,button,Modal,InputText,Item
 from discord import SelectOption,Interaction,Embed,ApplicationContext
 from discord.commands import slash_command
 from discord.ext.commands import Cog
@@ -177,6 +177,7 @@ class view(View):
 
 class config_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 
 	@slash_command(

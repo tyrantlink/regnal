@@ -1,21 +1,22 @@
+from discord import Embed,User,TextChannel,File,Message,ApplicationContext,Member
 from discord.commands import SlashCommandGroup,Option as option
 from discord.ext.commands import Cog,message_command
-from discord import Embed,User,TextChannel,File
 from discord.utils import escape_markdown
 from utils.tyrantlib import has_perm
 from datetime import datetime
+from main import client_cls
 from io import StringIO
 from re import findall
 from json import dumps
 from time import time
 
 class log_listeners(Cog):
-	def __init__(self,client):
+	def __init__(self,client:client_cls) -> None:
 		self.client = client
 		self.recently_deleted = []
 
 	@Cog.listener()
-	async def on_message(self,message):
+	async def on_message(self,message:Message) -> None:
 		if not message.guild: return
 		guild_data = await self.client.db.guilds.read(message.guild.id)
 		if not guild_data['log_config']['enabled']: return
@@ -41,7 +42,7 @@ class log_listeners(Cog):
 					f'[{message.id}] "{message.content}" by {message.author} was filtered in {message.channel.mention}')
 
 	@Cog.listener()
-	async def on_message_edit(self,before,after):
+	async def on_message_edit(self,before:Message,after:Message) -> None:
 		if not before.guild or before.content == after.content: return
 		guild_data = await self.client.db.guilds.read(before.guild.id)
 		if  not guild_data['log_config']['enabled']: return
@@ -68,7 +69,7 @@ class log_listeners(Cog):
 			response if len(response) < 2000 else f'[{before.id}] {before.author} edited a message. character limit reached, use /get_log by_id {before.id} to see full details')
 	
 	@Cog.listener()
-	async def on_message_delete(self,message):
+	async def on_message_delete(self,message:Message) -> None:
 		if message.id in self.recently_deleted:
 			self.recently_deleted.remove(message.id)
 			return
@@ -91,7 +92,7 @@ class log_listeners(Cog):
 			response if len(response) < 2000 else f'[{message.id}] {message.author} deleted a message. character limit reached, use /get_log by_id {message.id} to see full details')
 
 	@Cog.listener()
-	async def on_bulk_message_delete(self,messages):
+	async def on_bulk_message_delete(self,messages:list[Message]) -> None:
 		if not messages[0].guild: return
 		guild_data = await self.client.db.guilds.read(messages[0].guild.id)
 		if not guild_data['log_config']['enabled']: return
@@ -107,9 +108,8 @@ class log_listeners(Cog):
 		await self.client.get_channel(guild_data['log_config']['log_channel']).send(
 			f'{len(messages)} messages were bulk deleted in {messages[0].channel.mention}\n{" ".join(message_ids)}')
 
-
 	@Cog.listener()
-	async def on_member_join(self,member):
+	async def on_member_join(self,member:Member) -> None:
 		guild_data = await self.client.db.guilds.read(member.guild.id)
 
 		if guild_data['log_config']['log_channel'] and guild_data['log_config']['member_join']:
@@ -117,14 +117,14 @@ class log_listeners(Cog):
 				f'[{member.id}] {member} joined the server.')
 
 	@Cog.listener()
-	async def on_member_remove(self,member):
+	async def on_member_remove(self,member:Member) -> None:
 		guild_data = await self.client.db.guilds.read(member.guild.id)
 
 		if guild_data['log_config']['log_channel'] and guild_data['log_config']['member_leave']:
 			await self.client.get_channel(guild_data['log_config']['log_channel']).send(
 				f'[{member.id}] {member} left the server.')
 	
-	async def log(self,message,type,after_message=None,delreason='deleted by a user'):
+	async def log(self,message:Message,type:str,after_message:Message=None,delreason:str='deleted by a user') -> None:
 		if message.author == self.client.user: return
 		response = await self.client.db.messages.read(message.id)
 
@@ -165,7 +165,8 @@ class log_listeners(Cog):
 				await self.client.db.messages.write(message.id,['status'],type)
 
 class log_commands(Cog):
-	def __init__(self,client):
+	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 	
 	get_log = SlashCommandGroup('get_log','get log information')
@@ -173,7 +174,7 @@ class log_commands(Cog):
 	regex_guild = regex.create_subgroup('guild','guild regex filters')
 	regex_channel = regex.create_subgroup('channel','channel regex filters')
 
-	async def base_get_by_id(self,message_id,guild_id):
+	async def base_get_by_id(self,message_id:str|int,guild_id:str|int) -> str:
 		try: message_id = int(message_id)
 		except: return 'invalid message id'
 		message_data = await self.client.db.messages.read(message_id)
@@ -186,7 +187,7 @@ class log_commands(Cog):
 		description='set logging channel',
 		options=[option(TextChannel,name='channel',description='channel to broadcast logs to')])
 	@has_perm('administrator')
-	async def slash_get_log_set_channel(self,ctx,channel):
+	async def slash_get_log_set_channel(self,ctx:ApplicationContext,channel:TextChannel) -> None:
 		await self.client.db.guilds.write(ctx.guild.id,['log_config','log_channel'],channel.id)
 		await ctx.response.send_message('logging enabled',required=False)
 
@@ -195,7 +196,7 @@ class log_commands(Cog):
 		options=[
 			option(str,name='message_id',description='id of message, 18 digits long.')])
 	@has_perm('view_audit_log')
-	async def slash_get_by_id(self,ctx,message_id):
+	async def slash_get_by_id(self,ctx:ApplicationContext,message_id:str|int) -> None:
 		await ctx.defer(ephemeral=True)
 		response = await self.base_get_by_id(message_id,ctx.guild.id)
 		if len(response)+8 > 2000: await ctx.response.send_message('response too long. sent as file',file=File(StringIO(response),f'{message_id}.json'),ephemeral=True)
@@ -207,7 +208,7 @@ class log_commands(Cog):
 			option(User,name='user',description='user'),
 			option(str,name='status',description='message type',choices=['sent','edited','deleted'])])
 	@has_perm('view_audit_log')
-	async def slash_get_recent_from(self,ctx,user,status):
+	async def slash_get_recent_from(self,ctx:ApplicationContext,user:User|Member,status:str) -> None:
 		await ctx.defer(ephemeral=True)
 		data = [doc async for doc in self.client.db.messages.raw.find({'guild_id':ctx.guild.id,'author_id':user.id,'status':status},sort=[('_id',-1)],limit=10)]
 		if data == []:
@@ -219,7 +220,7 @@ class log_commands(Cog):
 	@get_log.command(name='recent',
 		description='get ten most recent logs')
 	@has_perm('view_audit_log')
-	async def slash_get_recent(self,ctx):
+	async def slash_get_recent(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=True)
 		data = [doc async for doc in self.client.db.messages.raw.find({'guild_id':ctx.guild.id},sort=[('_id',-1)],limit=10)]
 
@@ -234,7 +235,7 @@ class log_commands(Cog):
 		options=[
 			option(str,name='sorting',description='sorting order',choices=['newest first','oldest first'])])
 	@has_perm('view_audit_log')
-	async def slash_get_history(self,ctx,sorting):
+	async def slash_get_history(self,ctx:ApplicationContext,sorting:str) -> None:
 		await ctx.defer(ephemeral=True)
 		if time()-await self.client.db.guilds.read(ctx.guild.id,['last_history']) < 86400:
 			await ctx.response.send_message('you cannot use this command again until 24 hours have passed.',ephemeral=True)
@@ -253,7 +254,7 @@ class log_commands(Cog):
 	@regex_guild.command(name='list',
 		description='list current guild-wide filters')
 	@has_perm('manage_messages')
-	async def slash_regex_guild_list(self,ctx):
+	async def slash_regex_guild_list(self,ctx:ApplicationContext) -> None:
 		res = await self.client.db.guilds.read(ctx.guild.id,['regex','guild'])
 		await ctx.response.send_message(embed=Embed(title='current guild filters regex' if res else 'no guild regex filters set',description=escape_markdown('\n'.join(res))),ephemeral=True)
 
@@ -262,7 +263,7 @@ class log_commands(Cog):
 		options=[
 			option(TextChannel,name='channel',description='channel')])
 	@has_perm('manage_messages')
-	async def slash_regex_channel_list(self,ctx,channel):
+	async def slash_regex_channel_list(self,ctx:ApplicationContext,channel:TextChannel) -> None:
 		try: res = await self.client.db.guilds.read(ctx.guild.id,['regex','channel',channel])
 		except: res = []
 		await ctx.response.send_message(embed=Embed(title=f'{channel.mention} regex filters' if res else 'no channel regex filters set',description=escape_markdown('\n'.join(res))),ephemeral=True)
@@ -272,7 +273,7 @@ class log_commands(Cog):
 		option=[
 			option(str,name='filter',description='regex filter')])
 	@has_perm('manage_messages')
-	async def slash_regex_guild_add(self,ctx,filter):
+	async def slash_regex_guild_add(self,ctx:ApplicationContext,filter:str) -> None:
 		await self.client.db.guilds.append(ctx.guild.id,['regex','guild'],filter)
 		await ctx.response.send_message(f'successfully added {escape_markdown(filter)} to the guild filter list.',ephemeral=True)
 
@@ -282,7 +283,7 @@ class log_commands(Cog):
 			option(TextChannel,name='channel',description='channel'),
 			option(str,name='filter',description='regex filter')])
 	@has_perm('manage_messages')
-	async def slash_regex_channel_add(self,ctx,channel,filter):
+	async def slash_regex_channel_add(self,ctx:ApplicationContext,channel:TextChannel,filter:str) -> None:
 		await self.client.db.guilds.append(ctx.guild.id,['regex','channel',str(channel.id)],filter)
 		await ctx.response.send_message(f'successfully added {escape_markdown(filter)} to the {channel.mention} filter list.',ephemeral=True)
 
@@ -291,7 +292,7 @@ class log_commands(Cog):
 		option=[
 			option(str,name='filter',description='regex filter')])
 	@has_perm('manage_messages')
-	async def slash_regex_guild_remove(self,ctx,filter):
+	async def slash_regex_guild_remove(self,ctx:ApplicationContext,filter:str) -> None:
 		await self.client.db.guilds.remove(ctx.guild.id,['regex','guild'],filter)
 		await ctx.response.send_message(f'successfully removed {escape_markdown(filter)} from the guild filter list.',ephemeral=True)
 
@@ -301,19 +302,19 @@ class log_commands(Cog):
 			option(TextChannel,name='channel',description='channel'),
 			option(str,name='filter',description='regex filter')])
 	@has_perm('manage_messages')
-	async def slash_regex_channel_remove(self,ctx,channel,filter):
+	async def slash_regex_channel_remove(self,ctx:ApplicationContext,channel:TextChannel,filter:str) -> None:
 		await self.client.db.guilds.remove(ctx.guild.id,['regex','channel',str(channel.id)],filter)
 		await ctx.response.send_message(f'successfully removed {escape_markdown(filter)} from the {channel.mention} filter list.',ephemeral=True)
 
 
 	@message_command(name='message data')
-	async def message_get_by_id(self,ctx,message):
+	async def message_get_by_id(self,ctx:ApplicationContext,message:Message) -> None:
 		await ctx.defer(ephemeral=True)
 		response = await self.base_get_by_id(message.id,ctx.guild.id)
 		if len(response)+8 > 2000: await ctx.response.send_message('response too long. sent as file',file=File(StringIO(response),filename=f'{message.id}.json'),ephemeral=True)
 		else: await ctx.response.send_message(f'```\n{response}\n```',ephemeral=True)
 
 
-def setup(client):
+def setup(client:client_cls) -> None:
 	client.add_cog(log_listeners(client))
 	client.add_cog(log_commands(client))	

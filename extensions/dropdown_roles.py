@@ -6,9 +6,6 @@ from utils.tyrantlib import has_perm
 from discord.errors import Forbidden
 from main import client_cls
 
-
-
-
 class dropdown(Select):
 	def __init__(self,client:client_cls,options:list,placeholder:str) -> None:
 		self.client = client
@@ -48,6 +45,7 @@ class view(View):
 
 class dropdown_roles_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 
 	@Cog.listener()

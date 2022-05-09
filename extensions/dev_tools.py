@@ -5,11 +5,8 @@ from utils.tyrantlib import has_perm,load_data
 from main import client_cls,extensions
 from discord.ui import InputText,Modal
 from sys import argv,executable
-from os import system,execv
 from json import dumps
-
-
-
+from os import system
 
 class input_modal(Modal):
 	def __init__(self,client:client_cls,format:str) -> None:
@@ -84,6 +81,7 @@ class input_modal(Modal):
 
 class dev_tools_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 
 	dev = SlashCommandGroup('dev','bot owner commands')

@@ -6,6 +6,7 @@ from main import client_cls
 
 class admin_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 
 	admin = SlashCommandGroup('admin','admin commands')

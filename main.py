@@ -1,24 +1,24 @@
 #!./venv/bin/python3.10
 from time import perf_counter
 st = perf_counter()
-from sys import argv
-from requests import get
-from inspect import stack
-from discord import Intents
-from asyncio import wait_for
-from utils.data import db,env
-from os import urandom
-from websockets import connect
-from datetime import datetime
-from pymongo import MongoClient
+from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild
+from utils.tyrantlib import convert_time,load_data,format_bytes,MakeshiftClass
+from discord.ext.commands import Cog,Bot,slash_command
+from discord.commands import SlashCommandGroup
+from requests.auth import HTTPDigestAuth
+from discord.errors import CheckFailure
 from traceback import format_exception
 from discord.ext.tasks import loop
-from requests.auth import HTTPDigestAuth
-from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild
-from discord.ext.commands import Cog,Bot,slash_command
-from utils.tyrantlib import convert_time,has_perm,load_data,format_bytes,MakeshiftClass
-from discord.commands import SlashCommandGroup,Option as option
-from discord.errors import CheckFailure
+from pymongo import MongoClient
+from websockets import connect
+from utils.data import db,env
+from datetime import datetime
+from asyncio import wait_for
+from discord import Intents
+from inspect import stack
+from requests import get
+from os import urandom
+from sys import argv
 
 with open('mongo') as mongo:
 	mongo = MongoClient(mongo.read())['reg-nal']['INF']
@@ -32,8 +32,8 @@ class log:
 		self._db = db
 		self.reglog = reglog
 
-	async def _base(self,log:str,send:bool=True,short_log:str=None) -> None:
-		log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}] [{stack()[1].function.upper()}] {log}'
+	async def _base(self,log:str,send:bool=True,short_log:str=None,custom:bool=False) -> None:
+		if not custom: log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if "--dev" in argv else " "}[{stack()[1].function.upper()}] {log}'
 		with open('log','a') as f: f.write(log+'\n' if short_log is None else short_log+'\n')
 		if send:
 			try:
@@ -60,8 +60,11 @@ class log:
 		if log is None: log = f'{ctx.author} got the talking stick in {ctx.guild.name if ctx.guild else "DMs"}'
 		await self._base(log,await self._db.inf.read('/reg/nal',['config','talking_stick_stdout']))
 	
-	async def info(self,log:str):
+	async def info(self,log:str) -> None:
 		await self._base(log,await self._db.inf.read('/reg/nal',['config','info_stdout']))
+
+	async def custom(self,log:str,send:bool=True,short_log:str=None) -> None:
+		await self._base(log,send,short_log,custom=True)
 	
 	async def error(self,log:Exception|str,short_log:str=None) -> None:
 		if short_log == None: short_log = str(log)
@@ -75,7 +78,7 @@ class log:
 		await self._base(log,await self._db.inf.read('/reg/nal',['config','debug_stdout']))
 
 class client_cls(Bot):
-	def __init__(self):
+	def __init__(self) -> None:
 		global extensions
 		super().__init__('i lika, do, da cha cha',None,intents=Intents.all())
 		self.MISSING = urandom(16).hex()
@@ -85,11 +88,17 @@ class client_cls(Bot):
 		self.log = log(self.db,self.env.reglog)
 		self.add_cog(base_commands(self))
 		self.add_cog(message_handler(self))
-		self.loaded_extensions = []
+		self.loaded_extensions,self._raw_loaded_extensions = [],[]
 		for extension in extensions:
 			if extensions[extension]:
 				self.load_extension(f'extensions.{extension}')
-				self.loaded_extensions.append(extension)
+	
+	def _extloaded(self) -> None:
+		cog = stack()[1].filename.replace('.py','').split('/')[-1]
+		if cog in self._raw_loaded_extensions: return
+		
+		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if "--dev" in argv else " "}[EXT] {cog} loaded')
+		self._raw_loaded_extensions.append(cog)
 
 	async def embed_color(self,ctx:ApplicationContext) -> int:
 		return await self.db.guilds.read(ctx.guild.id,['config','embed_color']) if ctx.guild else await self.db.guilds.read(0,['config','embed_color'])
@@ -105,7 +114,9 @@ class client_cls(Bot):
 			await self.db.inf.read('/reg/nal',['config','bypass_permissions']))
 		await self.change_presence(activity=Activity(type=ActivityType.listening,name='uptime: 0 hours'))
 		await self.log.info('successfully connected to /reg/log')
-		await self.log.info(f'loaded extensions: {",".join(self.loaded_extensions)}')
+		if '--dev' in argv:await self.log.debug('LAUNCHED IN DEV MODE')
+		await self.log.custom('\n'.join(self.loaded_extensions),short_log='loaded extensions: '+','.join(self._raw_loaded_extensions))
+		# await self.log.info(f'loaded extensions: {",".join(self.loaded_extensions)}')
 	
 	async def on_ready(self) -> None:
 		await self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds')
@@ -222,4 +233,4 @@ class message_handler(Cog):
 client = client_cls()
 
 if __name__ == '__main__':
-	client.run(client.env.token)
+	client.run(client.env.dev_token if '--dev' in argv else client.env.token)

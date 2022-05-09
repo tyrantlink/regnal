@@ -1,13 +1,16 @@
-from time import time
-from datetime import datetime
-from aiohttp import ClientSession
-from discord.ext.tasks import loop
-from discord.ext.commands import Cog
 from discord.commands import SlashCommandGroup
-from utils.tyrantlib import convert_time,has_perm
+from discord import ApplicationContext
+from utils.tyrantlib import has_perm
+from discord.ext.commands import Cog
+from discord.ext.tasks import loop
+from aiohttp import ClientSession
+from datetime import datetime
+from main import client_cls
+from time import time
 
 class splat2mapwatch_cog(Cog):
-	def __init__(self,client):
+	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 		self.channel = None
 		self.channel_id = 969251621844418580
@@ -22,13 +25,12 @@ class splat2mapwatch_cog(Cog):
 		name='restart_mapwatch',
 		description='restart mapwatch loop')
 	@has_perm('bot_owner')
-	async def slash_splatoon_restart_mapwatch(self,ctx):
+	async def slash_splatoon_restart_mapwatch(self,ctx:ApplicationContext) -> None:
 		self.mapwatch_loop.restart()
 		await ctx.response.send_message('mapwatch loop restarted')
 
-
 	@loop(hours=1)
-	async def mapwatch_loop(self):
+	async def mapwatch_loop(self) -> None:
 		async with ClientSession() as session:
 			async with session.get('https://splatoon2.ink/data/schedules.json') as req:
 				res,dm = await req.json(),[]
@@ -42,7 +44,7 @@ class splat2mapwatch_cog(Cog):
 				if dm: await self.channel.send('\n'.join(dm))
 		
 	@loop(seconds=5)
-	async def soon_loop(self):
+	async def soon_loop(self) -> None:
 		if self.soon == []: return
 		if self.soon[0]-time() <= self.soon[1]:
 			match self.soon[1]:
@@ -63,5 +65,5 @@ class splat2mapwatch_cog(Cog):
 
 
 
-def setup(client):
+def setup(client) -> None:
 	client.add_cog(splat2mapwatch_cog(client))

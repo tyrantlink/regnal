@@ -1,19 +1,21 @@
-from random import choice
-from datetime import datetime
-from utils.tyrantlib import has_perm
-from discord.ext.tasks import loop
-from discord.ext.commands import Cog
-from discord import TextChannel,Embed
 from discord.commands import Option as option,SlashCommandGroup
+from discord import TextChannel,Embed,ApplicationContext
+from utils.tyrantlib import has_perm
+from discord.ext.commands import Cog
+from discord.ext.tasks import loop
+from datetime import datetime
+from main import client_cls
+from random import choice
 
 class qotd_cog(Cog):
-	def __init__(self,client):
+	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 		self.qotd_loop.start()
 
 	qotd = SlashCommandGroup('qotd','question of the day commands')
 
-	async def check(self,ctx):
+	async def check(self,ctx:ApplicationContext) -> bool:
 		if not await self.client.db.guilds.read(ctx.guild.id,['config','qotd']):
 			await ctx.response.send_message('qotd is not enabled on this server. enable it with /config',ephemeral=await self.client.hide(ctx))
 			return False
@@ -25,7 +27,7 @@ class qotd_cog(Cog):
 		options=[
 			option(TextChannel,name='channel',description='qotd question channel')])
 	@has_perm('manage_guild')
-	async def slash_qotd_setup(self,ctx,channel):
+	async def slash_qotd_setup(self,ctx:ApplicationContext,channel:TextChannel) -> None:
 		if not await self.check(ctx): return
 		await self.client.db.guilds.write(ctx.guild.id,['channels','qotd'],channel.id)
 		await ctx.response.send_message(
@@ -40,7 +42,7 @@ class qotd_cog(Cog):
 				choices=['add as next question','add as next question, then add to pool','add to question pool']),
 			option(str,name='question',description='question to be asked')])
 	@has_perm('manage_guild')
-	async def slash_qotd_add_question(self,ctx,type,question):
+	async def slash_qotd_add_question(self,ctx:ApplicationContext,type:str,question:str) -> None:
 		match type:
 			case 'add as next question':
 				await self.client.db.guilds.append(ctx.guild.id,['qotd','nextup'],question)
@@ -53,7 +55,7 @@ class qotd_cog(Cog):
 
 	
 	@loop(minutes=1)
-	async def qotd_loop(self):
+	async def qotd_loop(self) -> None:
 		if datetime.now().strftime("%H:%M") == '09:00':
 			for guild in self.client.guilds:
 				try:
@@ -73,4 +75,4 @@ class qotd_cog(Cog):
 					continue
 
 
-def setup(client): client.add_cog(qotd_cog(client))
+def setup(client:client_cls) -> None: client.add_cog(qotd_cog(client))
