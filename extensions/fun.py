@@ -166,13 +166,13 @@ class fun_cog(Cog):
 	
 	@slash_command(
 		name='shorten',
-		description='shorten a link with s.nutt.dev',
+		description='shorten a link with s.tyrant.link',
 		options=[
 			option(str,name='url',description='e.g. https://example.com'),
 			option(str,name='name',description='name of link'),
-			option(str,name='path',description='s.nutt.dev/{path}, randomized if left empty',required=None,default=None)])
+			option(str,name='path',description='s.tyrant.link/{path}, randomized if left empty',required=None,default=None)])
 	async def slash_shorten(self,ctx:ApplicationContext,url:str,name:str,path:str) -> None:
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
+		# await ctx.defer(ephemeral=await self.client.hide(ctx))
 		link_data = {
 			"longUrl": url,
 			"title": name,
@@ -183,19 +183,20 @@ class fun_cog(Cog):
 			async with session.post('https://s.tyrant.link/rest/v2/short-urls',json=link_data,headers={'X-Api-Key':self.client.env.shlink}) as res:
 				out = await res.json()
 				match res.status:
-					case 200: await ctx.response.send_message(
-											embed=Embed(
-												title='your link has been shortened:',
-												description=out['shortURL'],
-												color=await self.client.embed_color(ctx)),
-											ephemeral=await self.client.hide(ctx))
+					case 200:
+						await ctx.response.send_message(
+							embed=Embed(
+								title='your link has been shortened:',
+								description=sub('http://','https://',out['shortUrl']),
+								color=await self.client.embed_color(ctx)),
+							ephemeral=await self.client.hide(ctx))
 					case 400:
 						if out['detail'] == f'Provided slug "{path}" is already in use.':
-							ctx.response.send_message(f'path {path} is already in use')
+							await ctx.response.send_message(f'path "{path}" is already in use',ephemeral=await self.client.hide(ctx))
 						else:
-							ctx.response.send_message(f'unknown error, please submit issue with /issue\ndetails: {out["detail"]}',ephemeral=await self.client.hide(ctx))
+							await ctx.response.send_message(f'unknown error, please submit issue with /issue\ndetails: {out["detail"]}',ephemeral=await self.client.hide(ctx))
 							await self.client.log.error(f'[SHLINK] {out["detail"]}')
-					case _: ctx.response.send_message(f'unknown error, please submit issue with /issue\nstatus code: {res.status}',ephemeral=await self.client.hide(ctx))
+					case _: await ctx.response.send_message(f'unknown error, please submit issue with /issue\nstatus code: {res.status}',ephemeral=await self.client.hide(ctx))
 
 
 	@slash_command(

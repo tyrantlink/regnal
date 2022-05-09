@@ -34,7 +34,7 @@ class log:
 
 	async def _base(self,log:str,send:bool=True,short_log:str=None) -> None:
 		log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}] [{stack()[1].function.upper()}] {log}'
-		with open('log','a') as f: f.write(log if short_log is None else short_log+'\n')
+		with open('log','a') as f: f.write(log+'\n' if short_log is None else short_log+'\n')
 		if send:
 			try:
 				async with connect(self.reglog) as ws:
@@ -109,9 +109,6 @@ class client_cls(Bot):
 	
 	async def on_ready(self) -> None:
 		await self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds')
-	
-	async def on_error(self,event_method) -> None:
-		await self.log.error(f'{event_method} raised an error')
 
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return
