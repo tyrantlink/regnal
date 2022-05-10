@@ -136,6 +136,7 @@ class fun_cog(Cog):
 			await message.add_reaction(reaction)
 		
 		if other: message.create_thread(name=title)
+		await ctx.followup.send(f'poll started: {message.jump_url}')
 	
 	@slash_command(
 		name='8ball',
@@ -173,7 +174,6 @@ class fun_cog(Cog):
 			option(str,name='name',description='name of link'),
 			option(str,name='path',description='s.tyrant.link/{path}, randomized if left empty',required=None,default=None)])
 	async def slash_shorten(self,ctx:ApplicationContext,url:str,name:str,path:str) -> None:
-		# await ctx.defer(ephemeral=await self.client.hide(ctx))
 		link_data = {
 			"longUrl": url,
 			"title": name,

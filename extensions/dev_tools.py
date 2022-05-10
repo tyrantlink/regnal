@@ -138,15 +138,41 @@ class dev_tools_cog(Cog):
 		name='test',
 		description='used for testing, various uses',
 		options=[
+			option(int,name='test_case',description='test case to run',choices=[i for i in range(25)]),
 			option(str,name='arg1',description='argument one',required=False,default=None),
 			option(str,name='arg2',description='argument two',required=False,default=None),
 			option(str,name='arg3',description='argument three',required=False,default=None),
 			option(str,name='arg4',description='argument four',required=False,default=None),
-			option(str,name='arg5',description='argument five',required=False,default=None,choices=['a','b','c',])])
+			option(str,name='arg5',description='argument five',required=False,default=None)])
 	@has_perm('bot_owner')
-	async def slash_dev_test(self,ctx:ApplicationContext,arg1:str,arg2:str,arg3:str,arg4:str,arg5:str) -> None:
-		self.client.reload_extension('extensions.dev_tools')
-		await ctx.response.send_message('cum',ephemeral=True)
+	async def slash_dev_test(self,ctx:ApplicationContext,test_case:int,arg1:str,arg2:str,arg3:str,arg4:str,arg5:str) -> None:
+		match test_case:
+			case 0: await ctx.response.send_message('\n'.join([cmd.qualified_name for cmd in self.client.walk_application_commands()]),ephemeral=await self.client.hide(ctx))
+			case 1: pass
+			case 2: pass
+			case 3: pass
+			case 4: pass
+			case 5: pass
+			case 6: pass
+			case 7: pass
+			case 8: pass
+			case 9: pass
+			case 10: pass
+			case 11: pass
+			case 12: pass
+			case 13: pass
+			case 14: pass
+			case 15: pass
+			case 16: pass
+			case 17: pass
+			case 18: pass
+			case 19: pass
+			case 20: pass
+			case 21: pass
+			case 22: pass
+			case 23: pass
+			case 24: pass
+			case _: await ctx.response.send_message('test case not found',ephemeral=True)
 	
 	@dev.command(
 		name='clear_console',
@@ -225,13 +251,13 @@ class dev_tools_cog(Cog):
 			if len(res) > 2000:
 				if mode == 'read': res = res[8:-4]
 				for message in [res[i:i+1988] for i in range(0,len(res),1988)]:
-					await ctx.response.send_message(f'```json\n{message}\n```' if mode == 'read' else message,ephemeral=await self.client.hide(ctx))
+					await ctx.followup.send(f'```json\n{message}\n```' if mode == 'read' else message,ephemeral=await self.client.hide(ctx))
 			else:
-				await ctx.response.send_message(res,ephemeral=await self.client.hide(ctx))
+				await ctx.followup.send(res,ephemeral=await self.client.hide(ctx))
 		elif isinstance(res,bool):
-			await ctx.response.send_message(f'successfully set {">".join(path)} to {value}',ephemeral=await self.client.hide(ctx))
+			await ctx.followup.send(f'successfully set {">".join(path)} to {value}',ephemeral=await self.client.hide(ctx))
 		else:
-			await ctx.response.send_message('uhhhhhhhhh, somethin\' happened. you might wanna check it out.',ephemeral=await self.client.hide(ctx))
+			await ctx.followup.send('uhhhhhhhhh, somethin\' happened. you might wanna check it out.',ephemeral=await self.client.hide(ctx))
 
 	@dev.command(
 		name='tester',
@@ -241,7 +267,6 @@ class dev_tools_cog(Cog):
 			option(str,name='user_id',description='id of target user')])
 	@has_perm('bot_owner')
 	async def slash_dev_tester(self,ctx:ApplicationContext,mode:str,user_id:str) -> None:
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		match mode:
 			case 'add':
 				await self.client.db.inf.append('/reg/nal',['development','testers'],int(user_id))
@@ -258,7 +283,8 @@ class dev_tools_cog(Cog):
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
 	@has_perm('bot_owner')
 	async def slash_dev_reload(self,ctx:ApplicationContext,extension:str) -> None:
-		if extension not in self.client.loaded_extensions:
+		print(self.client._raw_loaded_extensions)
+		if extension not in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
 			return
 		self.client.reload_extension(f'extensions.{extension}')
@@ -271,7 +297,7 @@ class dev_tools_cog(Cog):
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
 	@has_perm('bot_owner')
 	async def slash_dev_load(self,ctx:ApplicationContext,extension:str) -> None:
-		if extension in self.client.loaded_extensions:
+		if extension in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is already loaded',ephemeral=True)
 			return
 		self.client.load_extension(f'extensions.{extension}')
@@ -284,7 +310,7 @@ class dev_tools_cog(Cog):
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
 	@has_perm('bot_owner')
 	async def slash_dev_unload(self,ctx:ApplicationContext,extension:str) -> None:
-		if extension not in self.client.loaded_extensions:
+		if extension not in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
 			return
 		self.client.unload_extension(f'extensions.{extension}')

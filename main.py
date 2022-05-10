@@ -119,7 +119,6 @@ class client_cls(Bot):
 		await self.log.info('successfully connected to /reg/log')
 		if DEV_MODE: await self.log.debug('LAUNCHED IN DEV MODE')
 		await self.log.custom('\n'.join(self.loaded_extensions),short_log='loaded extensions: '+','.join(self._raw_loaded_extensions))
-		# await self.log.info(f'loaded extensions: {",".join(self.loaded_extensions)}')
 	
 	async def on_ready(self) -> None:
 		await self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds')
@@ -142,8 +141,6 @@ class base_commands(Cog):
 		self.client:Bot = client
 		self.uptime_hours = 0
 		self.uptime_loop.start()
-
-	extension = SlashCommandGroup('extension','manage extensions')
 	
 	@slash_command(
 		name='stats',
@@ -172,7 +169,7 @@ class base_commands(Cog):
 		embed.add_field(name='total cost',value=f"${format((past_price+month_price)/100,'.2f')} (${format(month_price/100,'.2f')} so far this month)",inline=False)
 		embed.add_field(name='total db size',value=format_bytes((await self.client.db.messages.raw.database.command('dbstats'))['dataSize']))
 
-		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
 		name='uptime',

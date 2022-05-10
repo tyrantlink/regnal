@@ -34,21 +34,21 @@ class minecraft_cog(Cog):
 				await ws.send(dumps(packet))
 				try: response = loads(await wait_for(ws.recv(),5))
 				except TimeoutError:
-					if reply: await ctx.send('failed to connect to host: response timed out',ephemeral=await self.client.hide(ctx))
+					if reply: await ctx.followup.send('failed to connect to host: response timed out',ephemeral=await self.client.hide(ctx))
 					return False
 				if always_give_response: return response
 				if response['success'][0]: return response
 				else:
-					if reply: await ctx.send(f'error: {response["success"][1]}',ephemeral=await self.client.hide(ctx))
+					if reply: await ctx.followup.send(f'error: {response["success"][1]}',ephemeral=await self.client.hide(ctx))
 					return False
 		except OSError:
-			if reply: await ctx.send('failed to connect to host: connection refused',ephemeral=await self.client.hide(ctx))
+			if reply: await ctx.followup.send('failed to connect to host: connection refused',ephemeral=await self.client.hide(ctx))
 			return False
 
 	async def ping(self,ctx:ApplicationContext,server:str,from_ping_command:bool=False) -> None:
 		response = await self.send(ctx,server,packets.ping(server,ctx.author))
 		if response is False: return False
-		if from_ping_command: await ctx.send(f'{server} ping: {response["data"]["ping"]}ms',ephemeral=await self.client.hide(ctx))
+		if from_ping_command: await ctx.followup.send(f'{server} ping: {response["data"]["ping"]}ms',ephemeral=await self.client.hide(ctx))
 		return True
 
 	@mc.command(
@@ -60,6 +60,7 @@ class minecraft_cog(Cog):
 	# @has_perm('administrator')
 	@has_perm('bot_owner')
 	async def slash_mc_add(self,ctx:ApplicationContext,server:str,mc_regnal_host:str) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		# command can only be run by mc_regnal host
 		# send add packet to mc_regnal
 		# if success add server to db
@@ -74,6 +75,7 @@ class minecraft_cog(Cog):
 	# @has_perm('administrator')
 	@has_perm('bot_owner')
 	async def slash_mc_update(self,ctx:ApplicationContext,server:str) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		# command can only be run by mc_regnal host
 		# send update packet to mc_regnal
 		# if success update server in db
@@ -88,6 +90,7 @@ class minecraft_cog(Cog):
 	# @has_perm('administrator')
 	@has_perm('bot_owner')
 	async def slash_mc_remove(self,ctx:ApplicationContext,server:str) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		# remove server from db
 		pass
 
@@ -98,9 +101,10 @@ class minecraft_cog(Cog):
 			option(str,name='server',description='server name')])
 	@has_perm('bot_owner')
 	async def slash_mc_start(self,ctx:ApplicationContext,server:str) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		response = self.send(ctx,server,packets.start(server,ctx.author))
 		if response is False: return
-		await ctx.send(f'started {server}',ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send(f'started {server}',ephemeral=await self.client.hide(ctx))
 
 	@mc.command(
 		name='stop',
@@ -110,10 +114,11 @@ class minecraft_cog(Cog):
 			option(bool,name='force',description='force stop even if players are online',requried=False,default=False)])
 	@has_perm('bot_owner')
 	async def slash_mc_stop(self,ctx:ApplicationContext,server:str,force:bool) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return
 		response = self.send(ctx,server,packets.stop(server,ctx.author,force))
 		if response is False: return
-		await ctx.send(f'stopped {server}',ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send(f'stopped {server}',ephemeral=await self.client.hide(ctx))
 
 	@mc.command(
 		name='restart',
@@ -123,10 +128,11 @@ class minecraft_cog(Cog):
 			option(bool,name='force',description='force stop even if players are online',requried=False,default=False)])
 	@has_perm('bot_owner')
 	async def slash_mc_restart(self,ctx:ApplicationContext,server:str,force:bool) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return
 		response = self.send(ctx,server,packets.restart(server,ctx.author,force))
 		if response is False: return
-		await ctx.send(f'restarted {server}',ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send(f'restarted {server}',ephemeral=await self.client.hide(ctx))
 
 	@mc.command(
 		name='ping',
@@ -146,12 +152,13 @@ class minecraft_cog(Cog):
 			option(str,name='command',description='command')])
 	@has_perm('bot_owner')
 	async def slash_mc_command(self,ctx:ApplicationContext,server:str,command:str) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return
 		response = await self.send(ctx,server,packets.command(server,ctx.author,command))
 		if response is False: return
 		out = f'command "{command}" on {server}:\n```{response["data"]["command"]}```'
-		if len(out) > 2000: await ctx.send(f'{out[:1972]}\n\nMAX MESSAGE LENGTH REACHED',ephemeral=await self.client.hide(ctx))
-		else: await ctx.send(out,ephemeral=await self.client.hide(ctx))
+		if len(out) > 2000: await ctx.followup.send(f'{out[:1972]}\n\nMAX MESSAGE LENGTH REACHED',ephemeral=await self.client.hide(ctx))
+		else: await ctx.followup.send(out,ephemeral=await self.client.hide(ctx))
 
 	@mc.command(
 		name='online',
@@ -160,8 +167,8 @@ class minecraft_cog(Cog):
 			option(str,name='server',description='server name')])
 	@has_perm('bot_owner')
 	async def slash_mc_online(self,ctx:ApplicationContext,server:str) -> None:
-		if not await self.ping(ctx,server): return
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
+		if not await self.ping(ctx,server): return
 		response = await self.send(ctx,server,packets.online(server,ctx.author))
 		if not response: return
 		embed = Embed(
@@ -170,7 +177,7 @@ class minecraft_cog(Cog):
 			color=await self.client.embed_color(ctx))
 		if len(response["data"]["players"]) > 61: response["data"]["players"].insert(60,'...')
 		embed.add_field(name='players',value='\n'.join(response["data"]["players"][:61]))
-		await ctx.send(embed=embed,ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@mc.command(
 		name='reset',
@@ -181,8 +188,9 @@ class minecraft_cog(Cog):
 			option(bool,name='world',description='world folder',requried=False,default=False)])
 	@has_perm('bot_owner')
 	async def slash_mc_reset(self,ctx:ApplicationContext,server:str,banned_players:bool,world:bool) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if self.ping(ctx,server):
-			await ctx.send('server cannot be reset while it is up')
+			await ctx.followup.send('server cannot be reset while it is up')
 			return
 		response = await self.send(ctx,server,packets.reset(server,ctx.author,banned_players,world))
 		if response is False: return
@@ -191,16 +199,17 @@ class minecraft_cog(Cog):
 		elif banned_players: reply += 'banned players file'
 		elif world: reply += 'world folder'
 		else: reply = 'successfully reset nothing.'
-		await ctx.send(reply,ephmeral=await self.client.hide(ctx))
+		await ctx.followup.send(reply,ephmeral=await self.client.hide(ctx))
 		
 	@mc.command(
 		name='list',
 		description='list minecraft servers')
 	@has_perm('bot_owner')
 	async def slash_mc_list(self,ctx:ApplicationContext) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		servers = list((await self.client.db.guilds.read(ctx.guild.id,['mc_servers'])).keys())
-		if len(servers) == 0: await ctx.send('there are no minecraft servers here',ephemeral=await self.client.hide(ctx))
-		else: await ctx.send(embed=Embed(
+		if len(servers) == 0: await ctx.followup.send('there are no minecraft servers here',ephemeral=await self.client.hide(ctx))
+		else: await ctx.followup.send(embed=Embed(
 			title='minecraft servers:',
 			description='\n'.join(servers),
 			color=await self.client.embed_color(ctx)),
@@ -213,6 +222,7 @@ class minecraft_cog(Cog):
 			option(str,name='server',description='server name')])
 	@has_perm('bot_owner')
 	async def slash_mc_info(self,ctx:ApplicationContext,server:str) -> None:
+		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return
 		server = await self.client.db.guilds.read(ctx.guild.id,['mc_servers',server])
 		info = [
@@ -222,7 +232,7 @@ class minecraft_cog(Cog):
 		size = await self.send(ctx,server,packets.size(server,ctx.author,True),reply=False)
 		if size: info.append(f'world size: {size["data"]["size"]}')
 
-		await ctx.send(embed=Embed(
+		await ctx.followup.send(embed=Embed(
 			title=f'{server} info:',
 			description='\n'.join(info),
 			color=await self.client.embed_color(ctx)),

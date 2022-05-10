@@ -1,5 +1,5 @@
+from discord import Role,TextChannel,Embed,ApplicationContext,Guild
 from discord.commands import Option as option,SlashCommandGroup
-from discord import Role,TextChannel,Embed,ApplicationContext
 from utils.tyrantlib import has_perm,MakeshiftClass
 from discord.ext.commands import Cog
 from discord.errors import NotFound
@@ -48,17 +48,17 @@ class talking_stick_cog(Cog):
 		description='force reroll the talking stick')
 	@has_perm('manage_guild')
 	@has_perm('manage_roles')
-	async def slash_stick_reroll(self,ctx) -> None:
+	async def slash_stick_reroll(self,ctx:ApplicationContext) -> None:
 		if not await self.check(ctx): return
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		await self.roll_talking_stick(ctx.guild)
-		await ctx.response.send_message('reroll successful',ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send('reroll successful',ephemeral=await self.client.hide(ctx))
 
 
 	@stick.command(
 		name='active',
 		description='list daily active members')
-	async def slash_stick_active(self,ctx) -> None:
+	async def slash_stick_active(self,ctx:ApplicationContext) -> None:
 		if not await self.check(ctx): return
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		output,nl = [],'\n'
@@ -68,14 +68,14 @@ class talking_stick_cog(Cog):
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
 
-		await ctx.response.send_message(
+		await ctx.followup.send(
 			embed=Embed(
 				title='Talking Stick Leaderboard:',
 				description=nl.join(output),
 				color=await self.client.embed_color(ctx)),
 			ephemeral=await self.client.hide(ctx))
 
-	async def roll_talking_stick(self,guild) -> None:
+	async def roll_talking_stick(self,guild:Guild) -> None:
 		role = guild.get_role(await self.client.db.guilds.read(guild.id,['roles','talking_stick']))
 		active_members = await self.client.db.guilds.read(guild.id,['active_members'])
 		if len(active_members) == 0: return

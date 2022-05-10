@@ -70,7 +70,7 @@ class dropdown_roles_cog(Cog):
 		await self.client.db.dd_roles.new(dd_role_message.id)
 		await self.client.db.dd_roles.write(dd_role_message.id,['placeholder'],placeholder)
 		await self.client.db.dd_roles.write(dd_role_message.id,['options',label],{'role':role.id,'label':label,'description':description,'emoji':emoji})
-		await ctx.response.send_message(f'successfully created dropdown menu. message_id: `{dd_role_message.id}`',ephemeral=True)
+		await ctx.followup.send(f'successfully created dropdown menu. message_id: `{dd_role_message.id}`',ephemeral=True)
 
 	@dropdown_roles.command(
 		name='add_role',
@@ -88,25 +88,25 @@ class dropdown_roles_cog(Cog):
 		current_data = await self.client.db.dd_roles.read(message_id)
 		current_message = await ctx.channel.fetch_message(message_id)
 		if not current_data:
-			await ctx.response.send_message(f'`{message_id}` not found in database',ephemeral=True)
+			await ctx.followup.send(f'`{message_id}` not found in database',ephemeral=True)
 			return
 		if not current_message:
-			await ctx.response.send_message('message not found on discord. was it deleted?',ephemeral=True)
+			await ctx.followup.send('message not found on discord. was it deleted?',ephemeral=True)
 			return
 		if len(current_data['options']) >= 25:
-			await ctx.response.send_message('you cannot add more than 25 roles',ephemeral=True)
+			await ctx.followup.send('you cannot add more than 25 roles',ephemeral=True)
 			return
 		if label in current_data['options']:
 			if current_data['options'][label] is not None:
-				await ctx.response.send_message('role label already in options',ephemeral=True)
+				await ctx.followup.send('role label already in options',ephemeral=True)
 				return
 		if role.id in current_data['options'].values():
-			await ctx.response.send_message('role already in options',ephemeral=True)
+			await ctx.followup.send('role already in options',ephemeral=True)
 			return
 		await self.client.db.dd_roles.write(message_id,['options',label],{'role':role.id,'label':label,'description':description,'emoji':emoji})
 		new_data = await self.client.db.dd_roles.read(message_id)
 		await current_message.edit(view=view([SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in new_data['options'].items() if o[1] is not None],new_data['placeholder'],self.client))
-		await ctx.response.send_message(f'successfully added {label} to menu. message_id: `{message_id}`',ephemeral=True)
+		await ctx.followup.send(f'successfully added {label} to menu. message_id: `{message_id}`',ephemeral=True)
 	
 	@dropdown_roles.command(
 		name='remove_role',
@@ -121,18 +121,18 @@ class dropdown_roles_cog(Cog):
 		current_data = await self.client.db.dd_roles.read(message_id)
 		current_message = await ctx.channel.fetch_message(message_id)
 		if not current_data:
-			await ctx.response.send_message(f'`{message_id}` not found in database',ephemeral=True)
+			await ctx.followup.send(f'`{message_id}` not found in database',ephemeral=True)
 			return
 		if not current_message:
-			await ctx.response.send_message('message not found on discord. was it deleted?',ephemeral=True)
+			await ctx.followup.send('message not found on discord. was it deleted?',ephemeral=True)
 			return
 		if label not in current_data['options'].keys():
-			await ctx.response.send_message('role label not found. is it exact?',ephemeral=True)
+			await ctx.followup.send('role label not found. is it exact?',ephemeral=True)
 			return
 		await self.client.db.dd_roles.unset(message_id,['options',label])
 		new_data = await self.client.db.dd_roles.read(message_id)
 		await current_message.edit(view=view([SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in new_data['options'].items() if o[1] is not None],new_data['placeholder'],self.client))
-		await ctx.response.send_message(f'successfully removed {label} from menu. message_id: `{message_id}`',ephemeral=True)
+		await ctx.followup.send(f'successfully removed {label} from menu. message_id: `{message_id}`',ephemeral=True)
 
 	@dropdown_roles.command(
 		name='refresh_menu',
@@ -146,13 +146,13 @@ class dropdown_roles_cog(Cog):
 		data = await self.client.db.dd_roles.read(message_id)
 		message = await ctx.channel.fetch_message(message_id)
 		if not data:
-			await ctx.response.send_message(f'`{message_id}` not found in database',ephemeral=True)
+			await ctx.followup.send(f'`{message_id}` not found in database',ephemeral=True)
 			return
 		if not message:
-			await ctx.response.send_message('message not found on discord. was it deleted?',ephemeral=True)
+			await ctx.followup.send('message not found on discord. was it deleted?',ephemeral=True)
 			return
 		await message.edit(view=view([SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in data['options'].items() if o[1] is not None],data['placeholder'],self.client))
-		await ctx.response.send_message(f'successfully refreshed menu. message_id: `{message_id}`',ephemeral=True)
+		await ctx.followup.send(f'successfully refreshed menu. message_id: `{message_id}`',ephemeral=True)
 
 
 def setup(client:client_cls) -> None: client.add_cog(dropdown_roles_cog(client))

@@ -10,21 +10,21 @@ with open('mongo') as mongo:
 
 class env:
 	def __init__(self,env_dict:dict) -> None:
-		self.token = None
-		self.dev_token = None
-		self.shortio_key = None
-		self.shlink = None
-		self.mongo_pub = None
-		self.mongo_prv = None
-		self.reglog = None
-		self.config = None
-		self.activities = None
+		self.token:str = None
+		self.dev_token:str = None
+		self.shlink:str = None
+		self.mongo_pub:str = None
+		self.mongo_prv:str = None
+		self.reglog:str = None
+		self.config:dict = None
+		self.activities:dict = None
+		self.help:dict = None
 		for k,v in env_dict.items():
 			setattr(self,k,v)
 
 class utils():
 	def merge(dict:dict,new:dict) -> dict:
-		for key, value in new.items():
+		for key,value in new.items():
 			if isinstance(value, collections.abc.Mapping): dict[key] = utils.merge(dict.get(key,{}),value)
 			else: dict[key] = value
 		return dict

@@ -197,7 +197,6 @@ class log_commands(Cog):
 			option(str,name='message_id',description='id of message, 18 digits long.')])
 	@has_perm('view_audit_log')
 	async def slash_get_by_id(self,ctx:ApplicationContext,message_id:str|int) -> None:
-		await ctx.defer(ephemeral=True)
 		response = await self.base_get_by_id(message_id,ctx.guild.id)
 		if len(response)+8 > 2000: await ctx.response.send_message('response too long. sent as file',file=File(StringIO(response),f'{message_id}.json'),ephemeral=True)
 		else: await ctx.response.send_message(f'```\n{response}\n```',required=False)
@@ -209,7 +208,6 @@ class log_commands(Cog):
 			option(str,name='status',description='message type',choices=['sent','edited','deleted'])])
 	@has_perm('view_audit_log')
 	async def slash_get_recent_from(self,ctx:ApplicationContext,user:User|Member,status:str) -> None:
-		await ctx.defer(ephemeral=True)
 		data = [doc async for doc in self.client.db.messages.raw.find({'guild_id':ctx.guild.id,'author_id':user.id,'status':status},sort=[('_id',-1)],limit=10)]
 		if data == []:
 			await ctx.response.send_message(f'no logs found from user {user} with status {status}',ephemeral=True)
@@ -221,7 +219,6 @@ class log_commands(Cog):
 		description='get ten most recent logs')
 	@has_perm('view_audit_log')
 	async def slash_get_recent(self,ctx:ApplicationContext) -> None:
-		await ctx.defer(ephemeral=True)
 		data = [doc async for doc in self.client.db.messages.raw.find({'guild_id':ctx.guild.id},sort=[('_id',-1)],limit=10)]
 
 		if data == []:
@@ -238,17 +235,17 @@ class log_commands(Cog):
 	async def slash_get_history(self,ctx:ApplicationContext,sorting:str) -> None:
 		await ctx.defer(ephemeral=True)
 		if time()-await self.client.db.guilds.read(ctx.guild.id,['last_history']) < 86400:
-			await ctx.response.send_message('you cannot use this command again until 24 hours have passed.',ephemeral=True)
+			await ctx.followup.send('you cannot use this command again until 24 hours have passed.',ephemeral=True)
 			return
 
 		data = [doc async for doc in self.client.db.messages.raw.find({'guild_id':ctx.guild.id},sort=[('_id',-1 if sorting == 'newest first' else 1)])]
 		data.insert(0,f'total entries: {len(data)}')
 
 		if data == []:
-			await ctx.response.send_message(f'no logs found',ephemeral=True)
+			await ctx.followup.send(f'no logs found',ephemeral=True)
 			return
 
-		await ctx.response.send_message('all logs',file=File(StringIO(dumps(data,indent=2)),'history.json'),ephemeral=True)
+		await ctx.followup.send('all logs',file=File(StringIO(dumps(data,indent=2)),'history.json'),ephemeral=True)
 		await self.client.db.guilds.write(ctx.guild.id,['last_history'],time())
 
 	@regex_guild.command(name='list',
@@ -309,7 +306,6 @@ class log_commands(Cog):
 
 	@message_command(name='message data')
 	async def message_get_by_id(self,ctx:ApplicationContext,message:Message) -> None:
-		await ctx.defer(ephemeral=True)
 		response = await self.base_get_by_id(message.id,ctx.guild.id)
 		if len(response)+8 > 2000: await ctx.response.send_message('response too long. sent as file',file=File(StringIO(response),filename=f'{message.id}.json'),ephemeral=True)
 		else: await ctx.response.send_message(f'```\n{response}\n```',ephemeral=True)

@@ -88,7 +88,7 @@ class commands_cog(Cog):
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
 
-		await ctx.response.send_message(embed=Embed(title='Message Leaderboard:',description=nl.join(output),color=await self.client.embed_color(ctx)),ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send(embed=Embed(title='Message Leaderboard:',description=nl.join(output),color=await self.client.embed_color(ctx)),ephemeral=await self.client.hide(ctx))
 
 	@leaderboard.command(
 		name='sticks',
@@ -104,7 +104,7 @@ class commands_cog(Cog):
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
 
-		await ctx.response.send_message(
+		await ctx.followup.send(
 			embed=Embed(
 				title='Talking Stick Leaderboard:',
 				description=nl.join(output),
