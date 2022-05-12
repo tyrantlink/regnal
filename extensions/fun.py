@@ -228,7 +228,7 @@ class fun_cog(Cog):
 		for i in range(10):
 			out,id = await self.acquire_hentai()
 			if 'error' not in out.keys(): break
-		else: await ctx.response.send_message(f'failed to acquire hentai, try again in like, five minutes',ephemeral=await self.client.hide(ctx))
+		else: await ctx.followup.send(f'failed to acquire hentai, try again in like, five minutes',ephemeral=await self.client.hide(ctx))
 	
 		embed = Embed(
 				title='random nhentai:',
@@ -253,7 +253,7 @@ class fun_cog(Cog):
 				case _: print(f'unknown tag type `{i["type"]}`')
 		for k,v in info.items():
 			if v: embed.add_field(name=k,value=', '.join(v),inline=True)
-		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
 
 def setup(client:client_cls) -> None: client.add_cog(fun_cog(client))

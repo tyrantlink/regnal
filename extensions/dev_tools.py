@@ -86,13 +86,6 @@ class dev_tools_cog(Cog):
 
 	dev = SlashCommandGroup('dev','bot owner commands')
 
-	@dev.command(
-		name='commit',
-		description='create a change-log announcement')
-	@has_perm('bot_owner')
-	async def slash_dev_commit(self,ctx:ApplicationContext) -> None:
-		await ctx.send_modal(input_modal(self.client,'commit'))
-
 	async def format_type(self,ctx:ApplicationContext,value:str,default:str=None) -> str|int|bool|float|None:
 		if '::' in value:
 			i = value.split('::')
@@ -115,6 +108,13 @@ class dev_tools_cog(Cog):
 				case 'str': return str(value)
 				case 'int': return int(value)
 				case _: return value
+
+	@dev.command(
+		name='commit',
+		description='create a change-log announcement')
+	@has_perm('bot_owner')
+	async def slash_dev_commit(self,ctx:ApplicationContext) -> None:
+		await ctx.send_modal(input_modal(self.client,'commit'))
 
 	@slash_command(
 		name='suggest',
