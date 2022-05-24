@@ -68,13 +68,13 @@ class minecraft_cog(Cog):
 		pass
 
 	@mc.command(
-		name='update',
-		description='update an existing minecraft server',
+		name='refresh',
+		description='refresh an existing minecraft server',
 		options=[
 			option(str,name='server',description='name of server. must match name in servers.json')])
 	# @has_perm('administrator')
 	@has_perm('bot_owner')
-	async def slash_mc_update(self,ctx:ApplicationContext,server:str) -> None:
+	async def slash_mc_refresh(self,ctx:ApplicationContext,server:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		# command can only be run by mc_regnal host
 		# send update packet to mc_regnal
@@ -229,8 +229,7 @@ class minecraft_cog(Cog):
 			f'ip: {server["ip"]}' if server['port'] == 25565 else f'ip: {server["ip"]}:{server["port"]}',
 			f'version: {server["version"]}']
 		if server['modpack'] is not None: info.append(f'modpack: {server["modpack"]}' if server['modpack_url'] is None else f'modpack: [{server["modpack"]}](<{server["modpack_url"]}>)')
-		size = await self.send(ctx,server,packets.size(server,ctx.author,True),reply=False)
-		if size: info.append(f'world size: {size["data"]["size"]}')
+		if size:=await self.send(ctx,server,packets.size(server,ctx.author,True),reply=False): info.append(f'world size: {size["data"]["size"]}')
 
 		await ctx.followup.send(embed=Embed(
 			title=f'{server} info:',

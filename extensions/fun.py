@@ -1,5 +1,5 @@
 from discord import File,Embed,InviteTarget,Role,ApplicationContext
-from discord.commands import Option as option,slash_command
+from discord.commands import Option as option,slash_command,SlashCommandGroup
 from main import client_cls,activity_options
 from discord.ext.commands import Cog
 from utils.tyrantlib import has_perm
@@ -13,14 +13,16 @@ class fun_cog(Cog):
 		client._extloaded()
 		self.client = client
 	
-	@slash_command(
-		name='activity',
+	activity = SlashCommandGroup('activity',description='activity related commands')
+	
+	@activity.command(
+		name='invite',
 		description='invite an embedded application to voice channel',
 		options=[
 			option(str,name='activity',description='name of application',choices=activity_options)])
 	@has_perm('create_instant_invite')
 	@has_perm('start_embedded_activities')
-	async def slash_activity(self,ctx:ApplicationContext,activity:str) -> None:
+	async def slash_activity_invite(self,ctx:ApplicationContext,activity:str) -> None:
 		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
 		activity_id = await self.client.db.inf.read('/reg/nal',['activities',activity])
 
@@ -33,12 +35,14 @@ class fun_cog(Cog):
 			await self.client.db.guilds.write(ctx.guild.id,['activity_cache',str(ctx.author.voice.channel.id),str(activity_id)],invite.code)
 			await ctx.response.send_message(f'[click to open {activity} in {ctx.author.voice.channel.name}](<https://discord.gg/{invite.code}>)',ephemeral=await self.client.hide(ctx))
 
-	@slash_command(
-		name='activity_custom',
-		description='invite an embedded application to voice channel',
+	@activity.command(
+		name='custom',
+		description='invite a custom application to voice channel',
 		options=[
 			option(str,name='activity_id',description='application id')])
-	async def slash_custom_activity(self,ctx:ApplicationContext,activity_id:str) -> None:
+	@has_perm('create_instant_invite')
+	@has_perm('start_embedded_activities')
+	async def slash_activity_custom(self,ctx:ApplicationContext,activity_id:str) -> None:
 		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
 		try: cache = await self.client.db.guilds.read(0,['activity_cache',str(ctx.author.voice.channel.id)])
 		except: cache = []

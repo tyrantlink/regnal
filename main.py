@@ -36,7 +36,9 @@ class log:
 		self.reglog = reglog
 
 	async def _base(self,log:str,send:bool=True,short_log:str=None,custom:bool=False) -> None:
-		if not custom: log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[{stack()[1].function.upper()}] {log}'
+		if not custom:
+			log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[{stack()[1].function.upper()}] {log}'
+			if short_log is None: short_log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[{stack()[1].function.upper()}] {short_log}'
 		with open('log','a') as f: f.write(log+'\n' if short_log is None else short_log+'\n')
 		if send:
 			try:
@@ -100,7 +102,7 @@ class client_cls(Bot):
 		cog = stack()[1].filename.replace('.py','').split('/')[-1]
 		if cog in self._raw_loaded_extensions: return
 		
-		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[EXT] {cog} loaded')
+		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[EXT_LOAD] {cog}')
 		self._raw_loaded_extensions.append(cog)
 
 	async def embed_color(self,ctx:ApplicationContext) -> int:

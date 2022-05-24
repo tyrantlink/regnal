@@ -25,7 +25,7 @@ class talking_stick_cog(Cog):
 
 	@stick.command(
 		name='setup',
-		description='setup talking stick functionality',
+		description='setup the talking stick',
 		options=[
 			option(Role,name='role',description='talking stick role'),
 			option(TextChannel,name='channel',description='talking stick broadcast channel'),

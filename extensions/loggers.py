@@ -1,7 +1,6 @@
-from discord import Embed,User,TextChannel,File,Message,ApplicationContext,Member
+from discord import User,TextChannel,File,Message,ApplicationContext,Member
 from discord.commands import SlashCommandGroup,Option as option
 from discord.ext.commands import Cog,message_command
-from discord.utils import escape_markdown
 from utils.tyrantlib import has_perm
 from datetime import datetime
 from main import client_cls
@@ -170,9 +169,6 @@ class log_commands(Cog):
 		self.client = client
 	
 	get_log = SlashCommandGroup('get_log','get log information')
-	regex = SlashCommandGroup('regex','configure regex filtering')
-	regex_guild = regex.create_subgroup('guild','guild regex filters')
-	regex_channel = regex.create_subgroup('channel','channel regex filters')
 
 	async def base_get_by_id(self,message_id:str|int,guild_id:str|int) -> str:
 		try: message_id = int(message_id)
@@ -247,62 +243,6 @@ class log_commands(Cog):
 
 		await ctx.followup.send('all logs',file=File(StringIO(dumps(data,indent=2)),'history.json'),ephemeral=True)
 		await self.client.db.guilds.write(ctx.guild.id,['last_history'],time())
-
-	@regex_guild.command(name='list',
-		description='list current guild-wide filters')
-	@has_perm('manage_messages')
-	async def slash_regex_guild_list(self,ctx:ApplicationContext) -> None:
-		res = await self.client.db.guilds.read(ctx.guild.id,['regex','guild'])
-		await ctx.response.send_message(embed=Embed(title='current guild filters regex' if res else 'no guild regex filters set',description=escape_markdown('\n'.join(res))),ephemeral=True)
-
-	@regex_channel.command(name='list',
-		description='list current channel filters',
-		options=[
-			option(TextChannel,name='channel',description='channel')])
-	@has_perm('manage_messages')
-	async def slash_regex_channel_list(self,ctx:ApplicationContext,channel:TextChannel) -> None:
-		try: res = await self.client.db.guilds.read(ctx.guild.id,['regex','channel',channel])
-		except: res = []
-		await ctx.response.send_message(embed=Embed(title=f'{channel.mention} regex filters' if res else 'no channel regex filters set',description=escape_markdown('\n'.join(res))),ephemeral=True)
-
-	@regex_guild.command(name='add',
-		description='add guild-wide message filters',
-		option=[
-			option(str,name='filter',description='regex filter')])
-	@has_perm('manage_messages')
-	async def slash_regex_guild_add(self,ctx:ApplicationContext,filter:str) -> None:
-		await self.client.db.guilds.append(ctx.guild.id,['regex','guild'],filter)
-		await ctx.response.send_message(f'successfully added {escape_markdown(filter)} to the guild filter list.',ephemeral=True)
-
-	@regex_channel.command(name='add',
-		description='add channel specific message filters',
-		option=[
-			option(TextChannel,name='channel',description='channel'),
-			option(str,name='filter',description='regex filter')])
-	@has_perm('manage_messages')
-	async def slash_regex_channel_add(self,ctx:ApplicationContext,channel:TextChannel,filter:str) -> None:
-		await self.client.db.guilds.append(ctx.guild.id,['regex','channel',str(channel.id)],filter)
-		await ctx.response.send_message(f'successfully added {escape_markdown(filter)} to the {channel.mention} filter list.',ephemeral=True)
-
-	@regex_guild.command(name='remove',
-		description='remove guild-wide message filters',
-		option=[
-			option(str,name='filter',description='regex filter')])
-	@has_perm('manage_messages')
-	async def slash_regex_guild_remove(self,ctx:ApplicationContext,filter:str) -> None:
-		await self.client.db.guilds.remove(ctx.guild.id,['regex','guild'],filter)
-		await ctx.response.send_message(f'successfully removed {escape_markdown(filter)} from the guild filter list.',ephemeral=True)
-
-	@regex_channel.command(name='remove',
-		description='remove channel specific message filters',
-		option=[
-			option(TextChannel,name='channel',description='channel'),
-			option(str,name='filter',description='regex filter')])
-	@has_perm('manage_messages')
-	async def slash_regex_channel_remove(self,ctx:ApplicationContext,channel:TextChannel,filter:str) -> None:
-		await self.client.db.guilds.remove(ctx.guild.id,['regex','channel',str(channel.id)],filter)
-		await ctx.response.send_message(f'successfully removed {escape_markdown(filter)} from the {channel.mention} filter list.',ephemeral=True)
-
 
 	@message_command(name='message data')
 	async def message_get_by_id(self,ctx:ApplicationContext,message:Message) -> None:

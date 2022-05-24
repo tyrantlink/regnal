@@ -1,5 +1,6 @@
 from discord.commands import SlashCommandGroup,Option as option
-from discord import User,ApplicationContext
+from discord import User,ApplicationContext,TextChannel,Embed
+from discord.utils import escape_markdown
 from discord.ext.commands import Cog
 from utils.tyrantlib import has_perm
 from main import client_cls
@@ -49,5 +50,37 @@ class admin_cog(Cog):
 	async def slash_admin_clear_activity_cache(self,ctx:ApplicationContext) -> None:
 		await self.client.db.guilds.write(ctx.guild.id,['activity_cache'],{})
 		await ctx.response.send_message(f'successfully cleared activity cache',ephemeral=await self.client.hide(ctx))
+	
+	@admin.command(name='filter',
+		description='filter messages with regex',
+		options=[
+			option(str,name='location',description='guild-wide or specific channel',choices=['guild','channel']),
+			option(str,name='mode',description='add, remove or list filters',choices=['add','remove','list']),
+			option(str,name='filter',description='regex filter',optional=True,default=None),
+			option(TextChannel,name='channel',description='channel. current channel if left empty',optional=True,default=None)])
+	@has_perm('manage_messages')
+	async def admin_filter(self,ctx:ApplicationContext,location:str,mode:str,filter:str|None,channel:TextChannel|None) -> None:
+		if location == 'channel' and channel is None: channel = ctx.channel
+		match mode:
+			case 'add': 
+				match location:
+					case 'guild': await self.client.db.guilds.append(ctx.guild.id,['regex','guild'],filter)
+					case 'channel': await self.client.db.guilds.append(ctx.guild.id,['regex','channel',str(channel.id)],filter)
+					case _: await ctx.response.send_message('invalid location, how did you even do that?',ephemeral=await self.client.hide(ctx))
+				await ctx.response.send_message(f'successfully added {escape_markdown(filter)} to the {location if location == "guild" else channel.mention} filter list.',ephemeral=await self.client.hide(ctx))
+			case 'remove':
+				match location:
+					case 'guild': await self.client.db.guilds.remove(ctx.guild.id,['regex','guild'],filter)
+					case 'channel': await self.client.db.guilds.remove(ctx.guild.id,['regex','channel',str(channel.id)],filter)
+					case _: await ctx.response.send_message('invalid location, how did you even do that?',ephemeral=await self.client.hide(ctx))
+				await ctx.response.send_message(f'successfully removed {escape_markdown(filter)} from the {location if location == "guild" else channel.mention} filter list.',ephemeral=await self.client.hide(ctx))
+			case 'list': 
+				match location:
+					case 'guild': res = await self.client.db.guilds.read(ctx.guild.id,['regex','guild'])
+					case 'channel': res = await self.client.db.guilds.read(ctx.guild.id,['regex','channel',str(channel.id)])
+					case _: res = []
+				await ctx.response.send_message(embed=Embed(title=f'current {location} filters regex' if res else f'no {channel} regex filters set',description=escape_markdown('\n'.join(res))),ephemeral=await self.client.hide(ctx))
+
+			case _: await ctx.response.send_message('invalid mode, how did you even do that?',ephemeral=await self.client.hide(ctx))
 
 def setup(client:client_cls) -> None: client.add_cog(admin_cog(client))
