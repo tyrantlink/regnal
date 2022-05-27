@@ -20,7 +20,7 @@ class log:
 	async def _base(self,log:str,send:bool=True,short_log:str=None,custom:bool=False) -> None:
 		if not custom:
 			log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{stack()[1].function.upper()}] {log}'
-		if short_log is None: short_log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{stack()[1].function.upper()}] {short_log}'
+		if short_log is None: short_log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{stack()[1].function.upper()}] {log}'
 		with open('log','a') as f:
 			f.write(log+'\n' if short_log is None else short_log+'\n')
 		with open('log','r') as f:
