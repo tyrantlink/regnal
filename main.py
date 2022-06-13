@@ -63,7 +63,6 @@ class client_cls(Bot):
 			await self.db.inf.read('/reg/nal',['development','owner']),
 			await self.db.inf.read('/reg/nal',['config','bypass_permissions']))
 		await self.change_presence(activity=Activity(type=ActivityType.listening,name='last update: just now'))
-		await self.log.info('successfully connected to /reg/log')
 		if DEV_MODE: await self.log.debug('LAUNCHED IN DEV MODE')
 		await self.log.custom('\n'.join(self.loaded_extensions),short_log='loaded extensions: '+','.join(self._raw_loaded_extensions))
 	
@@ -80,7 +79,7 @@ class client_cls(Bot):
 
 	async def on_application_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return
-		await ctx.response.send_message(error,ephemeral=True)
+		await ctx.respond(error,ephemeral=True)
 		await self.log.error(error)
 
 class base_commands(Cog):

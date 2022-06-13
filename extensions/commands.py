@@ -81,7 +81,7 @@ class commands_cog(Cog):
 	async def slash_leaderboard_messages(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['leaderboards','messages'])).items(),key=lambda item: item[1],reverse=True)}.items()
-		output,index,nl = ['total: '+sum([v for k,v in res])],1,'\n'
+		output,index,nl = [f'total: {sum([int(v) for k,v in res])}\n'],1,'\n'
 		for id,count in res:
 			line = f'{index}{("th" if 4<=index%100<=20 else {1:"st",2:"nd",3:"rd"}.get(index%10, "th"))} - '
 			line += f'{await self.client.db.users.read(int(id),["username"])}: {count}'
@@ -89,7 +89,12 @@ class commands_cog(Cog):
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
 
-		await ctx.followup.send(embed=Embed(title='Message Leaderboard:',description=nl.join(output),color=await self.client.embed_color(ctx)),ephemeral=await self.client.hide(ctx))
+		await ctx.followup.send(
+			embed=Embed(
+				title='Message Leaderboard:',
+				description=nl.join(output),
+				color=await self.client.embed_color(ctx)),
+			ephemeral=await self.client.hide(ctx))
 
 	@leaderboard.command(
 		name='sticks',
@@ -98,7 +103,7 @@ class commands_cog(Cog):
 		await self.check(ctx)
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['leaderboards','sticks'])).items(),key=lambda item: item[1],reverse=True)}.items()
-		output,index,nl = ['total: '+sum([v for k,v in res])],1,'\n'
+		output,index,nl = [f'total: {sum([int(v) for k,v in res])}\n'],1,'\n'
 		for id,count in res:
 			line = f'{index}{("th" if 4<=index%100<=20 else {1:"st",2:"nd",3:"rd"}.get(index%10, "th"))} - '
 			line += f'{await self.client.db.users.read(int(id),["username"])}: {count}'
