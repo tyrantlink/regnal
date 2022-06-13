@@ -6,12 +6,14 @@ from utils.tyrantlib import has_perm
 from aiohttp import ClientSession
 from random import randint,choice
 from datetime import datetime
+from asyncio import sleep
 from re import sub
 
 class fun_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
 		client._extloaded()
 		self.client = client
+		with open('bees') as bees: self.bees = bees.read().splitlines()
 	
 	activity = SlashCommandGroup('activity',description='activity related commands')
 	
@@ -258,6 +260,19 @@ class fun_cog(Cog):
 		for k,v in info.items():
 			if v: embed.add_field(name=k,value=', '.join(v),inline=True)
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
+
+	@slash_command(
+		name='bees',
+		description='bees.')
+	async def slash_bees(self,ctx:ApplicationContext) -> None:
+		if ctx.channel.name != 'spam':
+			await ctx.response.send_message('bees are not allowed here.',ephemeral=await self.client.hide(ctx))
+			return
+		await ctx.response.send_message('why. you can\'t turn it off. this is going to go on for like, 2 hours, 44 minutes, and 30 seconds. why.',ephemeral=await self.client.hide(ctx))
+		for line in self.bees:
+			try: await ctx.channel.send(line)
+			except Exception: pass
+			await sleep(5)
 
 
 def setup(client:client_cls) -> None: client.add_cog(fun_cog(client))

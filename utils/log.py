@@ -9,6 +9,7 @@ from websockets import connect
 from discord import ApplicationContext,Message
 from utils.tyrantlib import MakeshiftClass
 from inspect import stack
+from socket import gaierror
 
 
 class log:
@@ -36,7 +37,7 @@ class log:
 					await ws.send(str(log))
 					try: res = await wait_for(ws.recv(),1)
 					except TimeoutError: print(f'error message timeout on reglog\log:\n{log}')
-			except ConnectionRefusedError: print(f'error message failed to send to reglog\nerror:\n{log}')
+			except (gaierror,OSError,ConnectionRefusedError): print(f'error message failed to send to reglog\nerror:\n{log}')
 
 	async def command(self,ctx:ApplicationContext,log:str=None) -> None:
 		await self._db.inf.inc('command_usage',['usage',ctx.command.qualified_name])
