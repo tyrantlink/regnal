@@ -185,7 +185,7 @@ class log_commands(Cog):
 	@has_perm('administrator')
 	async def slash_get_log_set_channel(self,ctx:ApplicationContext,channel:TextChannel) -> None:
 		await self.client.db.guilds.write(ctx.guild.id,['log_config','log_channel'],channel.id)
-		await ctx.response.send_message('logging enabled',required=False)
+		await ctx.response.send_message('logging enabled',ephemeral=True)
 
 	@get_log.command(name='by_id',
 		description='get message details by id',
@@ -195,7 +195,7 @@ class log_commands(Cog):
 	async def slash_get_by_id(self,ctx:ApplicationContext,message_id:str|int) -> None:
 		response = await self.base_get_by_id(message_id,ctx.guild.id)
 		if len(response)+8 > 2000: await ctx.response.send_message('response too long. sent as file',file=File(StringIO(response),f'{message_id}.json'),ephemeral=True)
-		else: await ctx.response.send_message(f'```\n{response}\n```',required=False)
+		else: await ctx.response.send_message(f'```\n{response}\n```',ephemeral=True)
 
 	@get_log.command(name='recent_from',
 		description='get ten most recent logs from a user.',
