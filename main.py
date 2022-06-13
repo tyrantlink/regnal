@@ -62,7 +62,7 @@ class client_cls(Bot):
 			await self.db.inf.read('/reg/nal',['development','testers']),
 			await self.db.inf.read('/reg/nal',['development','owner']),
 			await self.db.inf.read('/reg/nal',['config','bypass_permissions']))
-		await self.change_presence(activity=Activity(type=ActivityType.listening,name='uptime: 0 hours'))
+		await self.change_presence(activity=Activity(type=ActivityType.listening,name='last update: just now'))
 		await self.log.info('successfully connected to /reg/log')
 		if DEV_MODE: await self.log.debug('LAUNCHED IN DEV MODE')
 		await self.log.custom('\n'.join(self.loaded_extensions),short_log='loaded extensions: '+','.join(self._raw_loaded_extensions))
@@ -128,7 +128,7 @@ class base_commands(Cog):
 	async def uptime_loop(self) -> None:
 		nhours = int((perf_counter()-st)/60/60)
 		if nhours == self.uptime_hours: return
-		await self.client.change_presence(activity=Activity(type=ActivityType.listening,name=f'uptime: {nhours} hours'))
+		await self.client.change_presence(activity=Activity(type=ActivityType.listening,name=f'last update: {nhours} hours ago'))
 		self.uptime_hours = nhours
 
 class message_handler(Cog):
