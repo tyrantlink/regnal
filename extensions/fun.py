@@ -180,6 +180,8 @@ class fun_cog(Cog):
 			option(str,name='name',description='name of link'),
 			option(str,name='path',description='s.tyrant.link/{path}, randomized if left empty',required=None,default=None)])
 	async def slash_shorten(self,ctx:ApplicationContext,url:str,name:str,path:str) -> None:
+		await ctx.response.send_message('my hard drive fucking died and i lost all my servers, so this doesn\'t work at the moment',ephemeral=await self.client.hide(ctx))
+		return
 		link_data = {
 			"longUrl": url,
 			"title": name,
