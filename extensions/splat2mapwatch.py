@@ -35,12 +35,12 @@ class splat2mapwatch_cog(Cog):
 			async with session.get('https://splatoon2.ink/data/schedules.json') as req:
 				res,dm = await req.json(),[]
 				for i in res['gachi']:
-					if i['rule']['key'] == 'splat_zones' and (i['stage_a']['id'] == '19' or i['stage_b']['id'] == '19') and i['start_time'] not in self.sent:
+					if '19' in [i['stage_a']['id'],i['stage_b']['id']] and i['start_time'] not in self.sent:
 						if self.channel is None: self.channel = await self.client.fetch_channel(self.channel_id)
 						self.sent.append(i['start_time'])
 						if self.soon == []: self.soon = [i['start_time'],14400,7200,3600,1800,900,300,0]
 						day = int(datetime.fromtimestamp(i['start_time']).strftime(f"%d"))
-						dm.append(f'hotel zones on {datetime.fromtimestamp(i["start_time"]).strftime(f"%B %d")}{("th" if 4<=day%100<=20 else {1:"st",2:"nd",3:"rd"}.get(day%10, "th"))} at {datetime.fromtimestamp(i["start_time"]).strftime(f"%H%M")}')
+						dm.append(f'hotel {i["rule"]["key"]} on {datetime.fromtimestamp(i["start_time"]).strftime(f"%B %d")}{("th" if 4<=day%100<=20 else {1:"st",2:"nd",3:"rd"}.get(day%10, "th"))} at {datetime.fromtimestamp(i["start_time"]).strftime(f"%H%M")}')
 				if dm: await self.channel.send('\n'.join(dm))
 		
 	@loop(seconds=5)
@@ -48,13 +48,13 @@ class splat2mapwatch_cog(Cog):
 		if self.soon == []: return
 		if self.soon[0]-time() <= self.soon[1]:
 			match self.soon[1]:
-				case 0: dm = 'hotel zones has started, go play the video game.'
-				case 300: dm = 'hotel zones in 5 minutes'
-				case 900: dm = 'hotel zones in 15 minutes'
-				case 1800: dm = 'hotel zones in 30 minutes'
-				case 3600: dm = 'hotel zones in 1 hour'
-				case 7200: dm = 'hotel zones in 2 hours'
-				case 14400: dm = 'hotel zones in 4 hours'
+				case 0: dm = 'hotel has started, go play the video game.'
+				case 300: dm = 'hotel in 5 minutes'
+				case 900: dm = 'hotel in 15 minutes'
+				case 1800: dm = 'hotel in 30 minutes'
+				case 3600: dm = 'hotel in 1 hour'
+				case 7200: dm = 'hotel in 2 hours'
+				case 14400: dm = 'hotel in 4 hours'
 				case _: return
 
 			await self.channel.send(dm)
