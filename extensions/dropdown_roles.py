@@ -66,7 +66,7 @@ class dropdown_roles_cog(Cog):
 	@has_perm('manage_roles')
 	async def slash_dropdown_roles_create(self,ctx:ApplicationContext,role:Role,label:str,description:str,emoji:str,placeholder:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		dd_role_message = await ctx.channel.send(view=view([SelectOption(label=label,description=description,emoji=emoji,value=str(role.id))],placeholder,self.client))
+		dd_role_message = await ctx.channel.send(view=view(self.client,[SelectOption(label=label,description=description,emoji=emoji,value=str(role.id))],placeholder))
 		await self.client.db.dd_roles.new(dd_role_message.id)
 		await self.client.db.dd_roles.write(dd_role_message.id,['placeholder'],placeholder)
 		await self.client.db.dd_roles.write(dd_role_message.id,['options',label],{'role':role.id,'label':label,'description':description,'emoji':emoji})
@@ -105,7 +105,7 @@ class dropdown_roles_cog(Cog):
 			return
 		await self.client.db.dd_roles.write(message_id,['options',label],{'role':role.id,'label':label,'description':description,'emoji':emoji})
 		new_data = await self.client.db.dd_roles.read(message_id)
-		await current_message.edit(view=view([SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in new_data['options'].items() if o[1] is not None],new_data['placeholder'],self.client))
+		await current_message.edit(view=view(self.client,[SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in new_data['options'].items() if o[1] is not None],new_data['placeholder']))
 		await ctx.followup.send(f'successfully added {label} to menu. message_id: `{message_id}`',ephemeral=True)
 	
 	@dropdown_roles.command(
@@ -131,7 +131,7 @@ class dropdown_roles_cog(Cog):
 			return
 		await self.client.db.dd_roles.unset(message_id,['options',label])
 		new_data = await self.client.db.dd_roles.read(message_id)
-		await current_message.edit(view=view([SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in new_data['options'].items() if o[1] is not None],new_data['placeholder'],self.client))
+		await current_message.edit(view=view(self.client,[SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in new_data['options'].items() if o[1] is not None],new_data['placeholder']))
 		await ctx.followup.send(f'successfully removed {label} from menu. message_id: `{message_id}`',ephemeral=True)
 
 	@dropdown_roles.command(
@@ -151,7 +151,7 @@ class dropdown_roles_cog(Cog):
 		if not message:
 			await ctx.followup.send('message not found on discord. was it deleted?',ephemeral=True)
 			return
-		await message.edit(view=view([SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in data['options'].items() if o[1] is not None],data['placeholder'],self.client))
+		await message.edit(view=view(self.client,[SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in data['options'].items() if o[1] is not None],data['placeholder']))
 		await ctx.followup.send(f'successfully refreshed menu. message_id: `{message_id}`',ephemeral=True)
 
 
