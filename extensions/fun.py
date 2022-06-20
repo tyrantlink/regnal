@@ -2,7 +2,7 @@ from discord import File,Embed,InviteTarget,Role,ApplicationContext
 from discord.commands import Option as option,slash_command,SlashCommandGroup
 from main import client_cls,activity_options
 from discord.ext.commands import Cog
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from aiohttp import ClientSession
 from random import randint,choice
 from datetime import datetime
@@ -22,8 +22,8 @@ class fun_cog(Cog):
 		description='invite an embedded application to voice channel',
 		options=[
 			option(str,name='activity',description='name of application',choices=activity_options)])
-	@has_perm('create_instant_invite')
-	@has_perm('start_embedded_activities')
+	@perm('create_instant_invite')
+	@perm('start_embedded_activities')
 	async def slash_activity_invite(self,ctx:ApplicationContext,activity:str) -> None:
 		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
 		activity_id = await self.client.db.inf.read('/reg/nal',['activities',activity])
@@ -42,8 +42,8 @@ class fun_cog(Cog):
 		description='invite a custom application to voice channel',
 		options=[
 			option(str,name='activity_id',description='application id')])
-	@has_perm('create_instant_invite')
-	@has_perm('start_embedded_activities')
+	@perm('create_instant_invite')
+	@perm('start_embedded_activities')
 	async def slash_activity_custom(self,ctx:ApplicationContext,activity_id:str) -> None:
 		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
 		try: cache = await self.client.db.guilds.read(0,['activity_cache',str(ctx.author.voice.channel.id)])
@@ -108,41 +108,6 @@ class fun_cog(Cog):
 		description='/reg/nal can tell time.')
 	async def slash_time(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(datetime.now().strftime("%H:%M:%S.%f"))
-
-	@slash_command(
-		name='poll',
-		description='start a poll',
-		options=[
-			option(str,name='title',description='title of poll'),
-			option(str,name='description',description='description of poll'),
-			option(str,name='option_a',description='option a'),
-			option(str,name='option_b',description='option b'),
-			option(str,name='option_c',description='option c',required=False,default=None),
-			option(str,name='option_d',description='option d',required=False,default=None),
-			option(str,name='other',description='create thread of other answers and discussion',required=False,default=None)])
-	@has_perm('manage_guild')
-	async def slash_poll(self,ctx:ApplicationContext,title:str,description:str,option_a:str,option_b:str,option_c:str,option_d:str,other:str) -> None:
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		reactions = ['🇦','🇧']
-		response = f'{description}\n\n🇦: {option_a}\n🇧: {option_b}'
-
-		for option,emote in [(option_c,'🇨'),(option_d,'🇩')]:
-			response += f'\n{emote} {option}'
-			reactions.append(emote)
-		
-		if other:
-			response += f'\n🇴 other, specify in thread'
-			reactions.append('🇴')
-			
-		message = await ctx.channel.send(embed=Embed(
-			title=title,
-			description=response))
-		
-		for reaction in reactions:
-			await message.add_reaction(reaction)
-		
-		if other: message.create_thread(name=title)
-		await ctx.followup.send(f'poll started: {message.jump_url}')
 	
 	@slash_command(
 		name='8ball',
@@ -214,9 +179,9 @@ class fun_cog(Cog):
 		options=[
 			option(Role,name='role',description='role to roll users from'),
 			option(bool,name='ping',description='ping the result user? (requires mention_everyone)')])
-	@has_perm('guild_only')
+	@perm('guild_only')
 	async def slash_random(self,ctx:ApplicationContext,role:Role,ping:bool) -> None:
-		if ping and not has_perm('mention_everyone',ctx): return
+		if ping and not perm('mention_everyone',ctx): return
 		result = choice(role.members)
 		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.hide(ctx))
 

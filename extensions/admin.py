@@ -2,7 +2,7 @@ from discord.commands import SlashCommandGroup,Option as option
 from discord import User,ApplicationContext,TextChannel,Embed
 from discord.utils import escape_markdown
 from discord.ext.commands import Cog
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from main import client_cls
 
 class admin_cog(Cog):
@@ -18,7 +18,7 @@ class admin_cog(Cog):
 		description='softban a user',
 		options=[
 			option(User,name='user',description='user to softban')])
-	@has_perm('moderate_members')
+	@perm('moderate_members')
 	async def slash_admin_softban_add(self,ctx:ApplicationContext,user:User) -> None:
 		await self.client.db.guilds.append(ctx.guild.id,['softbans'],user.id)
 		await ctx.response.send_message(f'successfully softbanned {user.name}',ephemeral=await self.client.hide(ctx))
@@ -28,7 +28,7 @@ class admin_cog(Cog):
 		description='unsoftban a user',
 		options=[
 			option(User,name='user',description='user to unsoftban')])
-	@has_perm('moderate_members')
+	@perm('moderate_members')
 	async def slash_admin_softban_remove(self,ctx:ApplicationContext,user:User) -> None:
 		await self.client.db.guilds.remove(ctx.guild.id,['softbans'],user.id)
 		await ctx.response.send_message(f'successfully unsoftbanned {user.name}',ephemeral=await self.client.hide(ctx))
@@ -38,7 +38,7 @@ class admin_cog(Cog):
 		description='purge message history',
 		options=[
 			option(int,name='messages',description='number of messages')])
-	@has_perm('manage_messages')
+	@perm('manage_messages')
 	async def slash_admin_purge(self,ctx:ApplicationContext,messages:int) -> None:
 		await ctx.channel.purge(limit=messages)
 		await ctx.response.send_message(f'successfully purged {messages} messages',ephemeral=await self.client.hide(ctx))
@@ -46,7 +46,7 @@ class admin_cog(Cog):
 	@admin.command(
 		name='clear_activity_cache',
 		description='use this if you deleted any invites')
-	@has_perm('manage_guild')
+	@perm('manage_guild')
 	async def slash_admin_clear_activity_cache(self,ctx:ApplicationContext) -> None:
 		await self.client.db.guilds.write(ctx.guild.id,['activity_cache'],{})
 		await ctx.response.send_message(f'successfully cleared activity cache',ephemeral=await self.client.hide(ctx))
@@ -58,7 +58,7 @@ class admin_cog(Cog):
 			option(str,name='mode',description='add, remove or list filters',choices=['add','remove','list']),
 			option(str,name='filter',description='regex filter',optional=True,default=None),
 			option(TextChannel,name='channel',description='channel. current channel if left empty',optional=True,default=None)])
-	@has_perm('manage_messages')
+	@perm('manage_messages')
 	async def admin_filter(self,ctx:ApplicationContext,location:str,mode:str,filter:str|None,channel:TextChannel|None) -> None:
 		if location == 'channel' and channel is None: channel = ctx.channel
 		match mode:

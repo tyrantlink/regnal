@@ -16,6 +16,7 @@ from inspect import stack
 from utils.log import log
 from requests import get
 from os import urandom
+from json import loads
 from sys import argv
 
 DEV_MODE = exists('dev')
@@ -26,6 +27,11 @@ with open('mongo') as mongo:
 	benv = mongo.find_one({'_id':'env'})
 	config = benv['config']
 	activity_options = benv['activities']
+
+if DEV_MODE:
+	with open('dev') as dev:
+		dev = loads(dev.read())
+		extensions = dev['extensions']
 
 class client_cls(Bot):
 	def __init__(self) -> None:

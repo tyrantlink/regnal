@@ -2,7 +2,7 @@ from discord import SelectOption,Interaction,Role,Interaction,Embed,ApplicationC
 from discord.commands import SlashCommandGroup,Option as option
 from discord.ui import Select,View,Item
 from discord.ext.commands import Cog
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from discord.errors import Forbidden
 from main import client_cls
 
@@ -36,6 +36,7 @@ class dropdown(Select):
 
 class view(View):
 	def __init__(self,client:client_cls=None,options:list=None,placeholder:str=None) -> None:
+		self.client = client
 		super().__init__(timeout=None)
 		self.add_item(dropdown(client,options,placeholder))
 	
@@ -63,7 +64,7 @@ class dropdown_roles_cog(Cog):
 			option(str,name='description',description='role description',required=False),
 			option(str,name='emoji',description='role emoji',required=False),
 			option(str,name='placeholder',description='placeholder text when no roles are selected',default='choose some roles',required=False)])
-	@has_perm('manage_roles')
+	@perm('manage_roles')
 	async def slash_dropdown_roles_create(self,ctx:ApplicationContext,role:Role,label:str,description:str,emoji:str,placeholder:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		dd_role_message = await ctx.channel.send(view=view(self.client,[SelectOption(label=label,description=description,emoji=emoji,value=str(role.id))],placeholder))
@@ -81,7 +82,7 @@ class dropdown_roles_cog(Cog):
 			option(str,name='name',description='role label'),
 			option(str,name='description',description='role description',required=False),
 			option(str,name='emoji',description='role emoji',required=False)])
-	@has_perm('manage_roles')
+	@perm('manage_roles')
 	async def slash_dropdown_roles_add(self,ctx:ApplicationContext,message_id:str,role:Role,label:str,description:str,emoji:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		message_id = int(message_id)
@@ -114,7 +115,7 @@ class dropdown_roles_cog(Cog):
 		options=[
 			option(str,name='message_id',description='id of existing menu message'),
 			option(str,name='label',description='role label')])
-	@has_perm('manage_roles')
+	@perm('manage_roles')
 	async def slash_dropdown_roles_remove(self,ctx:ApplicationContext,message_id:str,label:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		message_id = int(message_id)
@@ -139,7 +140,7 @@ class dropdown_roles_cog(Cog):
 		description='refresh existing menu',
 		options=[
 			option(str,name='message_id',description='id of existing menu message')])
-	@has_perm('manage_roles')
+	@perm('manage_roles')
 	async def slash_dropdown_roles_refresh_menu(self,ctx:ApplicationContext,message_id:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		message_id = int(message_id)

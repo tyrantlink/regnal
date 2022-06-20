@@ -1,7 +1,7 @@
 from discord.commands import SlashCommandGroup,Option as option
 from discord import ApplicationContext
 from discord.ext.commands import Cog
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from websockets import connect
 from json import loads,dumps
 from asyncio import wait_for
@@ -57,8 +57,8 @@ class minecraft_cog(Cog):
 		options=[
 			option(str,name='server',description='name of server. must match name in servers.json'),
 			option(str,name='mc_regnal_host',description='ip:port of mc_regnal server')])
-	# @has_perm('administrator')
-	@has_perm('bot_owner')
+	# @perm('administrator')
+	@perm('bot_owner')
 	async def slash_mc_add(self,ctx:ApplicationContext,server:str,mc_regnal_host:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		# command can only be run by mc_regnal host
@@ -72,8 +72,8 @@ class minecraft_cog(Cog):
 		description='refresh an existing minecraft server',
 		options=[
 			option(str,name='server',description='name of server. must match name in servers.json')])
-	# @has_perm('administrator')
-	@has_perm('bot_owner')
+	# @perm('administrator')
+	@perm('bot_owner')
 	async def slash_mc_refresh(self,ctx:ApplicationContext,server:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		# command can only be run by mc_regnal host
@@ -87,8 +87,8 @@ class minecraft_cog(Cog):
 		description='remove a minecraft server from /reg/nal',
 		options=[
 			option(str,name='server',description='server name')])
-	# @has_perm('administrator')
-	@has_perm('bot_owner')
+	# @perm('administrator')
+	@perm('bot_owner')
 	async def slash_mc_remove(self,ctx:ApplicationContext,server:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		# remove server from db
@@ -99,7 +99,7 @@ class minecraft_cog(Cog):
 		description='start a minecraft server',
 		options=[
 			option(str,name='server',description='server name')])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_start(self,ctx:ApplicationContext,server:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		response = self.send(ctx,server,packets.start(server,ctx.author))
@@ -112,7 +112,7 @@ class minecraft_cog(Cog):
 		options=[
 			option(str,name='server',description='server name'),
 			option(bool,name='force',description='force stop even if players are online',requried=False,default=False)])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_stop(self,ctx:ApplicationContext,server:str,force:bool) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return
@@ -126,7 +126,7 @@ class minecraft_cog(Cog):
 		options=[
 			option(str,name='server',description='server name'),
 			option(bool,name='force',description='force stop even if players are online',requried=False,default=False)])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_restart(self,ctx:ApplicationContext,server:str,force:bool) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return
@@ -139,7 +139,7 @@ class minecraft_cog(Cog):
 		description='ping a minecraft server',
 		options=[
 			option(str,name='server',description='server name')])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_ping(self,ctx:ApplicationContext,server:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		await self.ping(ctx,server,True)
@@ -150,7 +150,7 @@ class minecraft_cog(Cog):
 		options=[
 			option(str,name='server',description='server name'),
 			option(str,name='command',description='command')])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_command(self,ctx:ApplicationContext,server:str,command:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return
@@ -165,7 +165,7 @@ class minecraft_cog(Cog):
 		description='get the online players of a minecraft server',
 		options=[
 			option(str,name='server',description='server name')])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_online(self,ctx:ApplicationContext,server:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return
@@ -186,7 +186,7 @@ class minecraft_cog(Cog):
 			option(str,name='server',description='server name'),
 			option(bool,name='banned_players',description='banned players file',requried=False,default=False),
 			option(bool,name='world',description='world folder',requried=False,default=False)])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_reset(self,ctx:ApplicationContext,server:str,banned_players:bool,world:bool) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if self.ping(ctx,server):
@@ -204,7 +204,7 @@ class minecraft_cog(Cog):
 	@mc.command(
 		name='list',
 		description='list minecraft servers')
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_list(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		servers = list((await self.client.db.guilds.read(ctx.guild.id,['mc_servers'])).keys())
@@ -220,7 +220,7 @@ class minecraft_cog(Cog):
 		description='get information about a specific minecraft server',
 		options=[
 			option(str,name='server',description='server name')])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_mc_info(self,ctx:ApplicationContext,server:str) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		if not await self.ping(ctx,server): return

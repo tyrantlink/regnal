@@ -1,7 +1,7 @@
 from discord import User,TextChannel,File,Message,ApplicationContext,Member
 from discord.commands import SlashCommandGroup,Option as option
 from discord.ext.commands import Cog,message_command
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from datetime import datetime
 from main import client_cls
 from io import StringIO
@@ -182,7 +182,7 @@ class log_commands(Cog):
 	@get_log.command(name='set_channel',
 		description='set logging channel',
 		options=[option(TextChannel,name='channel',description='channel to broadcast logs to')])
-	@has_perm('administrator')
+	@perm('administrator')
 	async def slash_get_log_set_channel(self,ctx:ApplicationContext,channel:TextChannel) -> None:
 		await self.client.db.guilds.write(ctx.guild.id,['log_config','log_channel'],channel.id)
 		await ctx.response.send_message('logging enabled',ephemeral=True)
@@ -191,7 +191,7 @@ class log_commands(Cog):
 		description='get message details by id',
 		options=[
 			option(str,name='message_id',description='id of message, 18 digits long.')])
-	@has_perm('view_audit_log')
+	@perm('view_audit_log')
 	async def slash_get_by_id(self,ctx:ApplicationContext,message_id:str|int) -> None:
 		response = await self.base_get_by_id(message_id,ctx.guild.id)
 		if len(response)+8 > 2000: await ctx.response.send_message('response too long. sent as file',file=File(StringIO(response),f'{message_id}.json'),ephemeral=True)
@@ -202,7 +202,7 @@ class log_commands(Cog):
 		options=[
 			option(User,name='user',description='user'),
 			option(str,name='status',description='message type',choices=['sent','edited','deleted'])])
-	@has_perm('view_audit_log')
+	@perm('view_audit_log')
 	async def slash_get_recent_from(self,ctx:ApplicationContext,user:User|Member,status:str) -> None:
 		data = [doc async for doc in self.client.db.messages.raw.find({'guild_id':ctx.guild.id,'author_id':user.id,'status':status},sort=[('_id',-1)],limit=10)]
 		if data == []:
@@ -213,7 +213,7 @@ class log_commands(Cog):
 	
 	@get_log.command(name='recent',
 		description='get ten most recent logs')
-	@has_perm('view_audit_log')
+	@perm('view_audit_log')
 	async def slash_get_recent(self,ctx:ApplicationContext) -> None:
 		data = [doc async for doc in self.client.db.messages.raw.find({'guild_id':ctx.guild.id},sort=[('_id',-1)],limit=10)]
 
@@ -227,7 +227,7 @@ class log_commands(Cog):
 		description='get a file with all log history. one use per day.',
 		options=[
 			option(str,name='sorting',description='sorting order',choices=['newest first','oldest first'])])
-	@has_perm('view_audit_log')
+	@perm('view_audit_log')
 	async def slash_get_history(self,ctx:ApplicationContext,sorting:str) -> None:
 		await ctx.defer(ephemeral=True)
 		if time()-await self.client.db.guilds.read(ctx.guild.id,['last_history']) < 86400:

@@ -93,9 +93,7 @@ class DataCollection():
 		return True
 	
 	async def dec(self,id:int|str,path:list=[],value:int|float=1) -> bool:
-		await self.collection.update_one({'_id':id},{'$inc':utils.form_path(path,value*-1)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
-		return True
+		await self.inc(id,path,-value)
 
 	async def delete(self,id:int|str) -> bool:
 		await self.collection.delete_one({'_id':id})
@@ -132,14 +130,16 @@ class db:
 	@property
 	def inf(self) -> DataCollection: return DataCollection(client.INF)
 	@property
+	def dd_roles(self) -> DataCollection: return DataCollection(client.dd_roles)
+	@property
 	def guilds(self) -> DataCollection: return DataCollection(client.guilds)
-	@property
-	def users(self) -> DataCollection: return DataCollection(client.users)
-	@property
-	def test(self) -> DataCollection: return DataCollection(client.test)
-	@property
-	def stats(self) -> DataCollection: return DataCollection(client.status_logs)
 	@property
 	def messages(self) -> DataCollection: return DataCollection(client.messages)
 	@property
-	def dd_roles(self) -> DataCollection: return DataCollection(client.dd_roles)
+	def polls(self) -> DataCollection: return DataCollection(client.polls)
+	@property
+	def stats(self) -> DataCollection: return DataCollection(client.status_logs)
+	@property
+	def test(self) -> DataCollection: return DataCollection(client.test)
+	@property
+	def users(self) -> DataCollection: return DataCollection(client.users)

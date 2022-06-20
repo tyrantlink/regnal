@@ -1,6 +1,6 @@
 from discord.commands import Option as option,SlashCommandGroup
 from discord import TextChannel,Embed,ApplicationContext
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from discord.ext.commands import Cog
 from discord.ext.tasks import loop
 from datetime import datetime
@@ -26,7 +26,7 @@ class qotd_cog(Cog):
 		description='setup the question of the day',
 		options=[
 			option(TextChannel,name='channel',description='qotd question channel')])
-	@has_perm('manage_guild')
+	@perm('manage_guild')
 	async def slash_qotd_setup(self,ctx:ApplicationContext,channel:TextChannel) -> None:
 		if not await self.check(ctx): return
 		await self.client.db.guilds.write(ctx.guild.id,['channels','qotd'],channel.id)
@@ -41,7 +41,7 @@ class qotd_cog(Cog):
 			option(str,name='type',description='ask as next question or add to question pool?',
 				choices=['add as next question','add as next question, then add to pool','add to question pool']),
 			option(str,name='question',description='question to be asked')])
-	@has_perm('manage_guild')
+	@perm('manage_guild')
 	async def slash_qotd_add_question(self,ctx:ApplicationContext,type:str,question:str) -> None:
 		match type:
 			case 'add as next question':

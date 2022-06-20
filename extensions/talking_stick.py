@@ -1,6 +1,6 @@
 from discord import Role,TextChannel,Embed,ApplicationContext,Guild
 from discord.commands import Option as option,SlashCommandGroup
-from utils.tyrantlib import has_perm,MakeshiftClass
+from utils.tyrantlib import perm,MakeshiftClass
 from discord.ext.commands import Cog
 from discord.errors import NotFound
 from discord.ext.tasks import loop
@@ -30,8 +30,8 @@ class talking_stick_cog(Cog):
 			option(Role,name='role',description='talking stick role'),
 			option(TextChannel,name='channel',description='talking stick broadcast channel'),
 			option(Role,name='limit_role',description='required role to be eligible for talking stick',default=None,required=False)])
-	@has_perm('manage_guild')
-	@has_perm('manage_roles')
+	@perm('manage_guild')
+	@perm('manage_roles')
 	async def slash_stick_setup(self,ctx:ApplicationContext,role:Role,channel:TextChannel,limit_role:Role) -> None:	
 
 		if not await self.check(ctx): return
@@ -46,8 +46,8 @@ class talking_stick_cog(Cog):
 	@stick.command(
 		name='reroll',
 		description='force reroll the talking stick')
-	@has_perm('manage_guild')
-	@has_perm('manage_roles')
+	@perm('manage_guild')
+	@perm('manage_roles')
 	async def slash_stick_reroll(self,ctx:ApplicationContext) -> None:
 		if not await self.check(ctx): return
 		await ctx.defer(ephemeral=await self.client.hide(ctx))

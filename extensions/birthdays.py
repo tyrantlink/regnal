@@ -1,7 +1,7 @@
 from discord.commands import SlashCommandGroup,Option as option
 from discord import TextChannel,Role,ApplicationContext
 from discord.ext.commands import Cog
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from main import client_cls
 
 class birthdays_cog(Cog):
@@ -17,7 +17,7 @@ class birthdays_cog(Cog):
 		options=[
 			option(TextChannel,name='channel',description='birthday broadcast channel'),
 			option(Role,name='role',description='birthday role')])
-	@has_perm('manage_roles')
+	@perm('manage_roles')
 	async def slash_birthday_setup(self,ctx:ApplicationContext,channel:TextChannel,role:Role) -> None:
 		if not await self.client.db.guilds.read(ctx.guild.id,['config','birthdays']): await ctx.response.send_message('birthdays are not enabled on this server. enable them with /config',ephemeral=await self.client.hide(ctx))
 		await self.client.db.guilds.write(ctx.guild.id,['channels','birthday'],channel.id)

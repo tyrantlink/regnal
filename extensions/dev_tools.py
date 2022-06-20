@@ -1,7 +1,7 @@
 from discord import Embed,InputTextStyle,Interaction,User,ApplicationContext
 from discord.commands import SlashCommandGroup,Option as option
 from discord.ext.commands import Cog,slash_command
-from utils.tyrantlib import has_perm,load_data
+from utils.tyrantlib import perm,load_data
 from main import client_cls,extensions
 from discord.ui import InputText,Modal
 from sys import argv,executable
@@ -112,7 +112,7 @@ class dev_tools_cog(Cog):
 	@dev.command(
 		name='commit',
 		description='create a change-log announcement')
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_commit(self,ctx:ApplicationContext) -> None:
 		await ctx.send_modal(input_modal(self.client,'commit'))
 
@@ -144,7 +144,7 @@ class dev_tools_cog(Cog):
 			option(str,name='arg3',description='argument three',required=False,default=None),
 			option(str,name='arg4',description='argument four',required=False,default=None),
 			option(str,name='arg5',description='argument five',required=False,default=None)])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_test(self,ctx:ApplicationContext,test_case:int,arg1:str,arg2:str,arg3:str,arg4:str,arg5:str) -> None:
 		match test_case:
 			case 0: await ctx.response.send_message('\n'.join([cmd.qualified_name for cmd in self.client.walk_application_commands()]),ephemeral=await self.client.hide(ctx))
@@ -177,7 +177,7 @@ class dev_tools_cog(Cog):
 	@dev.command(
 		name='clear_console',
 		description='clear the console output')
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_clear_console(self,ctx:ApplicationContext) -> None:
 		system('clear')
 		await ctx.response.send_message('successfully cleared console',ephemeral=await self.client.hide(ctx))
@@ -187,7 +187,7 @@ class dev_tools_cog(Cog):
 		description='echo a message through /reg/nal',
 		options=[
 			option(str,name='message',description='message for /reg/nal to repeat')])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_echo(self,ctx:ApplicationContext,message:str) -> None:
 		await ctx.channel.send(message)
 		await ctx.response.send_message('successfully echoed message',ephemeral=True)
@@ -195,7 +195,7 @@ class dev_tools_cog(Cog):
 	@dev.command(
 		name='reboot',
 		description='hard reboot /reg/nal, \'cause why not?')
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_reboot(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(f'successfully set {self.client.user.mention} to False',ephemeral=await self.client.hide(ctx))
 		await self.client.log.command(ctx)
@@ -210,9 +210,9 @@ class dev_tools_cog(Cog):
 			option(str,name='id',description='document id. use :: to specify type (int default)'),
 			option(str,name='path',description='path to variable, separate by >',required=False,default=[]),
 			option(str,name='value',description='value. use :: to specify type (str default)',required=False,default=None)])
-	@has_perm('tester')
+	@perm('tester')
 	async def slash_dev_db(self,ctx:ApplicationContext,collection:str,mode:str,id:str,path:str,value:str) -> None:
-		if not await has_perm('bot_owner',ctx):
+		if not await perm('bot_owner',ctx):
 			if mode != 'read':
 				await ctx.response.send_message('testers have read-only access to db.',ephemeral=await self.client.hide(ctx))
 				return
@@ -265,7 +265,7 @@ class dev_tools_cog(Cog):
 		options=[
 			option(str,name='mode',description='add // remove',choices=['add','remove']),
 			option(str,name='user_id',description='id of target user')])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_tester(self,ctx:ApplicationContext,mode:str,user_id:str) -> None:
 		match mode:
 			case 'add':
@@ -281,7 +281,7 @@ class dev_tools_cog(Cog):
 		description='reload an extension',
 		options=[
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_reload(self,ctx:ApplicationContext,extension:str) -> None:
 		print(self.client._raw_loaded_extensions)
 		if extension not in self.client._raw_loaded_extensions:
@@ -295,7 +295,7 @@ class dev_tools_cog(Cog):
 		description='load an extension',
 		options=[
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_load(self,ctx:ApplicationContext,extension:str) -> None:
 		if extension in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is already loaded',ephemeral=True)
@@ -308,7 +308,7 @@ class dev_tools_cog(Cog):
 		description='unload an extension',
 		options=[
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_unload(self,ctx:ApplicationContext,extension:str) -> None:
 		if extension not in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
@@ -323,7 +323,7 @@ class dev_tools_cog(Cog):
 		description='enable an extension',
 		options=[
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_enable(self,ctx:ApplicationContext,extension:str) -> None:
 		await self.client.db.inf.write('/reg/nal',['extensions',extension],True)
 		await ctx.response.send_message(f'successfully enabled the {extension} extension. it will start next reboot',ephemeral=True)
@@ -333,7 +333,7 @@ class dev_tools_cog(Cog):
 		description='disable an extension',
 		options=[
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_disable(self,ctx:ApplicationContext,extension:str) -> None:
 		await self.client.db.inf.write('/reg/nal',['extensions',extension],False)
 		response = f'successfully disabled the {extension} extension. it will not start next reboot'
@@ -343,7 +343,7 @@ class dev_tools_cog(Cog):
 	@dev.command(
 		name='sync_commands',
 		description='sync commands with the discord')
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_dev_sync_commands(self,ctx:ApplicationContext) -> None:
 		await self.client.sync_commands()
 		await ctx.response.send_message('successfully synced commands',ephemeral=True)

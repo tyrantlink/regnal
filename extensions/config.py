@@ -2,7 +2,7 @@ from discord.ui import View,Button,Select,button,Modal,InputText,Item
 from discord import SelectOption,Interaction,Embed,ApplicationContext
 from discord.commands import slash_command
 from discord.ext.commands import Cog
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from main import client_cls,config
 from asyncio import sleep
 
@@ -185,10 +185,10 @@ class config_cog(Cog):
 		description='set config')
 	async def slash_test_config(self,ctx:ApplicationContext) -> None:
 		allowed_config = ['user']
-		if await has_perm('manage_guild',ctx):
+		if await perm('manage_guild',ctx):
 			allowed_config.append('guild')
-			if await has_perm('view_audit_log',ctx): allowed_config.append('logging')
-		if await has_perm('bot_owner',ctx): allowed_config.append('/reg/nal')
+			if await perm('view_audit_log',ctx): allowed_config.append('logging')
+		if await perm('bot_owner',ctx): allowed_config.append('/reg/nal')
 		embed_color = await self.client.embed_color(ctx)
 		embed = Embed(title='config options',description='please select a config category',color=embed_color)
 		await ctx.response.send_message(embed=embed,view=view(

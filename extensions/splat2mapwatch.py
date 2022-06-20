@@ -1,6 +1,6 @@
 from discord.commands import SlashCommandGroup
 from discord import ApplicationContext
-from utils.tyrantlib import has_perm
+from utils.tyrantlib import perm
 from discord.ext.commands import Cog
 from discord.ext.tasks import loop
 from aiohttp import ClientSession
@@ -24,7 +24,7 @@ class splat2mapwatch_cog(Cog):
 	@splatoon.command(
 		name='restart_mapwatch',
 		description='restart mapwatch loop')
-	@has_perm('bot_owner')
+	@perm('bot_owner')
 	async def slash_splatoon_restart_mapwatch(self,ctx:ApplicationContext) -> None:
 		self.mapwatch_loop.restart()
 		await ctx.response.send_message('mapwatch loop restarted')

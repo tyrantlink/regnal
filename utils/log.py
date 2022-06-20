@@ -30,7 +30,11 @@ class log:
 				makedirs('logs',exist_ok=True)
 				with gzopen(f"logs{len([path for path in listdir('./logs') if isfile(join('.',path))])+1}.gz",'wb') as g:
 					g.write(txt.encode('utf-8'))
-				
+
+		if self.DEV_MODE:
+			print(log)
+			return
+
 		if send:
 			try:
 				async with connect(self.reglog) as ws:
