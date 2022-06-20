@@ -144,8 +144,7 @@ class poll_cog(Cog):
 	@perm('guild_only')
 	async def poll(self,ctx:ApplicationContext) -> None:
 		embed = Embed(title='set a poll title!',description='and the description too!\nif you want, i guess. a description isn\'t required.',color=await self.client.embed_color(ctx))
-		await ctx.response.send_message(f'votes visible: True',
-		embed=embed,
+		await ctx.response.send_message(embed=embed,
 		view=view(
 			client=self.client,
 			embed=embed),
