@@ -176,7 +176,7 @@ class dev_tools_cog(Cog):
 	async def slash_dev_reboot(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(f'successfully set {self.client.user.mention} to False',ephemeral=await self.client.hide(ctx))
 		await self.client.log.command(ctx)
-		system('sudo systemctl restart regnal')
+		system('sudo docker restart regnal')
 
 	@dev.command(
 		name='db',
