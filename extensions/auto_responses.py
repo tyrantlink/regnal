@@ -5,8 +5,6 @@ from main import client_cls
 from os import getcwd
 
 
-
-
 class auto_responses_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
 		client._extloaded()

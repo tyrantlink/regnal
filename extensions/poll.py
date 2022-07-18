@@ -1,10 +1,9 @@
 from discord import SelectOption,Interaction,Embed,ApplicationContext,InputTextStyle
-from discord.ui import View,Button,Select,button,Modal,InputText,Item,select
+from discord.ui import View,Button,Select,button,Modal,InputText,Item
 from discord.commands import slash_command
 from discord.ext.commands import Cog
 from utils.tyrantlib import perm
 from main import client_cls
-from asyncio import sleep
 
 class published_dropdown(Select):
 	def __init__(self,client:client_cls,options:list[SelectOption]) -> None:

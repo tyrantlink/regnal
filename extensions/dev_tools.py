@@ -4,11 +4,9 @@ from discord.ext.commands import Cog,slash_command
 from utils.tyrantlib import perm,load_data
 from main import client_cls,extensions
 from discord.ui import InputText,Modal
-from sys import argv,executable
-from os import system,execv
 from asyncio import sleep
 from json import dumps
-
+from os import system
 
 class input_modal(Modal):
 	def __init__(self,client:client_cls,format:str) -> None:
