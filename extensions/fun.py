@@ -1,5 +1,5 @@
-from discord import File,Embed,InviteTarget,Role,ApplicationContext
 from discord.commands import Option as option,slash_command,SlashCommandGroup
+from discord import Embed,InviteTarget,Role,ApplicationContext
 from main import client_cls,activity_options
 from discord.ext.commands import Cog
 from utils.tyrantlib import perm
@@ -59,7 +59,7 @@ class fun_cog(Cog):
 		description='say hello to /reg/nal?')
 	async def slash_hello(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(
-			file=File('images/regnal.png' if randint(0,100) else 'images/erglud.png'),
+			f'https://cdn.tyrant.link/reg/nal/{"regnal" if randint(0,100) else "erglud"}.png',
 			ephemeral=await self.client.hide(ctx))
 
 	@slash_command(

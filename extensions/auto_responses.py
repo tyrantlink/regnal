@@ -1,6 +1,6 @@
 from re import sub,search,IGNORECASE,split
 from discord.ext.commands import Cog
-from discord import File,Message
+from discord import Message
 from main import client_cls
 from os import getcwd
 
@@ -35,7 +35,7 @@ class auto_responses_cog(Cog):
 		user,file,owner = responses['user'],responses['file'],responses['owner']
 		if message.author.id == self.client.owner_id and message.content in owner: await message.channel.send(owner[message.content])
 		elif message.content in user: await message.channel.send(user[message.content])
-		elif message.content in file: await message.channel.send(file=File(f'{getcwd()}/images/memes/{file[message.content]}'))
+		elif message.content in file: await message.channel.send(f'https://cdn.tyrant.link/reg/nal/auto_responses/{file[message.content]}')
 		else: return
 		await self.client.log.listener(message)
 
