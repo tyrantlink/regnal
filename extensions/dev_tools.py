@@ -4,9 +4,11 @@ from discord.ext.commands import Cog,slash_command
 from utils.tyrantlib import perm,load_data
 from main import client_cls,extensions
 from discord.ui import InputText,Modal
+from os import system,execv
 from asyncio import sleep
 from json import dumps
-from os import system
+from sys import argv
+
 
 class input_modal(Modal):
 	def __init__(self,client:client_cls,format:str) -> None:
@@ -176,7 +178,7 @@ class dev_tools_cog(Cog):
 	async def slash_dev_reboot(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(f'successfully set {self.client.user.mention} to False',ephemeral=await self.client.hide(ctx))
 		await self.client.log.command(ctx)
-		system('sudo docker restart regnal')
+		execv(argv[0],argv)
 
 	@dev.command(
 		name='db',
