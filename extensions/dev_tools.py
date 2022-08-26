@@ -63,6 +63,7 @@ class input_modal(Modal):
 		embed.add_field(
 			name="please report bugs with /issue\ncommands may take up to an hour to update globally.",
 			value='[development server](<https://discord.gg/4mteVXBDW7>)')
+		with open('.git/refs/heads/master') as git: embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({git.read(7)})')
 		message = await channel.send(embed=embed)
 		await message.publish()
 
