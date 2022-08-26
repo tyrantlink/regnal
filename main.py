@@ -24,11 +24,11 @@ DEV_MODE = exists('dev')
 with open('.git/refs/heads/master') as git:
 	git = git.read()
 	with open('last_update') as file:
-		last_update = file.read().split('::')
+		last_update = file.readlines()
 	if last_update[0] != git:
 		lu = time()
 		with open('last_update','w') as file:
-			file.write(f'{git}::{lu}')
+			file.write(f'{git}{lu}')
 	else: lu = float(last_update[1])
 
 with open('mongo') as mongo:
