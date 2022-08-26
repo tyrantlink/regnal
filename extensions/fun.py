@@ -98,7 +98,7 @@ class fun_cog(Cog):
 						res = randint(1,int(e[1]))
 						rolls.append(res)
 				case _: await ctx.response.send_message('invalid input',ephemeral=await self.client.hide(ctx))
-		if rolls: embed.add_field(name='rolls:',value=rolls,inline=False)
+		if rolls and not len(rolls) >= 1024: embed.add_field(name='rolls:',value=rolls,inline=False)
 		if modifiers != 0: embed.add_field(name='modifiers:',value=f"{'+' if modifiers > 0 else ''}{modifiers}",inline=False)
 		embed.add_field(name='result:',value=sum(rolls)+modifiers)
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))

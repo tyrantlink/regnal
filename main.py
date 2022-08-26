@@ -15,7 +15,6 @@ from os.path import exists
 from inspect import stack
 from utils.log import log
 from requests import get
-from os import urandom
 from json import loads
 from sys import argv
 
@@ -37,7 +36,6 @@ class client_cls(Bot):
 	def __init__(self) -> None:
 		global extensions
 		super().__init__('i lika, do, da cha cha',None,intents=Intents.all())
-		self.MISSING = urandom(16).hex()
 		self.db = db()
 		self.env = env(benv['env_dict'])
 		self.help = benv['help']
@@ -89,8 +87,8 @@ class client_cls(Bot):
 		await self.log.error(error)
 
 class base_commands(Cog):
-	def __init__(self,client) -> None:
-		self.client:Bot = client
+	def __init__(self,client:client_cls) -> None:
+		self.client = client
 		self.uptime_hours = 0
 		self.uptime_loop.start()
 	
@@ -120,7 +118,7 @@ class base_commands(Cog):
 		embed.add_field(name='lifetime',value='\n'.join(lifetime),inline=True)
 		embed.add_field(name='total cost',value=f"${format((past_price+month_price)/100,'.2f')} (${format(month_price/100,'.2f')} so far this month)",inline=False)
 		embed.add_field(name='total db size',value=format_bytes((await self.client.db.messages.raw.database.command('dbstats'))['dataSize']))
-
+		with open('.git/refs/heads/master') as git: embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({git.read(7)})')
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@slash_command(

@@ -1,18 +1,37 @@
-from discord import SelectOption,Interaction,Role,Interaction,Embed,ApplicationContext
-from discord.commands import SlashCommandGroup,Option as option
-from discord.ui import Select,View,Item
+from discord import Interaction,Embed,ApplicationContext,Role,SelectOption
+from discord.ui import View,Button,button,Modal,InputText,Item,Select
+from discord.commands import slash_command,Option as option
 from discord.ext.commands import Cog
-from utils.tyrantlib import perm
 from discord.errors import Forbidden
+from utils.tyrantlib import perm
 from main import client_cls
+from asyncio import Event
+from os import urandom
 
-class dropdown(Select):
-	def __init__(self,client:client_cls,options:list,placeholder:str) -> None:
-		self.client = client
-		if options is None: options = range(25)
-		super().__init__(placeholder=placeholder,min_values=0,max_values=len(options),options=options,custom_id='test')
+role_inputs = {}
+
+class input_text(Modal):
+	def __init__(self,embed:Embed,view:View,inputs=[InputText]) -> None:
+		self.embed = embed
+		self.view = view
+		super().__init__('set placeholder')
+		for i in inputs: self.add_item(i)
 
 	async def callback(self,interaction:Interaction) -> None:
+		self.response = [i.value for i in self.children]
+		
+		await interaction.response.edit_message(embed=self.embed,view=self.view)
+		self.stop()
+
+class menu(Select):
+	def __init__(self,client:client_cls,options:list[SelectOption],placeholder:str,preview:bool=False) -> None:
+		self.client = client
+		self.preview = preview
+		if options is None: options = range(25)
+		super().__init__(placeholder=placeholder,min_values=0,max_values=len(options),options=options,custom_id='rolemenu')
+
+	async def callback(self,interaction:Interaction) -> None:
+		if self.preview: return
 		current_roles = [role.id for role in interaction.user.roles]
 		option_data = await self.client.db.dd_roles.read(interaction.message.id,['options'])
 		possible_options = [option_data[i]['role'] for i in option_data]
@@ -34,126 +53,186 @@ class dropdown(Select):
 		if removed_roles: res.add_field(name='removed',value='\n'.join(removed_roles))
 		if added_roles or removed_roles: await interaction.response.send_message(embed=res,ephemeral=True)
 
-class view(View):
-	def __init__(self,client:client_cls=None,options:list=None,placeholder:str=None) -> None:
+class fview(View):
+	def __init__(self,client:client_cls=None,options:list[SelectOption]=None,placeholder:str=None,preview:bool=False) -> None:
 		self.client = client
 		super().__init__(timeout=None)
-		self.add_item(dropdown(client,options,placeholder))
+		self.add_item(menu(client,options,placeholder,preview))
 	
 	async def on_error(self,error:Exception,item:Item,interaction:Interaction) -> None:
-		await interaction.response.send_message(error,ephemeral=True)
+		await interaction.followup.send_message(error,ephemeral=True)
 		await self.client.log.error(error)
 
-class dropdown_roles_cog(Cog):
+class view(View):
+	def __init__(self,*,client:client_cls,embed:Embed,embed_color:int,current_data:dict,edit:bool) -> None:
+		super().__init__()
+		self.clear_items()
+		self.client = client
+		self.embed = embed
+		self.embed_color = embed_color
+		self.data = current_data
+		self.previewed = False
+		self.edit = edit
+		self.add_item(self.button_set_placeholder)
+		if not len(self.data['options']) >= 25: self.add_item(self.button_add_role)
+		if len(self.data['options']) > 0      : self.add_item(self.button_remove_role)
+		if not len(self.data['options']) == 0 : self.add_item(self.button_publish)
+		
+
+	async def on_error(self,error:Exception,item:Item,interaction:Interaction) -> None:
+		if interaction.response.is_done(): await interaction.followup.send(error,ephemeral=True)
+		else: await interaction.response.send_message(error,ephemeral=True)
+		await self.client.log.error(error)
+	
+	async def main_menu_button(self,interaction:Interaction,title:str,description:str=None) -> None:
+		self.embed.title = title
+		self.embed.description = description
+		self.clear_items()
+		self.add_item(self.button_back)
+		await interaction.response.edit_message(embed=self.embed,view=self)
+
+	async def base_back(self,button:Button,interaction:Interaction):
+		self.embed.title = 'create a role menu'
+		self.embed.description = 'please select an option'
+		self.clear_items()
+		self.add_item(self.button_set_placeholder)
+		if not len(self.data['options']) >= 25: self.add_item(self.button_add_role)
+		if len(self.data['options']) > 0      : self.add_item(self.button_remove_role)
+		if not len(self.data['options']) == 0 : self.add_item(self.button_publish)
+		await interaction.response.edit_message(embed=self.embed,view=self)
+
+
+	@button(label='<',style=2)
+	async def button_back(self,button:Button,interaction:Interaction) -> None:
+		await self.base_back(button,interaction)
+
+	@button(label='add role',style=1)
+	async def button_add_role(self,button:Button,interaction:Interaction) -> None:
+		global role_inputs
+		self.previewed = False
+		rid = urandom(3).hex()
+		await self.main_menu_button(interaction,f'add a role `{rid}`',f'please use /add_role_to_menu to add a role.\nawaiting input from id `{rid}`\nclick the back button once the role has been added.')
+		role_inputs[rid] = {'event':Event(),'response':{}}
+		await role_inputs[rid]['event'].wait()
+		response = role_inputs.pop(rid)['response']
+		err = ''
+		if response['label'] in self.data['options']: err += 'role label already in options\n'
+		if response['role'].id in self.data['options'].values(): err += 'role already in options\n'
+		try:
+			await interaction.guild.me.add_roles(response['role'],reason='checking if /reg/nal can add role')
+			await interaction.guild.me.remove_roles(response['role'],reason='checking if /reg/nal can add role')
+		except Forbidden: err += '/reg/nal does not have permission to add this role\n'
+		if err:
+			await interaction.followup.send(f'Error:\n{err}')
+			return
+		self.data['options'][response['label']] = {'role':response['role'].id,'label':response['label'],'description':response['description'],'emoji':response['emoji']}
+		await interaction.followup.send(f'successfully added role {response["role"].mention}\n\ndismiss this message and return to the role menu command',ephemeral=True)
+	
+	@button(label='remove role',style=1)
+	async def button_remove_role(self,button:Button,interaction:Interaction) -> None:
+		self.previewed = False
+		modal = input_text(self.embed,self,[
+			InputText(label='option name (case sensitive)',placeholder='server-updates',max_length=100)])
+		await interaction.response.send_modal(modal)
+		await modal.wait()
+		response = modal.response[0]
+		if response in self.data['options']:
+			self.data['options'].pop(response)
+
+	@button(label='set placeholder',style=1)
+	async def button_set_placeholder(self,button:Button,interaction:Interaction) -> None:
+		self.previewed = False
+		modal = input_text(self.embed,self,[
+			InputText(label='set placeholder',placeholder=self.data['placeholder'],max_length=150)])
+		await interaction.response.send_modal(modal)
+		await modal.wait()
+		self.data['placeholder'] = modal.response[0]
+
+	@button(label='publish',style=1)
+	async def button_publish(self,button:Button,interaction:Interaction) -> None:
+		if len(self.data['options']) == 0:
+			await self.base_back(button,interaction)
+			return
+		if not self.previewed:
+			self.embed.title = 'preview'
+			self.embed.description = '*will not add roles until published'
+			self.clear_items()
+			self.add_item(menu(self.client,[SelectOption(value=r,label=l,description=d,emoji=e) for r,l,d,e in [list(i.values()) for i in self.data['options'].values()]],self.data['placeholder'],True))
+			self.add_item(self.button_back)
+			self.add_item(self.button_publish)
+			await interaction.response.edit_message(embed=self.embed,view=self)
+			self.previewed = True
+		else:
+			msg = await interaction.channel.send(view=fview(self.client,[SelectOption(value=r,label=l,description=d,emoji=e) for r,l,d,e in [list(i.values()) for i in self.data['options'].values()]],self.data['placeholder']))
+			await self.client.db.dd_roles.new(msg.id)
+			await self.client.db.dd_roles.write(msg.id,['placeholder'],self.data['placeholder'])
+			await self.client.db.dd_roles.write(msg.id,['options'],self.data['options'])
+			if self.edit:
+				await (await interaction.channel.fetch_message(self.edit)).delete()
+				await self.client.db.dd_roles.delete(self.edit)
+			self.embed.title = 'success!'
+			self.embed.description = 'you may now dismiss this message'
+			self.clear_items()
+			await interaction.response.edit_message(embed=self.embed,view=self)
+
+	
+class role_menu_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
 		client._extloaded()
 		self.client = client
 
 	@Cog.listener()
 	async def on_ready(self) -> None:
-		self.client.add_view(view(self.client))
+		self.client.add_view(fview(self.client))
 
-	dropdown_roles = SlashCommandGroup('dropdown_roles','dropdown role commands')
-
-	@dropdown_roles.command(
-		name='create',
-		description='create a dropdown role menu',
+	@slash_command(
+		name='role_menu',
+		description='create a role menu',
 		options=[
-			option(Role,name='role',description='first role'),
-			option(str,name='name',description='role label'),
-			option(str,name='description',description='role description',required=False),
-			option(str,name='emoji',description='role emoji',required=False),
-			option(str,name='placeholder',description='placeholder text when no roles are selected',default='choose some roles',required=False)])
+			option(str,name='message_id',description='edit existing role menu. menu wil be recreated',required=False,default=None)])
 	@perm('manage_roles')
-	async def slash_dropdown_roles_create(self,ctx:ApplicationContext,role:Role,label:str,description:str,emoji:str,placeholder:str) -> None:
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		dd_role_message = await ctx.channel.send(view=view(self.client,[SelectOption(label=label,description=description,emoji=emoji,value=str(role.id))],placeholder))
-		await self.client.db.dd_roles.new(dd_role_message.id)
-		await self.client.db.dd_roles.write(dd_role_message.id,['placeholder'],placeholder)
-		await self.client.db.dd_roles.write(dd_role_message.id,['options',label],{'role':role.id,'label':label,'description':description,'emoji':emoji})
-		await ctx.followup.send(f'successfully created dropdown menu. message_id: `{dd_role_message.id}`',ephemeral=True)
-
-	@dropdown_roles.command(
-		name='add_role',
-		description='add role to existing menu. 25 max',
+	async def slash_role_menu(self,ctx:ApplicationContext,message_id:str) -> None:
+		if message_id:
+			current_data = await self.client.db.dd_roles.read(int(message_id))
+			if not current_data:
+				await ctx.followup.send(f'`{message_id}` not found in database',ephemeral=True)
+				return
+			desc = 'you are editing an existing role menu. after you are finished it will be reposted. the original message will be deleted when you are finished.'
+		else:
+			desc = 'please choose an option.'
+			current_data = {'placeholder':'choose some roles','options':{}}
+		embed_color = await self.client.embed_color(ctx)
+		embed = Embed(title='create a role menu',description=desc,color=embed_color)
+		await ctx.response.send_message(embed=embed,view=view(
+			client=self.client,
+			embed=embed,
+			embed_color=embed_color,
+			current_data=current_data,
+			edit=message_id),
+			ephemeral=True)
+	
+	@slash_command(
+		name='add_role_to_menu',
+		description='/role_menu must be used first',
 		options=[
-			option(str,name='message_id',description='id of existing menu message'),
+			option(str,name='id',description='id given from /role menu'),
 			option(Role,name='role',description='role'),
 			option(str,name='name',description='role label'),
 			option(str,name='description',description='role description',required=False),
 			option(str,name='emoji',description='role emoji',required=False)])
 	@perm('manage_roles')
-	async def slash_dropdown_roles_add(self,ctx:ApplicationContext,message_id:str,role:Role,label:str,description:str,emoji:str) -> None:
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		message_id = int(message_id)
-		current_data = await self.client.db.dd_roles.read(message_id)
-		current_message = await ctx.channel.fetch_message(message_id)
-		if not current_data:
-			await ctx.followup.send(f'`{message_id}` not found in database',ephemeral=True)
+	async def slash_add_role_to_menu(self,ctx:ApplicationContext,id:str,role:Role,label:str,description:str,emoji:str) -> None:
+		global role_inputs
+		if role_inputs.get(id.lower()) is None:
+			await ctx.response.send_message(f'unknown id `{id}`',ephemeral=True)
 			return
-		if not current_message:
-			await ctx.followup.send('message not found on discord. was it deleted?',ephemeral=True)
-			return
-		if len(current_data['options']) >= 25:
-			await ctx.followup.send('you cannot add more than 25 roles',ephemeral=True)
-			return
-		if label in current_data['options']:
-			if current_data['options'][label] is not None:
-				await ctx.followup.send('role label already in options',ephemeral=True)
-				return
-		if role.id in current_data['options'].values():
-			await ctx.followup.send('role already in options',ephemeral=True)
-			return
-		await self.client.db.dd_roles.write(message_id,['options',label],{'role':role.id,'label':label,'description':description,'emoji':emoji})
-		new_data = await self.client.db.dd_roles.read(message_id)
-		await current_message.edit(view=view(self.client,[SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in new_data['options'].items() if o[1] is not None],new_data['placeholder']))
-		await ctx.followup.send(f'successfully added {label} to menu. message_id: `{message_id}`',ephemeral=True)
+		role_inputs[id]['response'] = {
+			'role':role,
+			'label':label,
+			'description':description,
+			'emoji':emoji}
+		role_inputs[id]['event'].set()
+		await ctx.response.send_message(f'validating role... dismiss this message',ephemeral=True)
 	
-	@dropdown_roles.command(
-		name='remove_role',
-		description='remove role from existing menu',
-		options=[
-			option(str,name='message_id',description='id of existing menu message'),
-			option(str,name='label',description='role label')])
-	@perm('manage_roles')
-	async def slash_dropdown_roles_remove(self,ctx:ApplicationContext,message_id:str,label:str) -> None:
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		message_id = int(message_id)
-		current_data = await self.client.db.dd_roles.read(message_id)
-		current_message = await ctx.channel.fetch_message(message_id)
-		if not current_data:
-			await ctx.followup.send(f'`{message_id}` not found in database',ephemeral=True)
-			return
-		if not current_message:
-			await ctx.followup.send('message not found on discord. was it deleted?',ephemeral=True)
-			return
-		if label not in current_data['options'].keys():
-			await ctx.followup.send('role label not found. is it exact?',ephemeral=True)
-			return
-		await self.client.db.dd_roles.unset(message_id,['options',label])
-		new_data = await self.client.db.dd_roles.read(message_id)
-		await current_message.edit(view=view(self.client,[SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in new_data['options'].items() if o[1] is not None],new_data['placeholder']))
-		await ctx.followup.send(f'successfully removed {label} from menu. message_id: `{message_id}`',ephemeral=True)
 
-	@dropdown_roles.command(
-		name='refresh_menu',
-		description='refresh existing menu',
-		options=[
-			option(str,name='message_id',description='id of existing menu message')])
-	@perm('manage_roles')
-	async def slash_dropdown_roles_refresh_menu(self,ctx:ApplicationContext,message_id:str) -> None:
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		message_id = int(message_id)
-		data = await self.client.db.dd_roles.read(message_id)
-		message = await ctx.channel.fetch_message(message_id)
-		if not data:
-			await ctx.followup.send(f'`{message_id}` not found in database',ephemeral=True)
-			return
-		if not message:
-			await ctx.followup.send('message not found on discord. was it deleted?',ephemeral=True)
-			return
-		await message.edit(view=view(self.client,[SelectOption(label=o[1]['label'],description=o[1]['description'],emoji=o[1]['emoji'],value=str(o[1]['role'])) for o in data['options'].items() if o[1] is not None],data['placeholder']))
-		await ctx.followup.send(f'successfully refreshed menu. message_id: `{message_id}`',ephemeral=True)
-
-
-def setup(client:client_cls) -> None: client.add_cog(dropdown_roles_cog(client))
+def setup(client:client_cls) -> None: client.add_cog(role_menu_cog(client))

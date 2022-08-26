@@ -7,8 +7,7 @@ from main import client_cls,config
 from asyncio import sleep
 
 class input_text(Modal):
-	def __init__(self,MISSING:int,embed:Embed,view:View,label:str,placeholder:str,max_length:int) -> None:
-		self.response = MISSING
+	def __init__(self,embed:Embed,view:View,label:str,placeholder:str,max_length:int) -> None:
 		self.label = label
 		self.embed = embed
 		self.view = view
@@ -25,6 +24,7 @@ class input_text(Modal):
 					except ValueError: pass
 				else: self.embed.set_field_at(index,name=f'{self.label}: {self.response}',value=field.value)
 		await interaction.response.edit_message(embed=self.embed,view=self.view)
+		self.stop()
 
 class options_dropdown(Select):
 	def __init__(self,view:View) -> None:
@@ -149,12 +149,9 @@ class view(View):
 	
 	@button(label='set',style=3)
 	async def button_input(self,button:Button,interaction:Interaction) -> None:
-		modal = input_text(self.client.MISSING,self.embed,self,label=self.selected,placeholder=config[self.current_menu][self.selected]['default'],max_length=config[self.current_menu][self.selected]['max_length'])
+		modal = input_text(self.embed,self,label=self.selected,placeholder=config[self.current_menu][self.selected]['default'],max_length=config[self.current_menu][self.selected]['max_length'])
 		await interaction.response.send_modal(modal)
-		for i in range(30):
-			if modal.response != self.client.MISSING: break
-			await sleep(0.5)
-		else: return
+		await modal.wait()
 		value = await self.validate_input(modal.response)
 		if value is None: await interaction.response.send_message('invalid input',ephemeral=True)
 		else: await self.modify_config(value,interaction,True)

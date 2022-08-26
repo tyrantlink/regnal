@@ -174,7 +174,7 @@ class log_commands(Cog):
 		try: message_id = int(message_id)
 		except: return 'invalid message id'
 		message_data = await self.client.db.messages.read(message_id)
-		if message_data == None or len(str(message_id)) != 18 or message_data['guild_id'] != guild_id:
+		if message_data == None or message_data['guild_id'] != guild_id:
 			return 'invalid message id'
 
 		return dumps(message_data,indent=2)
@@ -190,7 +190,7 @@ class log_commands(Cog):
 	@get_log.command(name='by_id',
 		description='get message details by id',
 		options=[
-			option(str,name='message_id',description='id of message, 18 digits long.')])
+			option(str,name='message_id',description='id of message')])
 	@perm('view_audit_log')
 	async def slash_get_by_id(self,ctx:ApplicationContext,message_id:str|int) -> None:
 		response = await self.base_get_by_id(message_id,ctx.guild.id)
