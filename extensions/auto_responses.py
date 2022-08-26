@@ -15,9 +15,7 @@ class auto_responses_cog(Cog):
 		if message.guild:
 			try: guild = await self.client.db.guilds.read(message.guild.id)
 			except: guild = await self.client.db.guilds.read(0)
-		else:
-			await message.channel.send('https://cdn.tyrant.link/reg/nal/dm.png')
-			return
+		else: guild = await self.client.db.guilds.read(0)
 		if guild is None: return
 
 		try:
@@ -28,6 +26,10 @@ class auto_responses_cog(Cog):
 				await self.client.db.users.read(message.author.id,['config','ignored'])):
 					return
 		except: return
+
+		if message.guild is None:
+			await message.channel.send('https://cdn.tyrant.link/reg/nal/dm.png')
+			return
 
 		if guild['config']['auto_responses']: await self.listener_auto_response(message)
 		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
