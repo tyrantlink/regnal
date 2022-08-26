@@ -15,8 +15,10 @@ class auto_responses_cog(Cog):
 		if message.guild:
 			try: guild = await self.client.db.guilds.read(message.guild.id)
 			except: guild = await self.client.db.guilds.read(0)
-		else: guild = await self.client.db.guilds.read(0)
-		if guild == None: return
+		else:
+			await message.channel.send('https://cdn.tyrant.link/reg/nal/dm.png')
+			return
+		if guild is None: return
 
 		try:
 			if (

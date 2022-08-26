@@ -183,7 +183,7 @@ class config_cog(Cog):
 	@slash_command(
 		name='config',
 		description='set config')
-	async def slash_test_config(self,ctx:ApplicationContext) -> None:
+	async def slash_config(self,ctx:ApplicationContext) -> None:
 		allowed_config = ['user']
 		if await perm('manage_guild',ctx):
 			allowed_config.append('guild')
