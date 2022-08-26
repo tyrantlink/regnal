@@ -115,7 +115,7 @@ class fun_cog(Cog):
 		options=[
 			option(str,name='question',description='question to ask')])
 	async def slash_eightball(self,ctx:ApplicationContext,question:str) -> None:
-		await ctx.response.send_message(choice(await self.client.db.inf.read('questions',['8ball'])))
+		with open('content/8ball') as file: await ctx.response.send_message(choice(file.readlines()))
 
 	@slash_command(
 		name='color',
@@ -186,7 +186,7 @@ class fun_cog(Cog):
 		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.hide(ctx))
 
 	async def acquire_hentai(self) -> tuple:
-		id = randint(1,400493)
+		id = randint(1,417147)
 		async with ClientSession() as session:
 			async with session.get(f'https://nhentai.net/api/gallery/{id}') as res:
 				match res.status:

@@ -65,7 +65,8 @@ class qotd_cog(Cog):
 						question = data['qotd']['nextup'][0]
 						await self.client.db.guilds.remove(guild.id,['qotd','nextup'],question)
 					else:
-						question = choice(await self.client.db.inf.read('questions',['qotd'])+await self.client.db.guilds.read(guild.id,['qotd','pool']))
+						with open('content/qotd') as file:
+							question = choice(file.readlines()+await self.client.db.guilds.read(guild.id,['qotd','pool']))
 					await guild.get_channel(data['channels']['qotd']).send(
 						embed=Embed(
 							title='❓❔ Question of the Day ❔❓',

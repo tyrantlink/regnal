@@ -2,9 +2,9 @@ from discord.commands import SlashCommandGroup,Option as option,slash_command,us
 from discord import Embed,User,ApplicationContext
 from discord.ext.commands import Cog
 from utils.tyrantlib import perm
+from json import dumps,loads
 from main import client_cls
 from random import choice
-from json import dumps
 
 class commands_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
@@ -68,11 +68,13 @@ class commands_cog(Cog):
 		await ctx.response.send_message(f'```\n{dumps(await self.client.db.users.read(ctx.author.id),indent=2)}\n```',ephemeral=True)
 
 	@slash_command(
-		name='generate_insult',
-		description='generate a random insult')
-	async def slash_generate_insult(self,ctx:ApplicationContext) -> None:
-		dictionary = await self.client.db.inf.read('dictionary')
-		await ctx.response.send_message(f"{choice(dictionary['adjective'])} {choice(dictionary['noun'])}",ephemeral=await self.client.hide(ctx))
+		name='generate',
+		description='generate a sentence',
+		options=[
+			option(str,name='type',description='type',choices=['insult','excuse'])])
+	async def slash_generate_insult(self,ctx:ApplicationContext,type:str) -> None:
+		with open(f'content/{type}') as file: data = loads(file.read())
+		await ctx.response.send_message(' '.join([choice(data[i]) for i in data]),ephemeral=await self.client.hide(ctx))
 	
 	@leaderboard.command(
 		name='messages',
@@ -133,6 +135,5 @@ class commands_cog(Cog):
 	@user_command(name='get profile')
 	async def user_profile_user(self,ctx:ApplicationContext,user:User) -> None:
 		await ctx.response.send_message(embed=await self.base_profile_user(user,ctx),ephemeral=await self.client.hide(ctx))
-
 
 def setup(client:client_cls) -> None: client.add_cog(commands_cog(client))
