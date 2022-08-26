@@ -28,7 +28,7 @@ class menu(Select):
 		self.client = client
 		self.preview = preview
 		if options is None: options = range(25)
-		super().__init__(placeholder=placeholder,min_values=0,max_values=len(options),options=options,custom_id='rolemenu')
+		super().__init__(placeholder=placeholder,min_values=0,max_values=len(options),options=options,custom_id='test')
 
 	async def callback(self,interaction:Interaction) -> None:
 		if self.preview: return
