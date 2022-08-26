@@ -1,5 +1,5 @@
 #!./venv/bin/python3.10
-from time import perf_counter
+from time import perf_counter,time
 st = perf_counter()
 from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild
 from utils.tyrantlib import convert_time,load_data,format_bytes
@@ -14,11 +14,22 @@ from discord import Intents
 from os.path import exists
 from inspect import stack
 from utils.log import log
+from asyncio import sleep
 from requests import get
 from json import loads
 from sys import argv
 
 DEV_MODE = exists('dev')
+
+with open('.git/refs/heads/master') as git:
+	git = git.read()
+	with open('last_update') as file:
+		last_update = file.read().split('::')
+	if last_update[0] != git:
+		lu = time()
+		with open('last_update','w') as file:
+			file.write(f'{git}::{lu}')
+	else: lu = float(last_update[1])
 
 with open('mongo') as mongo:
 	mongo = MongoClient(mongo.read())['reg-nal']['INF']
@@ -66,7 +77,6 @@ class client_cls(Bot):
 			await self.db.inf.read('/reg/nal',['development','testers']),
 			await self.db.inf.read('/reg/nal',['development','owner']),
 			await self.db.inf.read('/reg/nal',['config','bypass_permissions']))
-		await self.change_presence(activity=Activity(type=ActivityType.listening,name='last update: just now'))
 		if DEV_MODE: await self.log.debug('LAUNCHED IN DEV MODE')
 		await self.log.custom('\n'.join(self.loaded_extensions),short_log='loaded extensions: '+','.join(self._raw_loaded_extensions))
 	
@@ -121,17 +131,12 @@ class base_commands(Cog):
 		with open('.git/refs/heads/master') as git: embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({git.read(7)})')
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
-	@slash_command(
-		name='uptime',
-		description='get /reg/nal\'s uptime')
-	async def slash_uptime(self,ctx:ApplicationContext) -> None:
-		await ctx.response.send_message(convert_time(perf_counter()-st,3),ephemeral=await self.client.hide(ctx))
-
 	@loop(minutes=5)
 	async def uptime_loop(self) -> None:
-		nhours = int((perf_counter()-st)/60/60)
+		await sleep(5)
+		nhours = int((perf_counter()-lu)/60/60)
 		if nhours == self.uptime_hours: return
-		try: await self.client.change_presence(activity=Activity(type=ActivityType.listening,name=f'last update: {nhours} hours ago'))
+		try: await self.client.change_presence(activity=Activity(type=ActivityType.listening,name=f'last update: {nhours} hours ago' if nhours else 'last update: just now'))
 		except AttributeError: pass
 		self.uptime_hours = nhours
 
