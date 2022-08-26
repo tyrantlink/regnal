@@ -13,9 +13,8 @@ from socket import gaierror
 
 
 class log:
-	def __init__(self,db:db,reglog:str,DEV_MODE:bool) -> None:
+	def __init__(self,db:db,DEV_MODE:bool) -> None:
 		self._db = db
-		self.reglog = reglog
 		self.DEV_MODE = DEV_MODE
 
 	async def _base(self,log:str,send:bool=True,short_log:str=None,custom:bool=False) -> None:
@@ -31,17 +30,7 @@ class log:
 				with gzopen(f"logs{len([path for path in listdir('./logs') if isfile(join('.',path))])+1}.gz",'wb') as g:
 					g.write(txt.encode('utf-8'))
 
-		if self.DEV_MODE:
-			print(log)
-			return
-
-		if send:
-			try:
-				async with connect(self.reglog) as ws:
-					await ws.send(str(log))
-					try: res = await wait_for(ws.recv(),1)
-					except TimeoutError: print(f'error message timeout on reglog\log:\n{log}')
-			except (gaierror,OSError,ConnectionRefusedError): print(f'error message failed to send to reglog\nerror:\n{log}')
+		print(log)
 
 	async def command(self,ctx:ApplicationContext,log:str=None) -> None:
 		await self._db.inf.inc('command_usage',['usage',ctx.command.qualified_name])

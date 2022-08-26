@@ -15,7 +15,6 @@ class env:
 		self.shlink:str = None
 		self.mongo_pub:str = None
 		self.mongo_prv:str = None
-		self.reglog:str = None
 		self.config:dict = None
 		self.activities:dict = None
 		self.help:dict = None

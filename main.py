@@ -39,7 +39,7 @@ class client_cls(Bot):
 		self.db = db()
 		self.env = env(benv['env_dict'])
 		self.help = benv['help']
-		self.log = log(self.db,self.env.reglog,DEV_MODE)
+		self.log = log(self.db,DEV_MODE)
 		self.add_cog(base_commands(self))
 		self.add_cog(message_handler(self))
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
