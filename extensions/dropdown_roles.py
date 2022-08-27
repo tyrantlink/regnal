@@ -123,7 +123,7 @@ class view(View):
 			await interaction.guild.me.remove_roles(response['role'],reason='checking if /reg/nal can add role')
 		except Forbidden: err += '/reg/nal does not have permission to add this role\n'
 		if err:
-			await interaction.followup.send(f'Error:\n{err}')
+			await interaction.followup.send(f'Error:\n{err}',ephemeral=True)
 			return
 		self.data['options'][response['label']] = {'role':response['role'].id,'label':response['label'],'description':response['description'],'emoji':response['emoji']}
 		await interaction.followup.send(f'successfully added role {response["role"].mention}\n\ndismiss this message and return to the role menu command',ephemeral=True)
