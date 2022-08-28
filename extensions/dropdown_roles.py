@@ -1,6 +1,6 @@
-from discord import Interaction,Embed,ApplicationContext,Role,SelectOption
+from discord import Interaction,Embed,ApplicationContext,Role,SelectOption,Message
+from discord.commands import slash_command,Option as option,message_command
 from discord.ui import View,Button,button,Modal,InputText,Item,Select
-from discord.commands import slash_command,Option as option
 from discord.ext.commands import Cog
 from discord.errors import Forbidden
 from utils.tyrantlib import perm
@@ -110,11 +110,10 @@ class view(View):
 	async def button_add_role(self,button:Button,interaction:Interaction) -> None:
 		global role_inputs
 		self.previewed = False
-		rid = urandom(3).hex()
-		await self.main_menu_button(interaction,f'add a role `{rid}`',f'please use /add_role_to_menu to add a role.\nawaiting input from id `{rid}`\nclick the back button once the role has been added.')
-		role_inputs[rid] = {'event':Event(),'response':{}}
-		await role_inputs[rid]['event'].wait()
-		response = role_inputs.pop(rid)['response']
+		await self.main_menu_button(interaction,f'add a role',f'please use /add_role_to_menu to add a role.\n\nclick the back button once the role has been added.')
+		role_inputs[interaction.user.id] = {'event':Event(),'response':{}}
+		await role_inputs[interaction.user.id]['event'].wait()
+		response = role_inputs.pop(interaction.user.id)['response']
 		err = ''
 		if response['label'] in self.data['options']: err += 'role label already in options\n'
 		if response['role'].id in self.data['options'].values(): err += 'role already in options\n'
@@ -185,17 +184,11 @@ class role_menu_cog(Cog):
 	async def on_ready(self) -> None:
 		self.client.add_view(fview(self.client))
 
-	@slash_command(
-		name='role_menu',
-		description='create a role menu',
-		options=[
-			option(str,name='message_id',description='edit existing role menu. menu wil be recreated',required=False,default=None)])
-	@perm('manage_roles')
-	async def slash_role_menu(self,ctx:ApplicationContext,message_id:str) -> None:
+	async def open_role_menu(self,ctx:ApplicationContext,message_id:str) -> None:
 		if message_id:
 			current_data = await self.client.db.dd_roles.read(int(message_id))
 			if not current_data:
-				await ctx.followup.send(f'`{message_id}` not found in database',ephemeral=True)
+				await ctx.followup.send(f'`[{message_id}]` not found in role menu database',ephemeral=True)
 				return
 			desc = 'you are editing an existing role menu. after you are finished it will be reposted. the original message will be deleted when you are finished.'
 		else:
@@ -210,28 +203,42 @@ class role_menu_cog(Cog):
 			current_data=current_data,
 			edit=message_id),
 			ephemeral=True)
+
+	@slash_command(
+		name='role_menu',
+		description='create a role menu',
+		options=[
+			option(str,name='message_id',description='edit existing role menu. menu wil be recreated',required=False,default=None)])
+	@perm('manage_roles')
+	async def slash_role_menu(self,ctx:ApplicationContext,message_id:str) -> None:
+		await self.open_role_menu(ctx,message_id)
+
+	@message_command(
+		name='edit role menu')
+	@perm('manage_roles')
+	async def message_edit_role_menu(self,ctx:ApplicationContext,message:Message) -> None:
+		await self.open_role_menu(ctx,message.id)
 	
 	@slash_command(
 		name='add_role_to_menu',
 		description='/role_menu must be used first',
 		options=[
-			option(str,name='id',description='id given from /role menu'),
 			option(Role,name='role',description='role'),
 			option(str,name='name',description='role label'),
 			option(str,name='description',description='role description',required=False),
 			option(str,name='emoji',description='role emoji',required=False)])
 	@perm('manage_roles')
-	async def slash_add_role_to_menu(self,ctx:ApplicationContext,id:str,role:Role,label:str,description:str,emoji:str) -> None:
+	async def slash_add_role_to_menu(self,ctx:ApplicationContext,role:Role,label:str,description:str,emoji:str) -> None:
 		global role_inputs
-		if role_inputs.get(id.lower()) is None:
-			await ctx.response.send_message(f'unknown id `{id}`',ephemeral=True)
+		if role_inputs.get(ctx.user.id) is None:
+			await ctx.response.send_message(f'unable to find role menu, are you on the add role page?',ephemeral=True)
 			return
-		role_inputs[id]['response'] = {
+		role_inputs[ctx.user.id]['response'] = {
 			'role':role,
 			'label':label,
 			'description':description,
 			'emoji':emoji}
-		role_inputs[id]['event'].set()
+		role_inputs[ctx.user.id]['event'].set()
 		await ctx.response.send_message(f'validating role... dismiss this message',ephemeral=True)
 	
 
