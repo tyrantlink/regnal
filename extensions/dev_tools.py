@@ -177,7 +177,7 @@ class dev_tools_cog(Cog):
 	async def slash_dev_reboot(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(f'successfully set {self.client.user.mention} to False',ephemeral=await self.client.hide(ctx))
 		await self.client.log.command(ctx)
-		exit()
+		exit(0)
 
 	@dev.command(
 		name='db',
@@ -293,7 +293,7 @@ class dev_tools_cog(Cog):
 			return
 		self.client.unload_extension(f'extensions.{extension}')
 		response = f'successfully unloaded {extension}'
-		if extension == 'dev_tools': response += '\nWARNING: THE DEV_TOOLS EXTENSION WAS UNLOADED. YOU MUST REBOOT TO USE ANY MORE DEV COMMANDS'
+		if extension == 'dev_tools': response += '\nWARNING: THE DEV_TOOLS EXTENSION WAS UNLOADED. YOU MUST REBOOT TO USE ANYMORE DEV COMMANDS'
 		await ctx.response.send_message(response,ephemeral=True)
 
 	@dev.command(

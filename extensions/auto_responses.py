@@ -41,7 +41,7 @@ class auto_responses_cog(Cog):
 	def au_check(self,response:str,message:Message) -> str|None:
 		match response[0]:
 			case 'f': return response if '_'.join(response.split('_')[1:]) == message.content else None
-			case 'u': return response if int(response.split('_')[0][1:]) == message.user.id and '_'.join(response.split('_')[1:]) == message.content else None
+			case 'u': return response if int(response.split('_')[0][1:]) == message.author.id and '_'.join(response.split('_')[1:]) == message.content else None
 			case 'c': return response if '_'.join(response.split('_')[1:]) in message.content else None
 			case 'r': return response if match('_'.join(response.split('_')[1:]),message.content) is not None else None
 			case 'e':
