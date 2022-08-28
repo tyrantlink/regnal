@@ -35,7 +35,8 @@ class auto_responses_cog(Cog):
 			await message.channel.send('https://cdn.tyrant.link/reg/nal/dm.png')
 			return
 
-		if guild['config']['auto_responses']: await self.listener_auto_response(message)
+		if guild['config']['auto_responses']:
+			if await self.listener_auto_response(message): return
 		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
 	
 	def au_check(self,response:str,message:Message) -> str|None:
@@ -65,6 +66,7 @@ class auto_responses_cog(Cog):
 			case _:   send = self.responses[out[0]]
 		await message.channel.send(send)
 		await self.client.log.listener(message)
+		return True
 
 	async def listener_dad_bot(self,message:Message) -> None:
 		response = ''
