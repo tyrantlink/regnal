@@ -101,14 +101,16 @@ class view(View):
 		if not len(self.data['options']) == 0 : self.add_item(self.button_publish)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
-
 	@button(label='<',style=2)
 	async def button_back(self,button:Button,interaction:Interaction) -> None:
+		try: role_inputs.pop(interaction.user.id)
+		except KeyError: pass
 		await self.base_back(button,interaction)
 
 	@button(label='add role',style=1)
 	async def button_add_role(self,button:Button,interaction:Interaction) -> None:
-		global role_inputs
+		try: role_inputs.pop(interaction.user.id)
+		except KeyError: pass
 		self.previewed = False
 		await self.main_menu_button(interaction,f'add a role',f'please use /add_role_to_menu to add a role.\n\nclick the back button once the role has been added.')
 		role_inputs[interaction.user.id] = {'event':Event(),'response':{}}
@@ -229,7 +231,6 @@ class role_menu_cog(Cog):
 			option(str,name='emoji',description='role emoji',required=False)])
 	@perm('manage_roles')
 	async def slash_add_role_to_menu(self,ctx:ApplicationContext,role:Role,label:str,description:str,emoji:str) -> None:
-		global role_inputs
 		if role_inputs.get(ctx.user.id) is None:
 			await ctx.response.send_message(f'unable to find role menu, are you on the add role page?',ephemeral=True)
 			return
