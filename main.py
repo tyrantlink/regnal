@@ -53,6 +53,7 @@ class client_cls(Bot):
 		self.log = log(self.db,DEV_MODE)
 		self.add_cog(base_commands(self))
 		self.add_cog(message_handler(self))
+		with open('.git/refs/heads/master') as git: self.commit_id = git.read(7)
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
 		for extension in extensions:
 			if extensions[extension]:
@@ -127,7 +128,7 @@ class base_commands(Cog):
 		embed.add_field(name='lifetime',value='\n'.join(lifetime),inline=True)
 		embed.add_field(name='total cost',value=f"${format((past_price+month_price)/100,'.2f')} (${format(month_price/100,'.2f')} so far this month)",inline=False)
 		embed.add_field(name='total db size',value=format_bytes((await self.client.db.messages.raw.database.command('dbstats'))['dataSize']))
-		with open('.git/refs/heads/master') as git: embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({git.read(7)})')
+		embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({self.client.commit_id})')
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@loop(minutes=5)
