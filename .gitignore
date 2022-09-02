@@ -9,3 +9,4 @@ venv
 dev
 *.old
 last_update
+/music

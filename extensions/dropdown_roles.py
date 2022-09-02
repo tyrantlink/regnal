@@ -14,7 +14,7 @@ class input_text(Modal):
 	def __init__(self,embed:Embed,view:View,inputs=[InputText]) -> None:
 		self.embed = embed
 		self.view = view
-		super().__init__('set placeholder')
+		super().__init__(title='set placeholder')
 		for i in inputs: self.add_item(i)
 
 	async def callback(self,interaction:Interaction) -> None:
@@ -60,16 +60,16 @@ class fview(View):
 		self.add_item(menu(client,options,placeholder,preview))
 	
 	async def on_error(self,error:Exception,item:Item,interaction:Interaction) -> None:
-		await interaction.followup.send_message(error,ephemeral=True)
+		if interaction.response.is_done(): await interaction.followup.send(error,ephemeral=True)
+		else: await interaction.response.send_message(error,ephemeral=True)
 		await self.client.log.error(error)
 
 class view(View):
-	def __init__(self,*,client:client_cls,embed:Embed,embed_color:int,current_data:dict,edit:bool) -> None:
+	def __init__(self,*,client:client_cls,embed:Embed,current_data:dict,edit:bool) -> None:
 		super().__init__()
 		self.clear_items()
 		self.client = client
 		self.embed = embed
-		self.embed_color = embed_color
 		self.data = current_data
 		self.previewed = False
 		self.edit = edit
@@ -196,12 +196,10 @@ class role_menu_cog(Cog):
 		else:
 			desc = 'please choose an option.'
 			current_data = {'placeholder':'choose some roles','options':{}}
-		embed_color = await self.client.embed_color(ctx)
-		embed = Embed(title='create a role menu',description=desc,color=embed_color)
+		embed = Embed(title='create a role menu',description=desc,color=await self.client.embed_color(ctx))
 		await ctx.response.send_message(embed=embed,view=view(
 			client=self.client,
 			embed=embed,
-			embed_color=embed_color,
 			current_data=current_data,
 			edit=message_id),
 			ephemeral=True)

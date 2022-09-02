@@ -262,7 +262,7 @@ class dev_tools_cog(Cog):
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
 	@perm('bot_owner')
 	async def slash_dev_reload(self,ctx:ApplicationContext,extension:str) -> None:
-		if extension not in self.client.loaded_extensions:
+		if extension not in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
 			return
 		self.client.reload_extension(f'extensions.{extension}')
@@ -275,7 +275,7 @@ class dev_tools_cog(Cog):
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
 	@perm('bot_owner')
 	async def slash_dev_load(self,ctx:ApplicationContext,extension:str) -> None:
-		if extension in self.client.loaded_extensions:
+		if extension in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is already loaded',ephemeral=True)
 			return
 		self.client.load_extension(f'extensions.{extension}')
@@ -288,11 +288,12 @@ class dev_tools_cog(Cog):
 			option(str,name='extension',description='name of extension',choices=extensions.keys())])
 	@perm('bot_owner')
 	async def slash_dev_unload(self,ctx:ApplicationContext,extension:str) -> None:
-		if extension not in self.client.loaded_extensions:
+		if extension not in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
 			return
 		self.client.unload_extension(f'extensions.{extension}')
 		response = f'successfully unloaded {extension}'
+		del self.client._raw_loaded_extensions[extension]
 		if extension == 'dev_tools': response += '\nWARNING: THE DEV_TOOLS EXTENSION WAS UNLOADED. YOU MUST REBOOT TO USE ANYMORE DEV COMMANDS'
 		await ctx.response.send_message(response,ephemeral=True)
 

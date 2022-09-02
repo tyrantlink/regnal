@@ -11,7 +11,7 @@ class input_text(Modal):
 		self.label = label
 		self.embed = embed
 		self.view = view
-		super().__init__('set value')
+		super().__init__(title='set value')
 		self.add_item(InputText(label=label,placeholder=placeholder,max_length=max_length))
 
 	async def callback(self,interaction:Interaction) -> None:

@@ -1,7 +1,7 @@
 #!./venv/bin/python3.10
 from time import perf_counter,time
 st = perf_counter()
-from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild
+from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction
 from utils.tyrantlib import convert_time,load_data,format_bytes
 from discord.ext.commands import Cog,Bot,slash_command
 from requests.auth import HTTPDigestAuth
@@ -70,15 +70,18 @@ class client_cls(Bot):
 		return await self.db.guilds.read(ctx.guild.id,['config','embed_color']) if ctx.guild else await self.db.guilds.read(0,['config','embed_color'])
 	
 	async def hide(self,ctx:ApplicationContext) -> bool:
-		return await self.db.users.read(ctx.author.id,['config','hide_commands'])
+		if isinstance(ctx,ApplicationContext): return await self.db.users.read(ctx.author.id,['config','hide_commands'])
+		if isinstance(ctx,Interaction): return await self.db.users.read(ctx.user.id,['config','hide_commands'])
 
 	async def on_connect(self) -> None:
-		await self.db.ready()
+		if not DEV_MODE: await self.db.ready()
 		load_data(
 			await self.db.inf.read('/reg/nal',['development','testers']),
 			await self.db.inf.read('/reg/nal',['development','owner']),
 			await self.db.inf.read('/reg/nal',['config','bypass_permissions']))
-		if DEV_MODE: await self.log.debug('LAUNCHED IN DEV MODE')
+		if DEV_MODE:
+			await self.log.debug('LAUNCHED IN DEV MODE')
+			if 'sync' in argv: await self.sync_commands()
 		await self.log.custom('\n'.join(self.loaded_extensions),short_log='loaded extensions: '+','.join(self._raw_loaded_extensions))
 	
 	async def on_ready(self) -> None:
