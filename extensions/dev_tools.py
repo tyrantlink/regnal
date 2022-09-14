@@ -1,4 +1,4 @@
-from discord import Embed,InputTextStyle,Interaction,User,ApplicationContext
+from discord import Embed,InputTextStyle,Interaction,User,ApplicationContext,ForumChannel
 from discord.commands import SlashCommandGroup,Option as option
 from discord.ext.commands import Cog,slash_command
 from utils.tyrantlib import perm,load_data
@@ -39,17 +39,10 @@ class input_modal(Modal):
 		return '.'.join([ma,mi,p])
 
 	async def report(self,interaction:Interaction,type:str,title:str,details:str,author:User) -> None:
-		await self.client.db.inf.inc('/reg/nal',[f'{type}_count'])
-		count = await self.client.db.inf.read('/reg/nal',[f'{type}_count'])
-		channel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development',f'{type}s']))
-		embed = Embed(
-			title=f'#{count} | {title}',
-			description=author.mention,
-			color=await self.client.embed_color(interaction))
-		embed.add_field(name=type,value=details)
-		message = await channel.send(embed=embed)
-		for reaction in ['<:upvote:854594180339990528>','<:downvote:854594202439909376>']: await message.add_reaction(reaction)
-		await self.client.db.inf.append('/reg/nal',[f'{type}s'],message.id)
+		channel:ForumChannel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development',f'support']))
+		await channel.create_thread(name=title,content=f'{interaction.user.mention} ({interaction.user.name})\n\n{details}')
+		# add tags based on type
+		# always add auto tag
 
 	async def commit(self,interaction:Interaction,title:str,version_bump:str,new_features:str,fixes:str,notes:str) -> None:
 		channel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development','change-log']))
@@ -82,6 +75,7 @@ class input_modal(Modal):
 
 class dev_tools_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
+		client._extloaded()
 		self.client = client
 
 	dev = SlashCommandGroup('dev','bot owner commands')
@@ -145,9 +139,11 @@ class dev_tools_cog(Cog):
 			option(str,name='arg5',description='argument five',required=False,default=None,choices=['a','b','c',])])
 	@perm('bot_owner')
 	async def slash_dev_test(self,ctx:ApplicationContext,arg1:str,arg2:str,arg3:str,arg4:str,arg5:str) -> None:
-		self.client.reload_extension('extensions.dev_tools')
+		channel:ForumChannel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development',f'support']))
+		await channel.create_thread('test','am /reg/nal dev')
 		await ctx.response.send_message('cum',ephemeral=True)
-	
+
+
 	@dev.command(
 		name='clear_console',
 		description='clear the console output')

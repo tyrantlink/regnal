@@ -117,12 +117,12 @@ class log_listeners(Cog):
 
 	@Cog.listener()
 	async def on_member_remove(self,member:Member) -> None:
-		guild_data = await self.client.db.guilds.read(member.guild.id)
-
-		if guild_data['log_config']['log_channel'] and guild_data['log_config']['member_leave']:
-			await self.client.get_channel(guild_data['log_config']['log_channel']).send(
+		guild_data = await self.client.db.guilds.read(member.guild.id,['log_config'])
+		
+		if guild_data['log_channel'] and guild_data['member_leave']:
+			await self.client.get_channel(guild_data['log_channel']).send(
 				f'[{member.id}] {member} left the server.')
-	
+
 	async def log(self,message:Message,type:str,after_message:Message=None,delreason:str='deleted by a user') -> None:
 		if message.author == self.client.user: return
 		response = await self.client.db.messages.read(message.id)
