@@ -2,8 +2,6 @@ from re import sub,search,IGNORECASE,split,match
 from discord.ext.commands import Cog
 from discord import Message
 from main import client_cls
-from os.path import exists
-
 
 class auto_responses_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
@@ -39,32 +37,30 @@ class auto_responses_cog(Cog):
 			if await self.listener_auto_response(message): return
 		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
 	
-	def au_check(self,response:str,message:Message) -> str|None:
-		match response[0]:
-			case 'f': return response if '_'.join(response.split('_')[1:]) == message.content else None
-			case 'u': return response if int(response.split('_')[0][1:]) == message.author.id and '_'.join(response.split('_')[1:]) == message.content else None
-			case 'c': return response if '_'.join(response.split('_')[1:]) in message.content else None
-			case 'r': return response if match('_'.join(response.split('_')[1:]),message.content) is not None else None
-			case 'e':
-				if response[1:3] == 'cs': return response if '_'.join(response.split('_')[1:]) == message.content else None
-				else: return response if '_'.join(response.split('_')[1:]).lower() == message.content.lower() else None
-			case 'l':
-				for i in self.responses[response]:
-					if self.au_check(i,message) is not None: return response
-		return None
+	def au_check(self,message:Message) -> tuple[str,str]|None:
+		for i in self.responses['contains']:
+			if i in message.content.lower(): return ('contains',i)
+		if message.content.lower() in self.responses['exact']:
+			return ('exact',message.content.lower())
+		if message.content in self.responses['exact-cs']:
+			return ('exact-cs',message.content)
+	
+	def get_au(self,category,message) -> dict:
+		return self.responses[category][message]
 
 	async def listener_auto_response(self,message:Message) -> None:
-		if exists('tmp/reload_au'): self.responses = await self.client.db.inf.read('auto_responses',['au'])
-		out = []
-		for response in self.responses:
-			if (check:=self.au_check(response,message)) is not None: out.append(check)
-			if len(out) > 1: return
-		if len(out) == 0: return
-		match out[0][0]:
-			case 'f': send = f'https://cdn.tyrant.link/reg/nal/auto_responses/{self.responses[out[0]]}'
-			case 'l': send = '_'.join(out[0].split('_')[1:])
-			case _:   send = self.responses[out[0]]
-		await message.channel.send(send)
+		check = self.au_check(message)
+		if check is None: return
+
+		data = self.get_au(check[0],check[1])
+		if redir:=data.get('redir',False):
+			data = self.get_au(check[0],redir)
+
+		if response:=data.get('response',None) is None: return
+		if user:=data.get('user',None) is not None and message.author.id is not user: return
+		if data.get('file',False): response = f'https://cdn.tyrant.link/reg/nal/auto_responses/{response}'
+
+		await message.channel.send(response)
 		await self.client.log.listener(message)
 		return True
 
