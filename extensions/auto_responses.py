@@ -55,9 +55,9 @@ class auto_responses_cog(Cog):
 		data = self.get_au(check[0],check[1])
 		if redir:=data.get('redir',False):
 			data = self.get_au(check[0],redir)
-
-		if response:=data.get('response',None) is None: return
-		if user:=data.get('user',None) is not None and message.author.id is not user: return
+		
+		if (response:=data.get('response',None)) is None: return
+		if (user:=data.get('user',None)) is not None and message.author.id is not user: return
 		if data.get('file',False): response = f'https://cdn.tyrant.link/reg/nal/auto_responses/{response}'
 
 		await message.channel.send(response)
