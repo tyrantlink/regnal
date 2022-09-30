@@ -7,6 +7,7 @@ class auto_responses_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
 		client._extloaded()
 		self.client = client
+		self.responses = None
 
 	@Cog.listener()
 	async def on_connect(self):
@@ -32,6 +33,9 @@ class auto_responses_cog(Cog):
 		if message.guild is None:
 			await message.channel.send('https://cdn.tyrant.link/reg/nal/dm.png')
 			return
+
+		if self.responses is None:
+			self.responses = await self.client.db.inf.read('auto_responses',['au'])
 
 		if guild['config']['auto_responses']:
 			if await self.listener_auto_response(message): return
