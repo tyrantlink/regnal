@@ -42,12 +42,12 @@ class auto_responses_cog(Cog):
 		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
 	
 	def au_check(self,message:Message) -> tuple[str,str]|None:
-		for i in self.responses['contains']:
-			if i in message.content.lower(): return ('contains',i)
 		if message.content.lower() in self.responses['exact']:
 			return ('exact',message.content.lower())
 		if message.content in self.responses['exact-cs']:
 			return ('exact-cs',message.content)
+		for i in self.responses['contains']:
+			if i in message.content.lower(): return ('contains',i)
 	
 	def get_au(self,category,message) -> dict:
 		return self.responses[category][message]
