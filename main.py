@@ -99,6 +99,7 @@ class client_cls(Bot):
 		if isinstance(error,CheckFailure): return
 		await ctx.respond(error,ephemeral=True)
 		await self.log.error(error)
+		await self.get_channel(1026593781669167135).send(f'```\n{error.with_traceback()[2000:]}\n```')
 
 class base_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
