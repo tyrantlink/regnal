@@ -90,6 +90,9 @@ class client_cls(Bot):
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return
 		await self.log.command(ctx)
+	
+	async def on_unknown_application_command(self,interaction:Interaction):
+		await interaction.response.send_message('u wot m8?',ephemeral=True)
 
 	async def on_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return
@@ -100,6 +103,9 @@ class client_cls(Bot):
 		await ctx.respond(error,ephemeral=True)
 		await self.log.error(error)
 		await self.get_channel(1026593781669167135).send(f'```\n{error.with_traceback()[2000:]}\n```')
+	
+	async def on_error(self,event:str):
+		await self.get_channel(1026593781669167135).send(f'```\n{event[2000:]}\n```')
 
 class base_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
