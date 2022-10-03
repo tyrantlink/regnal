@@ -54,7 +54,6 @@ class auto_responses_cog(Cog):
 		return self.responses[category][message]
 
 	async def listener_auto_response(self,message:Message) -> None:
-		check = self.au_check(self.rm_punctuation(message.content))
 		check = self.au_check(message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
 		if check is None: return
 

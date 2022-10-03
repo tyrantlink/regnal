@@ -11,13 +11,13 @@ from pymongo import MongoClient
 from utils.data import db,env
 from datetime import datetime
 from discord import Intents
+from sys import argv,stderr
 from os.path import exists
 from inspect import stack
 from utils.log import log
 from asyncio import sleep
 from requests import get
 from json import loads
-from sys import argv
 
 DEV_MODE = exists('dev')
 
@@ -104,7 +104,8 @@ class client_cls(Bot):
 		await self.log.error(error)
 		await self.get_channel(1026593781669167135).send(f'```\n{error.with_traceback()[2000:]}\n```')
 	
-	async def on_error(self,event:str):
+	async def on_error(self,event:str,*args,**kwargs):
+		print(f"Ignoring exception in {event}", file=stderr)
 		await self.get_channel(1026593781669167135).send(f'```\n{event[2000:]}\n```')
 
 class base_commands(Cog):
