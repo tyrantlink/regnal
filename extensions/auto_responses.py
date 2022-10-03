@@ -2,6 +2,7 @@ from re import sub,search,IGNORECASE,split,match
 from discord.ext.commands import Cog
 from discord import Message
 from main import client_cls
+from asyncio import sleep
 
 class auto_responses_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
@@ -65,6 +66,10 @@ class auto_responses_cog(Cog):
 		if data.get('file',False): response = f'https://cdn.tyrant.link/reg/nal/auto_responses/{response}'
 
 		await message.channel.send(response)
+		for delay,followup in data.get('followup',[]):
+			await sleep(delay)
+			await message.channel.send(followup)
+
 		await self.client.log.listener(message)
 		return True
 
