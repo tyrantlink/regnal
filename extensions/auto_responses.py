@@ -42,19 +42,22 @@ class auto_responses_cog(Cog):
 			if await self.listener_auto_response(message): return
 		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
 	
-	def au_check(self,message:Message) -> tuple[str,str]|None:
-		if message.content.lower() in self.responses['exact']:
-			return ('exact',message.content.lower())
-		if message.content in self.responses['exact-cs']:
-			return ('exact-cs',message.content)
+	def au_check(self,message:str) -> tuple[str,str]|None:
+		if message.lower() in self.responses['exact']:
+			return ('exact',message.lower())
+		if message in self.responses['exact-cs']:
+			return ('exact-cs',message)
 		for i in self.responses['contains']:
-			if i in message.content.lower(): return ('contains',i)
+			if i in message.lower(): return ('contains',i)
 	
 	def get_au(self,category,message) -> dict:
 		return self.responses[category][message]
 
+	def rm_punctuation(message:str) -> str:
+		if message[-1] in ['.','?','!']: message = message[:-1]
+
 	async def listener_auto_response(self,message:Message) -> None:
-		check = self.au_check(message)
+		check = self.au_check(self.rm_punctuation(message.content))
 		if check is None: return
 
 		data = self.get_au(check[0],check[1])
