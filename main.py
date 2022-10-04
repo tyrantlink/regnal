@@ -105,8 +105,8 @@ class client_cls(Bot):
 		await self.get_channel(1026593781669167135).send(f'```\n{error.with_traceback()[2000:]}\n```')
 	
 	async def on_error(self,event:str,*args,**kwargs):
-		print(f"Ignoring exception in {event}", file=stderr)
-		await self.get_channel(1026593781669167135).send(f'```\n{event[2000:]}\n```')
+		try: raise
+		except Exception as e: await self.get_channel(1026593781669167135).send(f'```\n{e[2000:]}\n```')
 
 class base_commands(Cog):
 	def __init__(self,client:client_cls) -> None:

@@ -34,6 +34,8 @@ class auto_responses_cog(Cog):
 		if message.guild is None:
 			await message.channel.send('https://cdn.tyrant.link/reg/nal/dm.png')
 			return
+		
+		if message.content is None: return
 
 		if self.responses is None:
 			self.responses = await self.client.db.inf.read('auto_responses',['au'])
