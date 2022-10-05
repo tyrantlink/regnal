@@ -42,6 +42,11 @@ class options_dropdown(Select):
 				self.v.add_item(self.v.button_false)
 			case 'input':
 				self.v.add_item(self.v.button_input)
+			case 'str':
+				self.v.add_item(self.v.button_enable)
+				self.v.add_item(self.v.button_whitelist)
+				self.v.add_item(self.v.button_blacklist)
+				self.v.add_item(self.v.button_disable)
 			case _: await self.v.client.log.debug('unknown config type in base_config_menu callback')
 		await self.v.update_self(self.v)
 		await interaction.response.edit_message(embed=self.v.embed,view=self.v)
@@ -146,6 +151,22 @@ class view(View):
 	@button(label='set to False',style=4)
 	async def button_false(self,button:Button,interaction:Interaction) -> None:
 		await self.modify_config(False,interaction)
+
+	@button(label='enable',style=3)
+	async def button_enable(self,button:Button,interaction:Interaction) -> None:
+		await self.modify_config('enabled',interaction)
+
+	@button(label='whitelist',style=1)
+	async def button_whitelist(self,button:Button,interaction:Interaction) -> None:
+		await self.modify_config('whitelist',interaction)
+
+	@button(label='blacklist',style=1)
+	async def button_blacklist(self,button:Button,interaction:Interaction) -> None:
+		await self.modify_config('blacklist',interaction)
+
+	@button(label='disable',style=4)
+	async def button_disable(self,button:Button,interaction:Interaction) -> None:
+		await self.modify_config('disabled',interaction)
 	
 	@button(label='set',style=3)
 	async def button_input(self,button:Button,interaction:Interaction) -> None:

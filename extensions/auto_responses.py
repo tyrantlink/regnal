@@ -1,6 +1,8 @@
-from re import sub,search,IGNORECASE,split,match
+from discord.commands import SlashCommandGroup,slash_command,Option as option
+from discord import Message,ApplicationContext,Embed
+from re import sub,search,IGNORECASE,split
 from discord.ext.commands import Cog
-from discord import Message
+from utils.tyrantlib import perm
 from main import client_cls
 from asyncio import sleep
 
@@ -40,8 +42,22 @@ class auto_responses_cog(Cog):
 		if self.responses is None:
 			self.responses = await self.client.db.inf.read('auto_responses',['au'])
 
-		if guild['config']['auto_responses']:
-			if await self.listener_auto_response(message): return
+		match guild['config']['auto_responses']:
+			case 'enabled':
+				if await self.listener_auto_response(message): return
+			case 'whitelist' if message.channel.id in guild['au']['whitelist']:
+				if await self.listener_auto_response(message): return
+			case 'blacklist' if message.channel.id not in guild['au']['blacklist']:
+				if await self.listener_auto_response(message): return
+			case 'disabled': pass
+		match guild['config']['dad_bot']:
+			case 'enabled':
+				if await self.listener_auto_response(message): return
+			case 'whitelist' if message.channel.id in guild['db']['whitelist']:
+				if await self.listener_auto_response(message): return
+			case 'blacklist' if message.channel.id not in guild['db']['blacklist']:
+				if await self.listener_auto_response(message): return
+			case 'disabled': pass
 		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
 	
 	def au_check(self,message:str) -> tuple[str,str]|None:
@@ -95,5 +111,56 @@ class auto_responses_cog(Cog):
 		except: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
 		await self.client.log.listener(message)
 
+	@slash_command(
+		name='auto_response',
+		description='add the current channel to the whitelist or blacklist',
+		options=[option(str,name='option',description='auto_response commands',choices=['add','remove','list'])])
+	@perm('guild_only')
+	async def slash_auto_response(self,ctx:ApplicationContext,option:str):
+		au_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','auto_responses'])
+		match option:
+			case 'add'|'remove':
+				match au_cfg:
+					case 'enabled'|'disabled':
+						await ctx.response.send_message(f'auto responses are currently {au_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
+					case 'whitelist'|'blacklist':
+						if option == 'add': await self.client.db.guilds.append(ctx.guild.id,['au',au_cfg],ctx.channel.id)
+						else              : await self.client.db.guilds.remove(ctx.guild.id,['au',au_cfg],ctx.channel.id)
+						await ctx.response.send_message(f'successfully added <#{ctx.channel.id}> to the {au_cfg}.',ephemeral=await self.client.hide(ctx))
+					case _: raise
+			case 'list':
+				match au_cfg:
+					case 'enabled'|'disabled':
+						await ctx.response.send_message(f'auto responses are currently {au_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
+					case 'whitelist'|'blacklist':
+						await ctx.response.send_message(embed=Embed(title=au_cfg,description='\n'.join(await self.client.db.guilds.read(ctx.guild.id,['au',au_cfg]))),ephemeral=await self.client.hide(ctx))
+					case _: raise
+			case _: raise
+	
+	@slash_command(
+		name='dad_bot',
+		description='add the current channel to the whitelist or blacklist',
+		options=[option(str,name='option',description='dad_bot commands',choices=['add','remove','list'])])
+	@perm('guild_only')
+	async def slash_auto_response(self,ctx:ApplicationContext,option:str):
+		db_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','dad_bot'])
+		match option:
+			case 'add'|'remove':
+				match db_cfg:
+					case 'enabled'|'disabled':
+						await ctx.response.send_message(f'dad bot is currently {db_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
+					case 'whitelist'|'blacklist':
+						if option == 'add': await self.client.db.guilds.append(ctx.guild.id,['db',db_cfg],ctx.channel.id)
+						else              : await self.client.db.guilds.remove(ctx.guild.id,['db',db_cfg],ctx.channel.id)
+						await ctx.response.send_message(f'successfully added <#{ctx.channel.id}> to the {db_cfg}.',ephemeral=await self.client.hide(ctx))
+					case _: raise
+			case 'list':
+				match db_cfg:
+					case 'enabled'|'disabled':
+						await ctx.response.send_message(f'dad bot is currently {db_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
+					case 'whitelist'|'blacklist':
+						await ctx.response.send_message(embed=Embed(title=db_cfg,description='\n'.join(await self.client.db.guilds.read(ctx.guild.id,['db',db_cfg]))),ephemeral=await self.client.hide(ctx))
+					case _: raise
+			case _: raise
 
 def setup(client:client_cls) -> None: client.add_cog(auto_responses_cog(client))

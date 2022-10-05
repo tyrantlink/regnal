@@ -100,9 +100,10 @@ class client_cls(Bot):
 
 	async def on_application_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return
-		await ctx.respond(error,ephemeral=True)
+		await ctx.respond(f'an error has occurred: {error}\n\nthe issue has been automatically reported and should be fixed soon.',ephemeral=True)
 		await self.log.error(error)
-		await self.get_channel(1026593781669167135).send(f'```\n{error.with_traceback()[2000:]}\n```')
+		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
+		channel.send(f'```\n{error.with_traceback()[2000:]}\n```')
 	
 	async def on_error(self,event:str,*args,**kwargs):
 		try: raise
