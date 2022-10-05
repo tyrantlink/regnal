@@ -106,7 +106,9 @@ class client_cls(Bot):
 	
 	async def on_error(self,event:str,*args,**kwargs):
 		try: raise
-		except Exception as e: await self.get_channel(1026593781669167135).send(f'```\n{e[2000:]}\n```')
+		except Exception as e:
+			if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
+			channel.send(f'```\n{e[2000:]}\n```')
 
 class base_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
