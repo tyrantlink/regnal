@@ -18,6 +18,7 @@ class env:
 		self.config:dict = None
 		self.activities:dict = None
 		self.help:dict = None
+		self.statcord_key:str = None
 		for k,v in env_dict.items():
 			setattr(self,k,v)
 
