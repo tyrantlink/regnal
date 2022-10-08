@@ -127,7 +127,7 @@ class dev_tools_cog(Cog):
 		description='get /reg/nal\'s ping to discord')
 	async def slash_ping(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(f'pong! {round(self.client.latency*100,1)}ms',ephemeral=await self.client.hide(ctx))
-	
+
 	@dev.command(
 		name='test',
 		description='used for testing, various uses',
@@ -142,7 +142,6 @@ class dev_tools_cog(Cog):
 		channel:ForumChannel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development',f'support']))
 		await channel.create_thread('test','am /reg/nal dev')
 		await ctx.response.send_message('cum',ephemeral=True)
-
 
 	@dev.command(
 		name='clear_console',

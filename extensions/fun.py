@@ -186,7 +186,7 @@ class fun_cog(Cog):
 		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.hide(ctx))
 
 	async def acquire_hentai(self) -> tuple:
-		id = randint(1,417147)
+		id = randint(1,423204)
 		async with ClientSession() as session:
 			async with session.get(f'https://nhentai.net/api/gallery/{id}') as res:
 				match res.status:

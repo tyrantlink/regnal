@@ -11,27 +11,6 @@ class admin_cog(Cog):
 		self.client = client
 
 	admin = SlashCommandGroup('admin','admin commands')
-	softban = admin.create_subgroup('softban','softban options (use /help for more details)')
-
-	@softban.command(
-		name='add',
-		description='softban a user',
-		options=[
-			option(User,name='user',description='user to softban')])
-	@perm('moderate_members')
-	async def slash_admin_softban_add(self,ctx:ApplicationContext,user:User) -> None:
-		await self.client.db.guilds.append(ctx.guild.id,['softbans'],user.id)
-		await ctx.response.send_message(f'successfully softbanned {user.name}',ephemeral=await self.client.hide(ctx))
-	
-	@softban.command(
-		name='remove',
-		description='unsoftban a user',
-		options=[
-			option(User,name='user',description='user to unsoftban')])
-	@perm('moderate_members')
-	async def slash_admin_softban_remove(self,ctx:ApplicationContext,user:User) -> None:
-		await self.client.db.guilds.remove(ctx.guild.id,['softbans'],user.id)
-		await ctx.response.send_message(f'successfully unsoftbanned {user.name}',ephemeral=await self.client.hide(ctx))
 	
 	@admin.command(
 		name='purge',

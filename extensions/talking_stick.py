@@ -22,7 +22,6 @@ class talking_stick_cog(Cog):
 			return False
 		return True
 
-
 	@stick.command(
 		name='setup',
 		description='setup the talking stick',

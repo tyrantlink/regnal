@@ -4,6 +4,8 @@ from discord.commands import slash_command
 from discord.ext.commands import Cog
 from utils.tyrantlib import perm
 from main import client_cls
+from discord.ui import view
+
 
 class published_dropdown(Select):
 	def __init__(self,client:client_cls,options:list[SelectOption]) -> None:
@@ -27,7 +29,7 @@ class published_dropdown(Select):
 		options = data['options']
 		embed = Embed(title=data['embed']['title'],description=data['embed']['description'],color=data['embed']['color'])
 		for k,v in options.items(): embed.add_field(name=f'{v["votes"]} | {k}',value=v['description'],inline=False)
-		try: await interaction.response.edit_message(embed=embed,view=self.view)
+		try: await interaction.response.edit_message(embed=embed,view=view.from_message(interaction.message))
 		except AttributeError: await interaction.response.send_message('sorry, this poll is no longer active.\ndue to a discord limitation, messages with dropdown menus cannot be edited after a bot restart.',ephemeral=True)
 		await self.client.log.debug('responded to interaction callback')
 		
