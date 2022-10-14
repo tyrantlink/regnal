@@ -72,7 +72,8 @@ class auto_responses_cog(Cog):
 		return self.responses[category][message]
 
 	async def listener_auto_response(self,message:Message) -> None:
-		check = self.au_check(message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
+		try: check = self.au_check(message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
+		except Exception: return
 		if check is None: return
 
 		data = self.get_au(check[0],check[1])

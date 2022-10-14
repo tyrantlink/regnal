@@ -83,7 +83,7 @@ class DataCollection():
 	
 	async def pop(self,id:int|str,path:list=[],position:int=None) -> bool:
 		if position not in [1,-1]: return False # -1 first last value, 1 removes first
-		await self.collection.update_one({'_id':id},{'$pop':utils.form_path(path,position*-1)})
+		await self.collection.update_one({'_id':id},{'$pop':utils.form_path(path,position*-1,True)})
 		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
 		return True
 

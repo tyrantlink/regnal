@@ -52,25 +52,26 @@ class qotd_cog(Cog):
 			case 'add to question pool':
 				await self.client.db.guilds.append(ctx.guild.id,['qotd','pool'],question)
 		await ctx.response.send_message('successfully added question.',ephemeral=await self.client.hide(ctx))
-
 	
 	@loop(minutes=1)
 	async def qotd_loop(self) -> None:
 		if datetime.now().strftime("%H:%M") == '09:00':
 			for guild in self.client.guilds:
-				data = await self.client.db.guilds.read(guild.id,[])
-				if not data['config']['qotd'] or not data['channels']['qotd']: continue
-				if data['qotd']['nextup']:
-					question = data['qotd']['nextup'][0]
-					await self.client.db.guilds.pop(guild.id,['qotd','nextup'],1)
-				else:
-					with open('content/qotd') as file:
-						question = choice(file.readlines()+data['qotd']['pool'])
-				await guild.get_channel(data['channels']['qotd']).send(
-					embed=Embed(
-						title='❓❔ Question of the Day ❔❓',
-						description=question,
-						color=await self.client.db.guilds.read(guild.id,['config','embed_color'])))
+				try:
+					data = await self.client.db.guilds.read(guild.id,[])
+					if not data['config']['qotd'] or not data['channels']['qotd']: continue
+					if data['qotd']['nextup']:
+						question = data['qotd']['nextup'][0]
+						await self.client.db.guilds.pop(guild.id,['qotd','nextup'],1)
+					else:
+						with open('content/qotd') as file:
+							question = choice(file.readlines()+data['qotd']['pool'])
+					await guild.get_channel(data['channels']['qotd']).send(
+						embed=Embed(
+							title='❓❔ Question of the Day ❔❓',
+							description=question,
+							color=await self.client.db.guilds.read(guild.id,['config','embed_color'])))
+				except Exception: continue
 
 
 def setup(client:client_cls) -> None: client.add_cog(qotd_cog(client))
