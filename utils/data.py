@@ -1,4 +1,3 @@
-
 from pymongo.errors import DuplicateKeyError
 import motor.motor_asyncio,collections.abc
 from pymongo.collection import Collection
@@ -6,7 +5,7 @@ from typing import Any
 from time import time
 
 with open('mongo') as mongo:
-	client = motor.motor_asyncio.AsyncIOMotorClient(mongo.read(), serverSelectionTimeoutMS=5000)['reg-nal']
+	client = motor.motor_asyncio.AsyncIOMotorClient(mongo.read().replace('\n',''), serverSelectionTimeoutMS=5000)['reg-nal']
 
 class env:
 	def __init__(self,env_dict:dict) -> None:
