@@ -1,7 +1,6 @@
 from discord import User,TextChannel,File,Message,ApplicationContext,Member,Permissions
 from discord.commands import SlashCommandGroup,Option as option
 from discord.ext.commands import Cog,message_command
-from utils.tyrantlib import perma
 from datetime import datetime
 from main import client_cls
 from io import StringIO
