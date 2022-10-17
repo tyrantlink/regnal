@@ -122,26 +122,18 @@ class base_commands(Cog):
 	async def slash_stats(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 
-		lifetime,session,past_price,month_price  = [],[],0,0
+		lifetime,session  = [],[]
 		embed = Embed(title='/reg/nal stats:',color=await self.client.embed_color(ctx))
 		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=False)
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			session_stat = await self.client.db.stats.read(2,["stats",name])
 			lifetime.append(f'{name}: {await self.client.db.stats.read(1,["stats",name])+session_stat}')
 			session.append(f'{name}: {session_stat}')
-		
-		past = get('https://cloud.mongodb.com/api/atlas/v1.0/orgs/61c190b34a1ea5693a80727d/invoices/?pretty=true',
-			auth=HTTPDigestAuth('blfmwpyu','a50bc263-a3b8-4c76-95ae-19000164e509')).json()
-		current = get('https://cloud.mongodb.com/api/atlas/v1.0/orgs/61c190b34a1ea5693a80727d/invoices/pending?pretty=true',
-			auth=HTTPDigestAuth('blfmwpyu','a50bc263-a3b8-4c76-95ae-19000164e509')).json()
-		
-		for invoice in past['results']: past_price += invoice['subtotalCents']
-		for item in current['lineItems']: month_price += item['totalPriceCents']
 
 		embed.add_field(name='session',value='\n'.join(session),inline=True)
 		embed.add_field(name='lifetime',value='\n'.join(lifetime),inline=True)
-		embed.add_field(name='total cost',value=f"${format((past_price+month_price)/100,'.2f')} (${format(month_price/100,'.2f')} so far this month)",inline=False)
 		embed.add_field(name='total db size',value=format_bytes((await self.client.db.messages.raw.database.command('dbstats'))['dataSize']))
+		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]))
 		embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({self.client.commit_id})')
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 

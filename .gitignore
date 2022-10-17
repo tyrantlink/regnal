@@ -10,3 +10,5 @@ dev
 *.old
 last_update
 /music
+/content/to_mongo
+_*

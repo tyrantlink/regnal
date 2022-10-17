@@ -99,9 +99,11 @@ class auto_responses_cog(Cog):
 			s = search(p_splitter,input,IGNORECASE)
 
 			if s == None: continue
-			if s.span()[0] != 0:
-				if input[s.span()[0]-1] != ' ': continue
-			if input[s.span()[0]+(len(p_splitter))] != ' ': continue
+			try:
+				if s.span()[0] != 0:
+					if input[s.span()[0]-1] != ' ': continue
+				if input[s.span()[0]+(len(p_splitter))] != ' ': continue
+			except IndexError: return
 
 			p_response = split(p_splitter,input,1,IGNORECASE)[1:]
 			if len(response) < len(''.join(p_response)): response,splitter = ''.join(p_response),p_splitter

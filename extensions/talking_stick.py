@@ -80,7 +80,7 @@ class talking_stick_cog(Cog):
 		if len(active_members) == 0: return
 		for attempt in range(15):
 			rand = choice(active_members)
-			if rand in await self.client.db.guilds.read(guild.id,['softbans']): continue
+			if not await self.client.db.users.read(rand,['config','talking_stick']): continue
 			old_stick = await self.client.db.guilds.read(guild.id,['current_stick'])
 			if old_stick == rand: continue # continue if repeat user
 			try: member = await guild.fetch_member(rand)

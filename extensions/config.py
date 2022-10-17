@@ -32,14 +32,14 @@ class options_dropdown(Select):
 		super().__init__(placeholder='select an option',options=[SelectOption(label=k) for k,v in config[self.v.current_menu].items()])
 	
 	async def callback(self,interaction:Interaction) -> None:
-		for i in [self.v.button_true,self.v.button_false,self.v.button_input]:
+		for i in [self.v.button_enable,self.v.button_disable,self.v.button_input]:
 			if i in self.v.children: self.v.remove_item(i)
 		self.v.selected = self.values[0]
 		self.v.embed.description = f'selected: {self.v.selected}'
 		match config[self.v.current_menu][self.v.selected]['type']:
 			case 'bool':
-				self.v.add_item(self.v.button_true)
-				self.v.add_item(self.v.button_false)
+				self.v.add_item(self.v.button_enable)
+				self.v.add_item(self.v.button_disable)
 			case 'input':
 				self.v.add_item(self.v.button_input)
 			case 'str':
@@ -144,13 +144,13 @@ class view(View):
 
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
-	@button(label='set to True',style=3)
-	async def button_true(self,button:Button,interaction:Interaction) -> None:
-		await self.modify_config(True,interaction)
+	# @button(label='set to True',style=3)
+	# async def button_true(self,button:Button,interaction:Interaction) -> None:
+	# 	await self.modify_config(True,interaction)
 
-	@button(label='set to False',style=4)
-	async def button_false(self,button:Button,interaction:Interaction) -> None:
-		await self.modify_config(False,interaction)
+	# @button(label='set to False',style=4)
+	# async def button_false(self,button:Button,interaction:Interaction) -> None:
+	# 	await self.modify_config(False,interaction)
 
 	@button(label='enable',style=3)
 	async def button_enable(self,button:Button,interaction:Interaction) -> None:
