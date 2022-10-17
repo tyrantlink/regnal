@@ -132,8 +132,8 @@ class base_commands(Cog):
 
 		embed.add_field(name='session',value='\n'.join(session),inline=True)
 		embed.add_field(name='lifetime',value='\n'.join(lifetime),inline=True)
-		embed.add_field(name='total db size',value=format_bytes((await self.client.db.messages.raw.database.command('dbstats'))['dataSize']))
-		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]))
+		embed.add_field(name='total db size',value=format_bytes((await self.client.db.messages.raw.database.command('dbstats'))['dataSize']),inline=False)
+		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=False)
 		embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({self.client.commit_id})')
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
