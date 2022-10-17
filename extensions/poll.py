@@ -2,7 +2,6 @@ from discord import SelectOption,Interaction,Embed,ApplicationContext,InputTextS
 from discord.ui import View,Button,Select,button,Modal,InputText,Item
 from discord.commands import slash_command
 from discord.ext.commands import Cog
-from utils.tyrantlib import perm
 from main import client_cls
 
 
@@ -139,8 +138,8 @@ class poll_cog(Cog):
 		self.client.add_view(published_view(client=self.client))
 
 	@slash_command(name='poll',
-		description='create a poll')
-	@perm('guild_only')
+		description='create a poll',
+		guild_only=True)
 	async def poll(self,ctx:ApplicationContext) -> None:
 		embed = Embed(title='set a poll title!',description='and the description too!\nif you want, i guess. a description isn\'t required.',color=await self.client.embed_color(ctx))
 		await ctx.response.send_message(embed=embed,

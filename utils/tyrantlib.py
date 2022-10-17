@@ -47,35 +47,12 @@ def convert_time(seconds:int|float,decimal=15) -> str:
 	if seconds: res.append(f'{seconds} second{"" if seconds == 1 else "s"}')
 	return ', '.join(res)
 
-def perm(perm:str,ctx:ApplicationContext=None) -> bool:
+def dev_only(ctx:ApplicationContext=None) -> bool:
 	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT THIS HAS TO BE AWAITED
 	async def perms(ctx,respond=True) -> bool:
-		match perm:
-			case 'bot_owner':
-				if ctx.author.id == owner_id: return True
-				if respond: await ctx.response.send_message('you must be the bot owner to run this command.',ephemeral=True)
-				return False
-			case 'tester': 
-				if ctx.author.id in testers or ctx.author.id == owner_id: return True
-				if respond: await ctx.response.send_message('you must be the bot owner or a verified tester to run this command.',ephemeral=True)
-				return False
-			case 'guild_only':
-				if not ctx.guild:
-					if respond: await ctx.response.send_message(f'this command can only be run in a guild.',ephemeral=True)
-					return False
-				return True
-			case _:
-				try:
-					if dict(ctx.author.guild_permissions)[perm]:
-						return True
-					else:
-						if bypass_permissions and ctx.author.id == owner_id: return True
-						if respond: await ctx.response.send_message(f'you must have the `{perm}` permission to run this command.',ephemeral=True)
-						return False
-				except:
-					if respond: await ctx.response.send_message(f'this command can only be run in a guild.',ephemeral=True)
-					return False
-
+		if ctx.author.id == owner_id: return True
+		if respond: await ctx.response.send_message('you must be the bot developer to run this command.',ephemeral=True)
+		return False
 	return check(perms) if not ctx else perms(ctx,False)
 
 class MakeshiftClass:

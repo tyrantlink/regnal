@@ -1,8 +1,7 @@
 from discord.commands import Option as option,slash_command,SlashCommandGroup
-from discord import Embed,InviteTarget,Role,ApplicationContext
+from discord import Embed,InviteTarget,Role,ApplicationContext,Permissions
 from main import client_cls,activity_options
 from discord.ext.commands import Cog
-from utils.tyrantlib import perm
 from aiohttp import ClientSession
 from random import randint,choice
 from datetime import datetime
@@ -20,10 +19,9 @@ class fun_cog(Cog):
 	@activity.command(
 		name='invite',
 		description='invite an embedded application to voice channel',
+		guild_only=True,default_member_permissions=Permissions(create_instant_invite=True,start_embedded_activities=True),
 		options=[
 			option(str,name='activity',description='name of application',choices=activity_options)])
-	@perm('create_instant_invite')
-	@perm('start_embedded_activities')
 	async def slash_activity_invite(self,ctx:ApplicationContext,activity:str) -> None:
 		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
 		activity_id = await self.client.db.inf.read('/reg/nal',['activities',activity])
@@ -40,10 +38,9 @@ class fun_cog(Cog):
 	@activity.command(
 		name='custom',
 		description='invite a custom application to voice channel',
+		guild_only=True,default_member_permissions=Permissions(create_instant_invite=True,start_embedded_activities=True),
 		options=[
 			option(str,name='activity_id',description='application id')])
-	@perm('create_instant_invite')
-	@perm('start_embedded_activities')
 	async def slash_activity_custom(self,ctx:ApplicationContext,activity_id:str) -> None:
 		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
 		try: cache = await self.client.db.guilds.read(0,['activity_cache',str(ctx.author.voice.channel.id)])
@@ -176,12 +173,12 @@ class fun_cog(Cog):
 	@slash_command(
 		name='random',
 		description='get random user with role',
+		guild_only=True,
 		options=[
 			option(Role,name='role',description='role to roll users from'),
 			option(bool,name='ping',description='ping the result user? (requires mention_everyone)')])
-	@perm('guild_only')
 	async def slash_random(self,ctx:ApplicationContext,role:Role,ping:bool) -> None:
-		if ping and not perm('mention_everyone',ctx): return
+		if ping and ctx.author.guild_permissions.mention_everyone: return
 		result = choice(role.members)
 		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.hide(ctx))
 
@@ -230,7 +227,8 @@ class fun_cog(Cog):
 
 	@slash_command(
 		name='bees',
-		description='bees.')
+		description='bees.',
+		guild_only=True)
 	async def slash_bees(self,ctx:ApplicationContext) -> None:
 		if ctx.channel.name != 'spam':
 			await ctx.response.send_message('bees are not allowed here.',ephemeral=await self.client.hide(ctx))

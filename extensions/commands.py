@@ -1,7 +1,6 @@
 from discord.commands import SlashCommandGroup,Option as option,slash_command,user_command
 from discord import Embed,User,ApplicationContext
 from discord.ext.commands import Cog
-from utils.tyrantlib import perm
 from json import dumps,loads
 from main import client_cls
 from random import choice
@@ -42,8 +41,8 @@ class commands_cog(Cog):
 
 	@profile.command(
 		name='guild',
-		description='get the profile of the current guild')
-	@perm('guild_only')
+		description='get the profile of the current guild',
+		guild_only=True)
 	async def slash_profile_guild(self,ctx:ApplicationContext) -> None:
 		embed = Embed(
 			title=f'{ctx.guild.name}\'s profile',
@@ -78,8 +77,8 @@ class commands_cog(Cog):
 	
 	@leaderboard.command(
 		name='messages',
-		description='view the message leaderboard')
-	@perm('guild_only')
+		description='view the message leaderboard',
+		guild_only=True)
 	async def slash_leaderboard_messages(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['leaderboards','messages'])).items(),key=lambda item: item[1],reverse=True)}.items()
@@ -100,7 +99,8 @@ class commands_cog(Cog):
 
 	@leaderboard.command(
 		name='sticks',
-		description='show talking stick leaderboard')
+		description='show talking stick leaderboard',
+		guild_only=True)
 	async def slash_leaderboard_sticks(self,ctx:ApplicationContext) -> None:
 		await self.check(ctx)
 		await ctx.defer(ephemeral=await self.client.hide(ctx))

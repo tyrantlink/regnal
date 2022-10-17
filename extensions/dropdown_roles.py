@@ -1,12 +1,10 @@
-from discord import Interaction,Embed,ApplicationContext,Role,SelectOption,Message
+from discord import Interaction,Embed,ApplicationContext,Role,SelectOption,Message,Permissions
 from discord.commands import slash_command,Option as option,message_command
 from discord.ui import View,Button,button,Modal,InputText,Item,Select
 from discord.ext.commands import Cog
 from discord.errors import Forbidden
-from utils.tyrantlib import perm
 from main import client_cls
 from asyncio import Event
-from os import urandom
 
 role_inputs = {}
 
@@ -190,7 +188,7 @@ class role_menu_cog(Cog):
 		if message_id:
 			current_data = await self.client.db.dd_roles.read(int(message_id))
 			if not current_data:
-				await ctx.followup.send(f'`[{message_id}]` not found in role menu database',ephemeral=True)
+				await ctx.respond(f'`[{message_id}]` not found in role menu database',ephemeral=True)
 				return
 			desc = 'you are editing an existing role menu. after you are finished it will be reposted. the original message will be deleted when you are finished.'
 		else:
@@ -207,27 +205,27 @@ class role_menu_cog(Cog):
 	@slash_command(
 		name='role_menu',
 		description='create a role menu',
+		guild_only=True,default_member_permissions=Permissions(manage_roles=True),
 		options=[
 			option(str,name='message_id',description='edit existing role menu. menu wil be recreated',required=False,default=None)])
-	@perm('manage_roles')
 	async def slash_role_menu(self,ctx:ApplicationContext,message_id:str) -> None:
 		await self.open_role_menu(ctx,message_id)
 
 	@message_command(
-		name='edit role menu')
-	@perm('manage_roles')
+		name='edit role menu',
+		guild_only=True,default_member_permissions=Permissions(manage_roles=True))
 	async def message_edit_role_menu(self,ctx:ApplicationContext,message:Message) -> None:
 		await self.open_role_menu(ctx,message.id)
 	
 	@slash_command(
 		name='add_role_to_menu',
 		description='/role_menu must be used first',
+		guild_only=True,default_member_permissions=Permissions(manage_roles=True),
 		options=[
 			option(Role,name='role',description='role'),
 			option(str,name='name',description='role label'),
 			option(str,name='description',description='role description',required=False),
 			option(str,name='emoji',description='role emoji',required=False)])
-	@perm('manage_roles')
 	async def slash_add_role_to_menu(self,ctx:ApplicationContext,role:Role,label:str,description:str,emoji:str) -> None:
 		if role_inputs.get(ctx.user.id) is None:
 			await ctx.response.send_message(f'unable to find role menu, are you on the add role page?',ephemeral=True)

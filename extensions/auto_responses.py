@@ -1,8 +1,8 @@
-from discord.commands import SlashCommandGroup,slash_command,Option as option
-from discord import Message,ApplicationContext,Embed
+from discord import Message,ApplicationContext,Embed,Permissions
+from discord.commands import slash_command,Option as option
 from re import sub,search,IGNORECASE,split
+from utils.tyrantlib import merge_dicts
 from discord.ext.commands import Cog
-from utils.tyrantlib import perm
 from main import client_cls
 from asyncio import sleep
 
@@ -11,6 +11,7 @@ class auto_responses_cog(Cog):
 		client._extloaded()
 		self.client = client
 		self.responses = None
+		self.guild_responses = {}
 
 	@Cog.listener()
 	async def on_connect(self):
@@ -41,6 +42,8 @@ class auto_responses_cog(Cog):
 
 		if self.responses is None:
 			self.responses = await self.client.db.inf.read('auto_responses',['au'])
+		if self.guild_responses.get(message.guild.id,None) is None:
+			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['au','custom'])
 
 		match guild['config']['auto_responses']:
 			case 'enabled':
@@ -60,25 +63,30 @@ class auto_responses_cog(Cog):
 			case 'disabled': pass
 		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
 	
-	def au_check(self,message:str) -> tuple[str,str]|None:
-		if message.lower() in self.responses['exact']:
+	def au_check(self,responses,message:str) -> tuple[str,str]|None:
+		if message.lower() in responses['exact']:
 			return ('exact',message.lower())
-		if message in self.responses['exact-cs']:
+		if message in responses['exact-cs']:
 			return ('exact-cs',message)
-		for i in self.responses['contains']:
-			if i in message.lower(): return ('contains',i)
-	
-	def get_au(self,category,message) -> dict:
-		return self.responses[category][message]
+		for i in responses['contains']:
+			s = search(i,message.lower(),IGNORECASE)
+			if s is None: continue
+			try:
+				if s.span()[0] != 0:
+					if message.lower()[s.span()[0]-1] != ' ': continue
+				if message.lower()[s.span()[0]+(len(i))] != ' ': continue
+			except IndexError: pass
+			return ('contains',i)
 
 	async def listener_auto_response(self,message:Message) -> None:
-		try: check = self.au_check(message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
+		responses = merge_dicts(self.responses,self.guild_responses[message.guild.id])
+		try: check = self.au_check(responses,message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
 		except Exception: return
 		if check is None: return
 
-		data = self.get_au(check[0],check[1])
-		if redir:=data.get('redir',False):
-			data = self.get_au(check[0],redir)
+		data = responses[check[0]][check[1]]
+		while redir:=data.get('redir',False):
+			data = responses[check[0]][redir]
 		
 		if (response:=data.get('response',None)) is None: return
 		if (user:=data.get('user',None)) is not None and message.author.id is not user: return
@@ -117,8 +125,8 @@ class auto_responses_cog(Cog):
 	@slash_command(
 		name='auto_response',
 		description='add the current channel to the whitelist or blacklist',
+		guild_only=True,default_member_permissions=Permissions(manage_channels=True),
 		options=[option(str,name='option',description='auto_response commands',choices=['add','remove','list'])])
-	@perm('guild_only')
 	async def slash_auto_response(self,ctx:ApplicationContext,option:str):
 		au_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','auto_responses'])
 		match option:
@@ -143,8 +151,8 @@ class auto_responses_cog(Cog):
 	@slash_command(
 		name='dad_bot',
 		description='add the current channel to the whitelist or blacklist',
+		guild_only=True,default_member_permissions=Permissions(manage_channels=True),
 		options=[option(str,name='option',description='dad_bot commands',choices=['add','remove','list'])])
-	@perm('guild_only')
 	async def slash_auto_response(self,ctx:ApplicationContext,option:str):
 		db_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','dad_bot'])
 		match option:

@@ -2,9 +2,8 @@ from discord.ui import View,Button,Select,button,Modal,InputText,Item
 from discord import SelectOption,Interaction,Embed,ApplicationContext
 from discord.commands import slash_command
 from discord.ext.commands import Cog
-from utils.tyrantlib import perm
+from utils.tyrantlib import dev_only
 from main import client_cls,config
-from asyncio import sleep
 
 class input_text(Modal):
 	def __init__(self,embed:Embed,view:View,label:str,placeholder:str,max_length:int) -> None:
@@ -203,10 +202,11 @@ class config_cog(Cog):
 		description='set config')
 	async def slash_config(self,ctx:ApplicationContext) -> None:
 		allowed_config = ['user']
-		if await perm('manage_guild',ctx):
-			allowed_config.append('guild')
-			if await perm('view_audit_log',ctx): allowed_config.append('logging')
-		if await perm('bot_owner',ctx): allowed_config.append('/reg/nal')
+		if ctx.guild:
+			if ctx.author.guild_permissions.manage_guild:
+				allowed_config.append('guild')
+				if ctx.author.guild_permissions.view_audit_log: allowed_config.append('logging')
+		if await dev_only(ctx): allowed_config.append('/reg/nal')
 		embed_color = await self.client.embed_color(ctx)
 		embed = Embed(title='config options',description='please select a config category',color=embed_color)
 		await ctx.response.send_message(embed=embed,view=view(

@@ -4,20 +4,18 @@ st = perf_counter()
 from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction
 from utils.tyrantlib import convert_time,load_data,format_bytes
 from discord.ext.commands import Cog,Bot,slash_command
-from requests.auth import HTTPDigestAuth
 from discord.errors import CheckFailure
 from discord.ext.tasks import loop
 from pymongo import MongoClient
 from utils.data import db,env
 from datetime import datetime
 from discord import Intents
-from sys import argv,stderr
 from os.path import exists
 from inspect import stack
 from utils.log import log
 from asyncio import sleep
-from requests import get
 from json import loads
+from sys import argv
 
 DEV_MODE = exists('dev')
 
