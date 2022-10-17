@@ -125,6 +125,7 @@ class base_commands(Cog):
 		lifetime,session  = [],[]
 		embed = Embed(title='/reg/nal stats:',color=await self.client.embed_color(ctx))
 		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=False)
+		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			session_stat = await self.client.db.stats.read(2,["stats",name])
 			lifetime.append(f'{name}: {await self.client.db.stats.read(1,["stats",name])+session_stat}')
@@ -133,7 +134,6 @@ class base_commands(Cog):
 		embed.add_field(name='session',value='\n'.join(session),inline=True)
 		embed.add_field(name='lifetime',value='\n'.join(lifetime),inline=True)
 		embed.add_field(name='total db size',value=format_bytes((await self.client.db.messages.raw.database.command('dbstats'))['dataSize']),inline=False)
-		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=False)
 		embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({self.client.commit_id})')
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
