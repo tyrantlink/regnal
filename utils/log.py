@@ -34,6 +34,7 @@ class log:
 
 	async def command(self,ctx:ApplicationContext,log:str=None) -> None:
 		await self._db.inf.inc('command_usage',['usage',ctx.command.qualified_name])
+		await self._db.stats.inc(2,['stats','commands_used'])
 		if log is None: log = f'{ctx.command.qualified_name} was used by {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}'
 		await self._base(log,await self._db.inf.read('/reg/nal',['config','command_stdout']))
 
