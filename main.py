@@ -124,8 +124,9 @@ class base_commands(Cog):
 
 		lifetime,session  = [],[]
 		embed = Embed(title='/reg/nal stats:',color=await self.client.embed_color(ctx))
-		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=False)
+		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=True)
 		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
+		embed.add_field(name='\u200b',value='\u200b')
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			session_stat = await self.client.db.stats.read(2,["stats",name])
 			lifetime.append(f'{name}: {await self.client.db.stats.read(1,["stats",name])+session_stat}')
