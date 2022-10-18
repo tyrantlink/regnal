@@ -74,7 +74,7 @@ class input_text(Modal):
 						self.view.options.remove(i)
 						break
 
-		await interaction.response.edit_message(embed=self.embed,view=self.view)
+		await interaction.response.edit_message(embed=self.embed)
 
 class view(View):
 	def __init__(self,*,client:client_cls,embed:Embed) -> None:

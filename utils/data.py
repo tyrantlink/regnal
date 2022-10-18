@@ -71,7 +71,7 @@ class DataCollection():
 		return True
 
 	async def remove(self,id:int|str,path:list=[],value:Any=None) -> bool:
-		await self.collection.update_one({'_id':id},{'$pull':utils.form_path(path,value)})
+		await self.collection.update_one({'_id':id},{'$unset':utils.form_path(path,value)})
 		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
 		return True
 	

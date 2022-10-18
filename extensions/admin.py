@@ -40,13 +40,17 @@ class admin_cog(Cog):
 	async def admin_filter(self,ctx:ApplicationContext,location:str,mode:str,filter:str|None,channel:TextChannel|None) -> None:
 		if location == 'channel' and channel is None: channel = ctx.channel
 		match mode:
-			case 'add': 
+			case 'add':
+				if filter is None:
+					await ctx.response.send_message('you must specify a filter to add.',ephemeral=await self.client.hide(ctx))
 				match location:
 					case 'guild': await self.client.db.guilds.append(ctx.guild.id,['regex','guild'],filter)
 					case 'channel': await self.client.db.guilds.append(ctx.guild.id,['regex','channel',str(channel.id)],filter)
 					case _: await ctx.response.send_message('invalid location, how did you even do that?',ephemeral=await self.client.hide(ctx))
 				await ctx.response.send_message(f'successfully added {escape_markdown(filter)} to the {location if location == "guild" else channel.mention} filter list.',ephemeral=await self.client.hide(ctx))
 			case 'remove':
+				if filter is None:
+					await ctx.response.send_message('you must specify a filter to remove.',ephemeral=await self.client.hide(ctx))
 				match location:
 					case 'guild': await self.client.db.guilds.remove(ctx.guild.id,['regex','guild'],filter)
 					case 'channel': await self.client.db.guilds.remove(ctx.guild.id,['regex','channel',str(channel.id)],filter)

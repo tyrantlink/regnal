@@ -48,7 +48,7 @@ class options_dropdown(Select):
 				self.v.add_item(self.v.button_disable)
 			case _: await self.v.client.log.debug('unknown config type in base_config_menu callback')
 		await self.v.update_self(self.v)
-		await interaction.response.edit_message(embed=self.v.embed,view=self.v)
+		await interaction.response.edit_message(embed=self.v.embed)
 
 class view(View):
 	def __init__(self,*,client:client_cls,allowed_config:list,embed:Embed,embed_color:int) -> None:
@@ -142,14 +142,6 @@ class view(View):
 		if '/reg/nal' in self.allowed_config: self.add_item(self.button_regnal)
 
 		await interaction.response.edit_message(embed=self.embed,view=self)
-
-	# @button(label='set to True',style=3)
-	# async def button_true(self,button:Button,interaction:Interaction) -> None:
-	# 	await self.modify_config(True,interaction)
-
-	# @button(label='set to False',style=4)
-	# async def button_false(self,button:Button,interaction:Interaction) -> None:
-	# 	await self.modify_config(False,interaction)
 
 	@button(label='enable',style=3)
 	async def button_enable(self,button:Button,interaction:Interaction) -> None:
