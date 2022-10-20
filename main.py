@@ -1,9 +1,10 @@
 #!./venv/bin/python3.10
 from time import perf_counter,time
 st = perf_counter()
-from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction
+from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError
 from utils.tyrantlib import convert_time,load_data,format_bytes
 from discord.ext.commands import Cog,Bot,slash_command
+from traceback import format_exc,format_tb
 from discord.errors import CheckFailure
 from discord.ext.tasks import loop
 from pymongo import MongoClient
@@ -96,18 +97,16 @@ class client_cls(Bot):
 		if isinstance(error,CheckFailure): return
 		await self.log.error(error)
 
-	async def on_application_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
+	async def on_application_command_error(self,ctx:ApplicationContext,error:ApplicationCommandInvokeError) -> None:
 		if isinstance(error,CheckFailure): return
 		await ctx.respond(f'an error has occurred: {error}\n\nthe issue has been automatically reported and should be fixed soon.',ephemeral=True)
 		await self.log.error(error)
 		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
-		channel.send(f'```\n{error.with_traceback()[2000:]}\n```')
+		await channel.send(f'```\n{"".join(format_tb(error.original.__traceback__))[:1992]}\n```')
 	
 	async def on_error(self,event:str,*args,**kwargs):
-		try: raise
-		except Exception as e:
-			if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
-			await channel.send(f'```\n{str(e.with_traceback())[2000:]}\n```')
+		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
+		await channel.send(f'```\n{format_exc()[:1992]}\n```')
 
 class base_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
