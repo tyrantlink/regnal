@@ -132,14 +132,11 @@ class dev_tools_cog(Cog):
 		name='test',
 		description='used for testing, various uses',
 		options=[
-			option(str,name='arg1',description='argument one',required=False,default=None),
-			option(str,name='arg2',description='argument two',required=False,default=None),
-			option(str,name='arg3',description='argument three',required=False,default=None),
-			option(str,name='arg4',description='argument four',required=False,default=None),
-			option(str,name='arg5',description='argument five',required=False,default=None,choices=['a','b','c',])])
+			option(str,name='exec',description='execute string',required=False,default=None)])
 	@dev_only()
-	async def slash_dev_test(self,ctx:ApplicationContext,arg1:str,arg2:str,arg3:str,arg4:str,arg5:str) -> None:
-		raise
+	async def slash_dev_test(self,ctx:ApplicationContext,_exec:str) -> None:
+		if _exec: exec(_exec)
+		else: raise
 
 	@dev.command(
 		name='clear_console',
