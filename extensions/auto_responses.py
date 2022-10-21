@@ -2,6 +2,7 @@ from discord import Message,ApplicationContext,Embed,Permissions
 from discord.commands import slash_command,Option as option
 from re import sub,search,IGNORECASE,split
 from utils.tyrantlib import merge_dicts
+from discord.errors import Forbidden,HTTPException
 from discord.ext.commands import Cog
 from main import client_cls
 from asyncio import sleep
@@ -81,18 +82,19 @@ class auto_responses_cog(Cog):
 	async def listener_auto_response(self,message:Message) -> None:
 		responses = merge_dicts(self.responses,self.guild_responses[message.guild.id])
 		try: check = self.au_check(responses,message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
-		except Exception: return
-		if check is None: return
+		except Exception: return False
+		if check is None: return False
 
 		data = responses[check[0]][check[1]]
 		while redir:=data.get('redir',False):
 			data = responses[check[0]][redir]
 		
-		if (response:=data.get('response',None)) is None: return
-		if (user:=data.get('user',None)) is not None and message.author.id is not user: return
+		if (response:=data.get('response',None)) is None: return False
+		if (user:=data.get('user',None)) is not None and message.author.id is not user: return False
 		if data.get('file',False): response = f'https://cdn.tyrant.link/reg/nal/auto_responses/{response}'
 
-		await message.channel.send(response)
+		try: await message.channel.send(response)
+		except Forbidden: return False
 		for delay,followup in data.get('followup',[]):
 			await sleep(delay)
 			await message.channel.send(followup)
@@ -119,7 +121,9 @@ class auto_responses_cog(Cog):
 		if response == '': return
 
 		try: await message.channel.send(f'hi{response}, {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
-		except: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
+		except Forbidden: return False
+		except HTTPException: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
+
 		await self.client.log.listener(message)
 
 	@slash_command(
