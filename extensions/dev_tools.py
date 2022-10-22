@@ -1,9 +1,9 @@
 from discord import Embed,InputTextStyle,Interaction,User,ApplicationContext,ForumChannel
 from discord.commands import SlashCommandGroup,Option as option
+from utils.tyrantlib import dev_only,get_line_count
 from discord.ext.commands import Cog,slash_command
 from main import client_cls,extensions
 from discord.ui import InputText,Modal
-from utils.tyrantlib import dev_only
 from asyncio import sleep
 from json import dumps
 from os import system
@@ -230,6 +230,7 @@ class dev_tools_cog(Cog):
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
 			return
 		self.client.reload_extension(f'extensions.{extension}')
+		self.client.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
 		await ctx.response.send_message(f'successfully reloaded {extension}',ephemeral=True)
 
 	@dev.command(
@@ -243,6 +244,8 @@ class dev_tools_cog(Cog):
 			await ctx.response.send_message(f'{extension} is already loaded',ephemeral=True)
 			return
 		self.client.load_extension(f'extensions.{extension}')
+		self.client._raw_loaded_extensions.append(extension)
+		self.client.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
 		await ctx.response.send_message(f'successfully loaded {extension}',ephemeral=True)
 
 	@dev.command(
@@ -257,7 +260,8 @@ class dev_tools_cog(Cog):
 			return
 		self.client.unload_extension(f'extensions.{extension}')
 		response = f'successfully unloaded {extension}'
-		del self.client._raw_loaded_extensions[extension]
+		self.client._raw_loaded_extensions.remove(extension)
+		del self.client.lines[extension]
 		if extension == 'dev_tools': response += '\nWARNING: THE DEV_TOOLS EXTENSION WAS UNLOADED. YOU MUST REBOOT TO USE ANYMORE DEV COMMANDS'
 		await ctx.response.send_message(response,ephemeral=True)
 

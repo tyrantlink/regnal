@@ -55,6 +55,11 @@ def dev_only(ctx:ApplicationContext=None) -> bool:
 		return False
 	return check(perms) if not ctx else perms(ctx,False)
 
+def get_line_count(file_path:str) -> int:
+	# i know it's really gross i just don't care enough to fix it
+	with open(file_path,'r') as file:
+		return len([i for i in file.read().replace(' ','').replace('	','').splitlines() if not (i != '') == (i.startswith('#'))])
+
 class MakeshiftClass:
 	def __init__(self,**kwargs) -> None:
 		for k,v in kwargs.items():

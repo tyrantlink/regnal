@@ -2,7 +2,7 @@
 from time import perf_counter,time
 st = perf_counter()
 from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError
-from utils.tyrantlib import convert_time,load_data,format_bytes
+from utils.tyrantlib import convert_time,load_data,format_bytes,get_line_count
 from discord.ext.commands import Cog,Bot,slash_command
 from traceback import format_exc,format_tb
 from discord.errors import CheckFailure
@@ -52,11 +52,13 @@ class client_cls(Bot):
 		self.log = log(self.db,DEV_MODE)
 		self.add_cog(base_commands(self))
 		self.add_cog(message_handler(self))
+		self.lines = {k.split('/')[-1]:get_line_count(f'{k}.py') for k in ['main','utils/data','utils/log','utils/tyrantlib']}
 		with open('.git/refs/heads/master') as git: self.commit_id = git.read(7)
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
 		for extension in extensions:
 			if extensions[extension]:
 				self.load_extension(f'extensions.{extension}')
+				self.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
 	
 	def _extloaded(self) -> None:
 		cog = stack()[1].filename.replace('.py','').split('/')[-1]
@@ -123,7 +125,8 @@ class base_commands(Cog):
 		embed = Embed(title='/reg/nal stats:',color=await self.client.embed_color(ctx))
 		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=True)
 		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
-		embed.add_field(name='\u200b',value='\u200b')
+		embed.add_field(name='line count',value=f'{sum(self.client.lines.values())} lines',inline=True)
+		embed.add_field(name='\u200b',value='\u200b',inline=False)
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			session_stat = await self.client.db.stats.read(2,["stats",name])
 			lifetime.append(f'{name}: {await self.client.db.stats.read(1,["stats",name])+session_stat}')
