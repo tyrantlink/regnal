@@ -128,8 +128,8 @@ class base_commands(Cog):
 		embed.add_field(name='line count',value=f'{sum(self.client.lines.values())} lines',inline=True)
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			session_stat = await self.client.db.stats.read(2,["stats",name])
-			lifetime.append(f'{name}: {await self.client.db.stats.read(1,["stats",name])+session_stat}')
-			session.append(f'{name}: {session_stat}')
+			lifetime.append(f'{name}: {"{:,}".format(await self.client.db.stats.read(1,["stats",name])+session_stat)}')
+			session.append(f'{name}: {"{:,}".format(session_stat)}')
 
 		embed.add_field(name='total db size',value=format_bytes((await self.client.db.messages.raw.database.command('dbstats'))['dataSize']),inline=False)
 		embed.add_field(name='session',value='\n'.join(session),inline=True)
