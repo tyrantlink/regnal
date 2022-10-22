@@ -179,13 +179,11 @@ class message_handler(Cog):
 				await self.client.db.guilds.write(message.guild.id,['name'],message.guild.name)
 			# increase user message count on guild leaderboard
 			await self.client.db.guilds.inc(message.guild.id,['leaderboards','messages',str(message.author.id)])
-			# if author not in active member or softbanned or ignored, add to active member list
+			# if author not in active member or ignored, add to active member list
 			if message.author.bot: return
 			if message.author.id in await self.client.db.guilds.read(message.guild.id,['active_members']): return
 			if await self.client.db.users.read(message.author.id,['config','ignored']): return
-			if message.author.id in await self.client.db.guilds.read(message.guild.id,['softbans']): return
-			ts_limit = await self.client.db.guilds.read(message.guild.id,['roles','talking_stick_limit'])
-			if ts_limit:
+			if ts_limit:=await self.client.db.guilds.read(message.guild.id,['roles','talking_stick_limit']):
 				if not message.author.get_role(ts_limit): return
 
 			await self.client.db.guilds.append(message.guild.id,['active_members'],message.author.id)

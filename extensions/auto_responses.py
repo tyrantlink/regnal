@@ -29,7 +29,6 @@ class auto_responses_cog(Cog):
 		try:
 			if (
 				message.author.bot or
-				message.author.id in guild['softbans'] or 
 				message.author == self.client.user or 
 				await self.client.db.users.read(message.author.id,['config','ignored'])):
 					return
