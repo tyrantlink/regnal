@@ -48,7 +48,7 @@ class options_dropdown(Select):
 				self.v.add_item(self.v.button_disable)
 			case _: await self.v.client.log.debug('unknown config type in base_config_menu callback')
 		await self.v.update_self(self.v)
-		await interaction.response.edit_message(embed=self.v.embed)
+		await interaction.response.edit_message(embed=self.v.embed,view=self.v)
 
 class view(View):
 	def __init__(self,*,client:client_cls,allowed_config:list,embed:Embed,embed_color:int) -> None:
