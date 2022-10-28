@@ -45,7 +45,7 @@ class log_listeners(Cog):
 				color=0xff6969)
 				embed.set_author(name=message.author.display_name,icon_url=message.author.display_avatar.url)
 				embed.set_footer(text=f'message id: {message.id}\nuser id:    {message.author.id}')
-				embed.add_field(name=f'DELETED <t:{int(message.created_at.timestamp())}:t>',value=(message.content if len(message.content) <= 1024 else f'{message.content[:1021]}...') or '​',inline=False)
+				embed.add_field(name=f'DELETED  <t:{int(message.created_at.timestamp())}:t>',value=(message.content if len(message.content) <= 1024 else f'{message.content[:1021]}...') or '​',inline=False)
 				
 				log_msg = await self.client.get_channel(guild_data['log_config']['log_channel']).send(embed=embed)
 				await self.log(message,log_message=log_msg)
@@ -125,7 +125,7 @@ class log_listeners(Cog):
 		color=0xff6969)
 		embed.set_author(name=message.author.display_name,icon_url=message.author.display_avatar.url)
 		embed.set_footer(text=f'message id: {message.id}\nuser id:    {message.author.id}')
-		embed.add_field(name=f'DELETED <t:{int(deleted_at.timestamp())}:t>',value=(message.content if len(message.content) <= 1024 else f'{message.content[:1021]}...') or '​',inline=False)
+		embed.add_field(name=f'DELETED  <t:{int(deleted_at.timestamp())}:t>',value=(message.content if len(message.content) <= 1024 else f'{message.content[:1021]}...') or '​',inline=False)
 		if message.attachments:
 			
 			embed.add_field(name='attachments',value='\n'.join([a.filename for a in message.attachments]),inline=False)
@@ -249,7 +249,7 @@ class log_commands(Cog):
 		if len(doc['logs']) > 25:
 			embed.description+='this message has more than 25 edits to see full history, use /logging get with <raw> set to true'
 		for log in doc['logs'][:25]:
-			embed.add_field(name=f'{log[1].upper()} <t:{log[0]}:t>',value=(log[2] if len(log[2]) <= 1024 else f'{log[2][:1021]}...') or '​',inline=False)
+			embed.add_field(name=f'{"{:<9}".format(log[1].upper())} <t:{log[0]}:t>',value=(log[2] if len(log[2]) <= 1024 else f'{log[2][:1021]}...') or '​',inline=False)
 
 		match embed.fields[-1].name[0]:
 			case 'O': embed.color = 0x69ff69
