@@ -60,6 +60,10 @@ def get_line_count(file_path:str) -> int:
 	with open(file_path,'r') as file:
 		return len([i for i in file.read().replace(' ','').replace('	','').splitlines() if not (i != '') == (i.startswith('#'))])
 
+def split_list(lst:list,size:int):
+	for i in range(0,len(lst),size):
+		yield lst[i:i+size]
+
 class MakeshiftClass:
 	def __init__(self,**kwargs) -> None:
 		for k,v in kwargs.items():
