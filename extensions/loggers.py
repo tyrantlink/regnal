@@ -22,7 +22,7 @@ class log_listeners(Cog):
 		if not message.guild: return
 		guild_data = await self.client.db.guilds.read(message.guild.id)
 		if not guild_data['log_config']['enabled']: return
-		if guild_data['log_config']['log_all_messages']: await self.log(message,'sent')
+		if guild_data['log_config']['log_all_messages']: await self.log(message)
 		regex = guild_data['regex']
 
 		try: regex['channel'][str(message.channel.id)]
