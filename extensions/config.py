@@ -145,7 +145,10 @@ class view(View):
 
 	@button(label='enable',style=3)
 	async def button_enable(self,button:Button,interaction:Interaction) -> None:
-		await self.modify_config('enabled',interaction)
+		if config.get(self.current_menu,{}).get(interaction.message.embeds[0].description.split(' ')[-1],{}).get('type',None) == 'str':
+			await self.modify_config('enabled',interaction)
+		else:
+			await self.modify_config(True,interaction)
 
 	@button(label='whitelist',style=1)
 	async def button_whitelist(self,button:Button,interaction:Interaction) -> None:
@@ -157,7 +160,10 @@ class view(View):
 
 	@button(label='disable',style=4)
 	async def button_disable(self,button:Button,interaction:Interaction) -> None:
-		await self.modify_config('disabled',interaction)
+		if config.get(self.current_menu,{}).get(interaction.message.embeds[0].description.split(' ')[-1],{}).get('type',None) == 'str':
+			await self.modify_config('disabled',interaction)
+		else:
+			await self.modify_config(False,interaction)
 	
 	@button(label='set',style=3)
 	async def button_input(self,button:Button,interaction:Interaction) -> None:
