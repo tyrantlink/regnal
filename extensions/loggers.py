@@ -42,7 +42,7 @@ class log_listeners(Cog):
 				
 				embed = Embed(title=f'message filtered in {message.channel.name}',
 				description=f'[jump to channel](<{message.channel.jump_url}>)\n[{str(message.author).lower()}\'s profile](<{message.author.jump_url}>)\n',
-				color=0xffff69)
+				color=0xff6969)
 				embed.set_author(name=message.author.display_name,icon_url=message.author.display_avatar.url)
 				embed.set_footer(text=f'message id: {message.id}\nuser id:    {message.author.id}')
 				embed.add_field(name=f'DELETED <t:{int(message.created_at.timestamp())}:t>',value=(message.content if len(message.content) <= 1024 else f'{message.content[:1021]}...') or '​',inline=False)
