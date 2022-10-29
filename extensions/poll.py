@@ -46,8 +46,6 @@ class input_text(Modal):
 		self.client,self.view,self.embed = attrs
 		super().__init__(title=title)
 		for i in items: self.add_item(i)
-		# self.add_item(InputText(label='title',max_length=256,style=1))
-		# self.add_item(InputText(label='description',max_length=1024,required=False,style=2,value='​'))
 
 	async def callback(self,interaction:Interaction) -> None:
 		match self.title:
