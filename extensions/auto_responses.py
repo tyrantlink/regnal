@@ -1,4 +1,5 @@
-from discord import Message,ApplicationContext,Embed,Permissions
+from discord import Message,ApplicationContext,Embed,Permissions,Member,Interaction,InputTextStyle
+from discord.ui import Modal,InputText
 from discord.commands import slash_command,Option as option
 from re import sub,search,IGNORECASE,split
 from utils.tyrantlib import merge_dicts
@@ -6,6 +7,41 @@ from discord.errors import Forbidden,HTTPException
 from discord.ext.commands import Cog
 from main import client_cls
 from asyncio import sleep
+
+c_au_choices = {
+	'trigger anywhere within message':'contains',
+	'message is exactly trigger (case insensitive)':'exact',
+	'message is exactly trigger (case sensitive)':'exact-cs'}
+reload_guilds = []
+
+class input_text(Modal):
+	def __init__(self,client:client_cls,guild_id:int,title:str,items:list[InputText],method:str,user:Member=None) -> None:
+		self.client   = client
+		self.guild_id = guild_id
+		self.method   = method
+		self.user     = user
+		super().__init__(title=title)
+		for i in items: self.add_item(i)
+
+	async def callback(self,interaction:Interaction) -> None:
+		custom = await self.client.db.guilds.read(self.guild_id,['au','custom',self.method])
+		trigger = (self.children[0].value if self.method == 'exact-cs' else self.children[0].value.lower()).strip()
+		match len(self.children):
+			case 1: # means is delete
+				if trigger not in custom.keys():
+					await interaction.response.send_message(f'> {trigger}\nnot found in custom auto responses!',ephemeral=True)
+					return
+				await self.client.db.guilds.unset(self.guild_id,['au','custom'],trigger)
+			case 2: # means is add
+				if trigger in custom.keys():
+					await interaction.response.send_message(f'> {trigger}\nis already in the auto responses:',ephemeral=True)
+					return
+				au = {'response':self.children[1].value,}
+				if self.user is not None: au.update({'user':str(self.user.id)})
+				await self.client.db.guilds.write(self.guild_id,['au','custom',self.method,trigger],au)
+				await interaction.response.send_message(f'> {trigger}\nsuccessfully added to auto responses',ephemeral=True)
+			case _: raise
+		reload_guilds.append(self.guild_id)
 
 class auto_responses_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
@@ -40,6 +76,8 @@ class auto_responses_cog(Cog):
 		
 		if message.content is None: return
 
+		for i in reload_guilds:
+			self.guild_responses.pop(i)
 		if self.responses is None:
 			self.responses = await self.client.db.inf.read('auto_responses',['au'])
 		if self.guild_responses.get(message.guild.id,None) is None:
@@ -176,5 +214,48 @@ class auto_responses_cog(Cog):
 						await ctx.response.send_message(embed=Embed(title=db_cfg,description='\n'.join(await self.client.db.guilds.read(ctx.guild.id,['db',db_cfg]))),ephemeral=await self.client.hide(ctx))
 					case _: raise
 			case _: raise
+
+	@slash_command(
+		name='custom_auto_response',
+		description='add or remove custom auto responses',
+		guild_only=True,default_member_permissions=Permissions(manage_messages=True),
+		options=[
+			option(str,name='action',description='add, remove, or list custom auto responses',choices=['add','remove','list']),
+			option(str,name='method',description='when the auto response is triggered',required=False,default='message is exactly trigger (case insensitive)',choices=list(c_au_choices.keys())),
+			option(Member,name='user',description='limit response to specific user',required=False)])
+	async def slash_custom_auto_response(self,ctx:ApplicationContext,action:str,method:str,user:Member):
+		custom_au = await self.client.db.guilds.read(ctx.guild.id,['au','custom'])
+		au_length = sum([len(i) for i in custom_au.values()])
+		match action:
+			case 'add':
+				if au_length >= 50:
+					await ctx.response.send_message('a single server can\'t have more than 25 custom auto responses!',ephemeral=await self.client.hide(ctx))
+					return
+				await ctx.response.send_modal(
+					input_text(self.client,ctx.guild.id,
+						'add an auto response',[
+							InputText(label='trigger message',min_length=1,max_length=100,style=InputTextStyle.short),
+							InputText(label='response',min_length=1,max_length=500,style=InputTextStyle.long)],
+						c_au_choices.get(method,'error'),user))
+			case 'remove':
+				if au_length == 0:
+					await ctx.response.send_message('there are no custom auto responses in this server!',ephemeral=await self.client.hide(ctx))
+					return
+				await ctx.response.send_modal(
+					input_text(self.client,ctx.guild.id,
+						'remove an auto response',[
+							InputText(label='trigger message',min_length=1,max_length=100,style=InputTextStyle.short)],c_au_choices.get(method,'error')))
+			case 'list':
+				embed = Embed(title='custom auto responses',color=await self.client.embed_color(ctx))
+				if au_length == 0: embed.description = 'no custom auto responses have been set'
+				for trigger,data in custom_au.items():
+					value = [f'response:\n{data.get("response","no response")}']
+					user_id = data.get("user",None)
+					if user_id is not None:
+						value.insert(0,f'limited to user: {ctx.guild.get_member(user_id) or await ctx.guild.fetch_member(user_id)}')
+					embed.add_field(name=trigger,value='\n'.join(value))
+				await ctx.response.send_message(embed=embed)
+			case _: raise
+
 
 def setup(client:client_cls) -> None: client.add_cog(auto_responses_cog(client))
