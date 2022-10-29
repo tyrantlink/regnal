@@ -39,7 +39,7 @@ class input_text(Modal):
 				au = {'response':self.children[1].value,}
 				if self.user is not None: au.update({'user':str(self.user.id)})
 				await self.client.db.guilds.write(self.guild_id,['au','custom',self.method,trigger],au)
-				await interaction.response.send_message(f'> {trigger}\nsuccessfully added to auto responses',ephemeral=True)
+				await interaction.response.send_message(f'> {trigger}\nsuccessfully added to auto responses',ephemeral=await self.client.hide(interaction))
 			case _: raise
 		reload_guilds.append(self.guild_id)
 
@@ -248,13 +248,15 @@ class auto_responses_cog(Cog):
 			case 'list':
 				embed = Embed(title='custom auto responses',color=await self.client.embed_color(ctx))
 				if au_length == 0: embed.description = 'no custom auto responses have been set'
-				for trigger,data in custom_au.items():
-					value = [f'response:\n{data.get("response","no response")}']
-					user_id = data.get("user",None)
-					if user_id is not None:
-						value.insert(0,f'limited to user: {ctx.guild.get_member(user_id) or await ctx.guild.fetch_member(user_id)}')
-					embed.add_field(name=trigger,value='\n'.join(value))
-				await ctx.response.send_message(embed=embed)
+				for i in ['contains','exact','exact-cs']:
+					for trigger,data in custom_au.get(i,{}).items():
+						value = [f'response:\n{data.get("response","no response")}']
+						user_id = data.get("user",None)
+						if user_id is not None:
+							value.insert(0,f'limited to user: {ctx.guild.get_member(user_id) or await ctx.guild.fetch_member(user_id)}')
+						value.insert(0,f'response method: {i}')
+						embed.add_field(name=trigger,value='\n'.join(value),inline=False)
+				await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 			case _: raise
 
 
