@@ -1,10 +1,11 @@
 from discord import Message,ApplicationContext,Embed,Permissions,Member,Interaction,InputTextStyle
-from discord.ui import Modal,InputText
 from discord.commands import slash_command,Option as option
-from re import sub,search,IGNORECASE,split
-from utils.tyrantlib import merge_dicts
+from re import sub,search,IGNORECASE,split,fullmatch
 from discord.errors import Forbidden,HTTPException
+from utils.tyrantlib import merge_dicts
+from discord.ui import Modal,InputText
 from discord.ext.commands import Cog
+from urllib.parse import quote
 from main import client_cls
 from asyncio import sleep
 
@@ -15,11 +16,12 @@ c_au_choices = {
 reload_guilds = []
 
 class input_text(Modal):
-	def __init__(self,client:client_cls,guild_id:int,title:str,items:list[InputText],method:str,user:Member=None) -> None:
+	def __init__(self,client:client_cls,guild_id:int,title:str,items:list[InputText],method:str,user:Member=None,regex:bool=False) -> None:
 		self.client   = client
 		self.guild_id = guild_id
 		self.method   = method
 		self.user     = user
+		self.regex    = regex
 		super().__init__(title=title)
 		for i in items: self.add_item(i)
 
@@ -36,8 +38,9 @@ class input_text(Modal):
 				if trigger in custom.keys():
 					await interaction.response.send_message(f'> {trigger}\nis already in the auto responses:',ephemeral=True)
 					return
-				au = {'response':self.children[1].value,}
+				au = {'response':self.children[1].value}
 				if self.user is not None: au.update({'user':str(self.user.id)})
+				if self.regex: au.update({'regex':True})
 				await self.client.db.guilds.write(self.guild_id,['au','custom',self.method,trigger],au)
 				await interaction.response.send_message(f'> {trigger}\nsuccessfully added to auto responses',ephemeral=await self.client.hide(interaction))
 			case _: raise
@@ -60,7 +63,7 @@ class auto_responses_cog(Cog):
 			try: guild = await self.client.db.guilds.read(message.guild.id)
 			except: guild = await self.client.db.guilds.read(0)
 		else: guild = await self.client.db.guilds.read(0)
-		if guild is None: return
+		if guild is None: return 
 
 		try:
 			if (
@@ -102,10 +105,20 @@ class auto_responses_cog(Cog):
 		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
 	
 	def au_check(self,responses,message:str) -> tuple[str,str]|None:
-		if message.lower() in responses['exact']:
-			return ('exact',message.lower())
-		if message in responses['exact-cs']:
-			return ('exact-cs',message)
+		for key,data in responses['exact'].items():
+			if data.get('regex',False):
+				if fullmatch(key,message.lower()):
+					return ('exact',key)
+				continue
+			if message.lower() == key:
+				return ('exact',message.lower())
+		for key,data in responses['exact-cs'].items():
+			if data.get('regex',False):
+				if fullmatch(key,message):
+					return ('exact-cs',key)
+				continue
+			if message.lower() == key:
+				return ('exact-cs',message)
 		for i in responses['contains']:
 			s = search(i,message.lower(),IGNORECASE)
 			if s is None: continue
@@ -128,7 +141,7 @@ class auto_responses_cog(Cog):
 		
 		if (response:=data.get('response',None)) is None: return False
 		if (user_id:=data.get('user',None)) is not None and str(message.author.id) != user_id: return False
-		if data.get('file',False): response = f'https://cdn.tyrant.link/reg/nal/auto_responses/{response}'
+		if data.get('file',False): response = f'https://cdn.tyrant.link/reg/nal/auto_responses/{quote(response)}'
 
 		try: await message.channel.send(response)
 		except Forbidden: return False
@@ -222,8 +235,9 @@ class auto_responses_cog(Cog):
 		options=[
 			option(str,name='action',description='add, remove, or list custom auto responses',choices=['add','remove','list']),
 			option(str,name='method',description='when the auto response is triggered',required=False,default='message is exactly trigger (case insensitive)',choices=list(c_au_choices.keys())),
-			option(Member,name='user',description='limit response to specific user',required=False)])
-	async def slash_custom_auto_response(self,ctx:ApplicationContext,action:str,method:str,user:Member):
+			option(bool,name='regex',description='match with regex. useless with `contains`',required=False,default=False),
+			option(Member,name='user',description='limit response to specific user',required=False,default=None)])
+	async def slash_custom_auto_response(self,ctx:ApplicationContext,action:str,method:str,regex:bool,user:Member):
 		custom_au = await self.client.db.guilds.read(ctx.guild.id,['au','custom'])
 		au_length = sum([len(i) for i in custom_au.values()])
 		match action:
@@ -251,8 +265,9 @@ class auto_responses_cog(Cog):
 				for i in ['contains','exact','exact-cs']:
 					for trigger,data in custom_au.get(i,{}).items():
 						value = [f'response:\n{data.get("response","no response")}']
-						user_id = data.get("user",None)
-						if user_id is not None:
+						if data.get("regex",False):
+							value.insert(0,f'regex match')
+						if (user_id:=data.get("user",None)) is not None:
 							value.insert(0,f'limited to user: {ctx.guild.get_member(user_id) or await ctx.guild.fetch_member(user_id)}')
 						value.insert(0,f'response method: {i}')
 						embed.add_field(name=trigger,value='\n'.join(value),inline=False)
