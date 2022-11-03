@@ -56,6 +56,7 @@ class auto_responses_cog(Cog):
 	@Cog.listener()
 	async def on_connect(self):
 		self.responses = await self.client.db.inf.read('auto_responses',['au'])
+		self.client.au = self.responses
 
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
@@ -83,6 +84,7 @@ class auto_responses_cog(Cog):
 			self.guild_responses.pop(i)
 		if self.responses is None:
 			self.responses = await self.client.db.inf.read('auto_responses',['au'])
+			self.client.au = self.responses
 		if self.guild_responses.get(message.guild.id,None) is None:
 			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['au','custom'])
 

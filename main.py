@@ -47,6 +47,7 @@ class client_cls(Bot):
 		global extensions
 		super().__init__('i lika, do, da cha cha',None,intents=Intents.all())
 		self.db = db()
+		self.au:dict = None
 		self.env = env(benv['env_dict'])
 		self.help = benv['help']
 		self.log = log(self.db,DEV_MODE)
@@ -124,8 +125,15 @@ class base_commands(Cog):
 		lifetime,session  = [],[]
 		embed = Embed(title='/reg/nal stats:',color=await self.client.embed_color(ctx))
 		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=False)
-		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
+		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=not self.client.au)
 		embed.add_field(name='line count',value=f'{sum(self.client.lines.values())} lines',inline=True)
+		if self.client.au:
+			auto_response_count = len([j for k in [list(self.client.au[i].keys()) for i in list(self.client.au.keys())] for j in k])
+			if ctx.guild:
+				g_au = await self.client.db.guilds.read(ctx.guild.id,['au','custom'])
+				if g_au_count:=len([j for k in [list(g_au[i].keys()) for i in list(g_au.keys())] for j in k]):
+					auto_response_count = f'{auto_response_count}(+{g_au_count})'
+			embed.add_field(name='auto responses',value=auto_response_count,inline=True)
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			session_stat = await self.client.db.stats.read(2,["stats",name])
 			lifetime.append(f'{name}: {"{:,}".format(await self.client.db.stats.read(1,["stats",name])+session_stat)}')
