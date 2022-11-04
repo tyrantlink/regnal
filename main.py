@@ -49,6 +49,7 @@ class client_cls(Bot):
 		self.db = db()
 		self.au:dict = None
 		self.env = env(benv['env_dict'])
+		if 'clear' in argv: return
 		self.help = benv['help']
 		self.log = log(self.db,DEV_MODE)
 		self.add_cog(base_commands(self))
@@ -76,6 +77,10 @@ class client_cls(Bot):
 		if isinstance(ctx,Interaction): return await self.db.users.read(ctx.user.id,['config','hide_commands'])
 
 	async def on_connect(self) -> None:
+		if 'clear' in argv:
+			await self.sync_commands()
+			print('cleared commands')
+			exit(0)
 		if not DEV_MODE: await self.db.ready()
 		load_data(
 			await self.db.inf.read('/reg/nal',['development','testers']),
@@ -121,9 +126,12 @@ class base_commands(Cog):
 		description='get /reg/nal\'s session stats')
 	async def slash_stats(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
-
+		age = divmod(int((time()-self.client.user.created_at.timestamp())/60/60/24),365)
+		embed = Embed(
+			title='/reg/nal stats:',
+			description=f'{age[0]} year{"s" if age[0] != 1 else ""} and {age[1]} day{"s" if age[1] != 1 else ""} old',
+			color=await self.client.embed_color(ctx))
 		lifetime,session  = [],[]
-		embed = Embed(title='/reg/nal stats:',color=await self.client.embed_color(ctx))
 		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=False)
 		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=not self.client.au)
 		embed.add_field(name='line count',value=f'{sum(self.client.lines.values())} lines',inline=True)
@@ -199,4 +207,5 @@ class message_handler(Cog):
 client = client_cls()
 
 if __name__ == '__main__':
-	client.run(client.env.dev_token if DEV_MODE else client.env.token)
+	try: client.run(client.env.dev_token if DEV_MODE else client.env.token)
+	except SystemExit: pass
