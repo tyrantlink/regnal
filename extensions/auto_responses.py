@@ -98,13 +98,12 @@ class auto_responses_cog(Cog):
 			case 'disabled': pass
 		match guild['config']['dad_bot']:
 			case 'enabled':
-				if await self.listener_auto_response(message): return
+				if await self.listener_dad_bot(message): return
 			case 'whitelist' if message.channel.id in guild['db']['whitelist']:
-				if await self.listener_auto_response(message): return
+				if await self.listener_dad_bot(message): return
 			case 'blacklist' if message.channel.id not in guild['db']['blacklist']:
-				if await self.listener_auto_response(message): return
+				if await self.listener_dad_bot(message): return
 			case 'disabled': pass
-		if guild['config']['dad_bot']: await self.listener_dad_bot(message)
 	
 	def au_check(self,responses,message:str) -> tuple[str,str]|None:
 		for key,data in responses['exact'].items():
