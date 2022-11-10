@@ -100,7 +100,8 @@ class DataCollection():
 		return True
 
 	async def new(self,id:int|str,input=None) -> bool:
-		if id[0] == '+': id = await self.raw.count_documents({})+int(id[1:])
+		if isinstance(id,str):
+			if id[0] == '+': id = await self.raw.count_documents({})+int(id[1:])
 		if input == None:
 			res = await self.collection.find_one({'_id':0})
 			res.update({'_id':id})
