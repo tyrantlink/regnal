@@ -208,7 +208,7 @@ class auto_responses_cog(Cog):
 		description='add the current channel to the whitelist or blacklist',
 		guild_only=True,default_member_permissions=Permissions(manage_channels=True),
 		options=[option(str,name='option',description='dad_bot commands',choices=['add','remove','list'])])
-	async def slash_auto_response(self,ctx:ApplicationContext,option:str):
+	async def slash_dad_bot(self,ctx:ApplicationContext,option:str):
 		db_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','dad_bot'])
 		match option:
 			case 'add'|'remove':
