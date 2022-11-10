@@ -1,68 +1,60 @@
-from datetime import datetime
-from os import makedirs,listdir
-from os.path import join,isfile
-from utils.data import db
-from asyncio import wait_for
-from traceback import format_exception
-from gzip import open as gzopen
-from websockets import connect
 from discord import ApplicationContext,Message
+from traceback import format_exception
 from utils.tyrantlib import MakeshiftClass
+from datetime import datetime
 from inspect import stack
-from socket import gaierror
-
+from utils.data import db
+from time import time
 
 class log:
 	def __init__(self,db:db,DEV_MODE:bool) -> None:
-		self._db = db
+		self.db = db
 		self.DEV_MODE = DEV_MODE
 
-	async def _base(self,log:str,send:bool=True,short_log:str=None,custom:bool=False) -> None:
-		if not custom:
-			log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{stack()[1].function.upper()}] {log}'
-		if short_log is None: short_log = f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{stack()[1].function.upper()}] {log}'
-		with open('log','a') as f:
-			f.write(log+'\n' if short_log is None else short_log+'\n')
-		with open('log','r') as f:
-			txt = f.read()
-			if len(txt.encode('utf-8')) > 568870:
-				makedirs('logs',exist_ok=True)
-				with gzopen(f"logs{len([path for path in listdir('./logs') if isfile(join('.',path))])+1}.gz",'wb') as g:
-					g.write(txt.encode('utf-8'))
+	async def _submit(self,type:str,message:str,ctx:ApplicationContext=None,do_print:bool=True,format_print:bool=True,**kwargs) -> None:
+		if ctx:
+			guild = ctx.guild.id if ctx.guild else None
+			channel = ctx.channel.id if ctx.channel else None
+			author = ctx.author.id if ctx.author else None
+		else: guild,channel,author = None,None,None
+		if do_print:
+			print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{stack()[1].function.upper()}] {message}' if format_print else message)
+		log = {
+			'ts':time(),
+			'dt':datetime.now().strftime("%m/%d/%Y %H:%M:%S"),
+			'dev':self.DEV_MODE,
+			'type':type,
+			'log':message,
+			'guild':guild,
+			'channel':channel,
+			'author':author,
+			'data':kwargs}
+		await self.db.logs.new('+0',log)
 
-		print(log)
+	async def command(self,ctx:ApplicationContext,**kwargs) -> None:
+		await self.db.inf.inc('command_usage',['usage',ctx.command.qualified_name])
+		await self.db.stats.inc(2,['stats','commands_used'])
+		await self._submit('command',f'{ctx.command.qualified_name} was used by {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
 
-	async def command(self,ctx:ApplicationContext,log:str=None) -> None:
-		await self._db.inf.inc('command_usage',['usage',ctx.command.qualified_name])
-		await self._db.stats.inc(2,['stats','commands_used'])
-		if log is None: log = f'{ctx.command.qualified_name} was used by {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}'
-		await self._base(log,await self._db.inf.read('/reg/nal',['config','command_stdout']))
-
-	async def listener(self,ctx:ApplicationContext|Message,log:str=None) -> None:
+	async def listener(self,ctx:ApplicationContext|Message,**kwargs) -> None:
 		match stack()[1].function:
-			case 'listener_dad_bot': source = 'dad bot responded to'
-			case 'listener_auto_response': source = 'auto response triggered by'
-			case _: source = 'listener triggered by'
-		if log is None: log = f'{source} {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}'
-		await self._base(log,await self._db.inf.read('/reg/nal',['config','listener_stdout']))
-	
-	async def talking_stick(self,ctx:MakeshiftClass,log:str=None) -> None:
-		if log is None: log = f'{ctx.author} got the talking stick in {ctx.guild.name if ctx.guild else "DMs"}'
-		await self._base(log,await self._db.inf.read('/reg/nal',['config','talking_stick_stdout']))
-	
-	async def info(self,log:str) -> None:
-		await self._base(log,await self._db.inf.read('/reg/nal',['config','info_stdout']))
+			case 'listener_dad_bot': source = 'dad bot'
+			case 'listener_auto_response': source = 'auto response'
+			case _: source = 'unknown listener'
+		await self._submit('listener',f'{source} was triggered by {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
 
-	async def custom(self,log:str,send:bool=True,short_log:str=None) -> None:
-		await self._base(log,send,short_log,custom=True)
-	
-	async def error(self,log:Exception|str,short_log:str=None) -> None:
-		if short_log == None: short_log = str(log)
+	async def talking_stick(self,ctx:MakeshiftClass,**kwargs) -> None:
+		await self._submit('talking stick',f'{ctx.author} got the talking stick in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
+
+	async def info(self,message:str,**kwargs) -> None:
+		await self._submit('info',message,**kwargs)
+
+	async def error(self,message:Exception|str) -> None:
 		if isinstance(log,Exception):
-			if format: log = ''.join(format_exception(log))
-			if 'The above exception was the direct cause of the following exception:' in log:
-				log = ''.join(log).split('\nThe above exception was the direct cause of the following exception:')[:-1]
-		await self._base(log if isinstance(log,str) else ''.join(log),short_log=short_log)
-	
-	async def debug(self,log:str) -> None:
-		await self._base(log,await self._db.inf.read('/reg/nal',['config','debug_stdout']))
+			if format: message = ''.join(format_exception(message))
+			if 'The above exception was the direct cause of the following exception:' in message:
+				message = ''.join(message).split('\nThe above exception was the direct cause of the following exception:')[:-1]
+		await self._submit(message if isinstance(message,str) else ''.join(message))
+
+	async def debug(self,message:str,**kwargs) -> None:
+		await self._submit('info',message,**kwargs)

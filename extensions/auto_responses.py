@@ -150,7 +150,7 @@ class auto_responses_cog(Cog):
 			await sleep(delay)
 			await message.channel.send(followup)
 
-		await self.client.log.listener(message)
+		await self.client.log.listener(message,au=f'{check[0]}::{check[1]}')
 		return True
 
 	async def listener_dad_bot(self,message:Message) -> None:
@@ -175,7 +175,7 @@ class auto_responses_cog(Cog):
 		except Forbidden: return False
 		except HTTPException: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
 
-		await self.client.log.listener(message)
+		await self.client.log.listener(message,splitter=splitter)
 
 	@slash_command(
 		name='auto_response',

@@ -29,14 +29,14 @@ class published_dropdown(Select):
 		for k,v in options.items(): embed.add_field(name=f'{v["votes"]} | {k}',value=v['description'],inline=False)
 		await interaction.response.edit_message(embed=embed)
 		await self.client.log.debug('responded to interaction callback')
-		
+
 
 class published_view(View):
 	def __init__(self,*,client:client_cls,options:dict=None) -> None:
 		self.client = client
 		super().__init__(timeout=None)
 		self.add_item(published_dropdown(client,[SelectOption(label=k) for k,v in options.items()] if options is not None else None))
-	
+
 	async def on_error(self,error:Exception,item:Item,interaction:Interaction) -> None:
 		await interaction.response.send_message(error,ephemeral=True)
 		await self.client.log.error(error)

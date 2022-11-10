@@ -61,17 +61,17 @@ class client_cls(Bot):
 			if extensions[extension]:
 				self.load_extension(f'extensions.{extension}')
 				self.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
-	
+
 	def _extloaded(self) -> None:
 		cog = stack()[1].filename.replace('.py','').split('/')[-1]
 		if cog in self._raw_loaded_extensions: return
-		
+
 		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[EXT_LOAD] {cog}')
 		self._raw_loaded_extensions.append(cog)
 
 	async def embed_color(self,ctx:ApplicationContext) -> int:
 		return await self.db.guilds.read(ctx.guild.id,['config','embed_color']) if ctx.guild else await self.db.guilds.read(0,['config','embed_color'])
-	
+
 	async def hide(self,ctx:ApplicationContext) -> bool:
 		if isinstance(ctx,ApplicationContext): return await self.db.users.read(ctx.author.id,['config','hide_commands'])
 		if isinstance(ctx,Interaction): return await self.db.users.read(ctx.user.id,['config','hide_commands'])
@@ -89,14 +89,14 @@ class client_cls(Bot):
 		if DEV_MODE:
 			await self.log.debug('LAUNCHED IN DEV MODE')
 			if 'sync' in argv: await self.sync_commands()
-		await self.log.custom('\n'.join(self.loaded_extensions),short_log='loaded extensions: '+','.join(self._raw_loaded_extensions))
+		await self.log.info('\n'.join(self.loaded_extensions),format_print=False)
 	
 	async def on_ready(self) -> None:
 		await self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds')
 
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return
-		await self.log.command(ctx)
+		await self.log.command(ctx,command=ctx.command.qualified_name)
 	
 	async def on_unknown_application_command(self,interaction:Interaction):
 		await interaction.response.send_message('u wot m8?',ephemeral=True)

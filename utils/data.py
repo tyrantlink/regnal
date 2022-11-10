@@ -100,6 +100,7 @@ class DataCollection():
 		return True
 
 	async def new(self,id:int|str,input=None) -> bool:
+		if id[0] == '+': id = await self.raw.count_documents({})+int(id[1:])
 		if input == None:
 			res = await self.collection.find_one({'_id':0})
 			res.update({'_id':id})
@@ -132,6 +133,8 @@ class db:
 	def dd_roles(self) -> DataCollection: return DataCollection(client.dd_roles)
 	@property
 	def guilds(self) -> DataCollection: return DataCollection(client.guilds)
+	@property
+	def logs(self) -> DataCollection: return DataCollection(client.logs)
 	@property
 	def messages(self) -> DataCollection: return DataCollection(client.messages)
 	@property
