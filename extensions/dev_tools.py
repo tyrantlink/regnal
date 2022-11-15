@@ -223,13 +223,15 @@ class dev_tools_cog(Cog):
 		name='reload',
 		description='reload an extension',
 		options=[
-			option(str,name='extension',description='name of extension',choices=extensions.keys())])
+			option(str,name='extension',description='name of extension',choices=extensions.keys()),
+			option(bool,name='sync',description='resync commands',default=True)])
 	@dev_only()
-	async def slash_dev_reload(self,ctx:ApplicationContext,extension:str) -> None:
+	async def slash_dev_reload(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
 		if extension not in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
 			return
 		self.client.reload_extension(f'extensions.{extension}')
+		if sync: await self.client.sync_commands()
 		self.client.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
 		await ctx.response.send_message(f'successfully reloaded {extension}',ephemeral=True)
 
@@ -237,13 +239,15 @@ class dev_tools_cog(Cog):
 		name='load',
 		description='load an extension',
 		options=[
-			option(str,name='extension',description='name of extension',choices=extensions.keys())])
+			option(str,name='extension',description='name of extension',choices=extensions.keys()),
+			option(bool,name='sync',description='resync commands',default=True)])
 	@dev_only()
-	async def slash_dev_load(self,ctx:ApplicationContext,extension:str) -> None:
+	async def slash_dev_load(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
 		if extension in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is already loaded',ephemeral=True)
 			return
 		self.client.load_extension(f'extensions.{extension}')
+		if sync: await self.client.sync_commands()
 		self.client._raw_loaded_extensions.append(extension)
 		self.client.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
 		await ctx.response.send_message(f'successfully loaded {extension}',ephemeral=True)
@@ -252,13 +256,15 @@ class dev_tools_cog(Cog):
 		name='unload',
 		description='unload an extension',
 		options=[
-			option(str,name='extension',description='name of extension',choices=extensions.keys())])
+			option(str,name='extension',description='name of extension',choices=extensions.keys()),
+			option(bool,name='sync',description='resync commands',default=True)])
 	@dev_only()
-	async def slash_dev_unload(self,ctx:ApplicationContext,extension:str) -> None:
+	async def slash_dev_unload(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
 		if extension not in self.client._raw_loaded_extensions:
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
 			return
 		self.client.unload_extension(f'extensions.{extension}')
+		if sync: await self.client.sync_commands()
 		response = f'successfully unloaded {extension}'
 		self.client._raw_loaded_extensions.remove(extension)
 		del self.client.lines[extension]
