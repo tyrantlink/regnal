@@ -150,7 +150,7 @@ class auto_responses_cog(Cog):
 			await sleep(delay)
 			await message.channel.send(followup)
 
-		await self.client.log.listener(message,au=f'{check[0]}::{check[1]}')
+		await self.client.log.listener(message,category=check[0],trigger=check[1])
 		return True
 
 	async def listener_dad_bot(self,message:Message) -> None:
