@@ -13,7 +13,7 @@ idna==3.3
 motor==2.5.1
 multidict==5.1.0
 pipreqs==0.4.11
-py-cord==2.2.2
+py-cord==2.3.0
 pymongo==3.12.3
 pypng==0.0.21
 PyQRCode==1.2.1
