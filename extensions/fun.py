@@ -192,7 +192,8 @@ class fun_cog(Cog):
 
 	@slash_command(
 		name='hentai',
-		description='get a random nhentai doujin to read.')
+		description='get a random nhentai doujin to read.',
+		nsfw=True)
 	async def slash_hentai(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		for i in range(10):
