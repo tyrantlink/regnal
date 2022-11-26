@@ -195,11 +195,15 @@ class fun_cog(Cog):
 		description='get a random nhentai doujin to read.',
 		nsfw=True)
 	async def slash_hentai(self,ctx:ApplicationContext) -> None:
+		await ctx.response.send_message(f'this is broken because i\'m too lazy to bypass cloudflare\nplease try again if i mention this command in the change-log',ephemeral=await self.client.hide(ctx))
+		return
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		for i in range(10):
 			out,id = await self.acquire_hentai()
 			if 'error' not in out.keys(): break
-		else: await ctx.followup.send(f'failed to acquire hentai, try again in like, five minutes',ephemeral=await self.client.hide(ctx))
+		else:
+			await ctx.followup.send(f'failed to acquire hentai, try again in like, five minutes',ephemeral=await self.client.hide(ctx))
+			return
 	
 		embed = Embed(
 				title='random nhentai:',
