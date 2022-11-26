@@ -49,12 +49,12 @@ class log:
 	async def info(self,message:str,**kwargs) -> None:
 		await self._submit('info',message,**kwargs)
 
-	async def error(self,message:Exception|str) -> None:
-		if isinstance(log,Exception):
+	async def error(self,message:Exception|str,**kwargs) -> None:
+		if isinstance(message,Exception):
 			if format: message = ''.join(format_exception(message))
 			if 'The above exception was the direct cause of the following exception:' in message:
 				message = ''.join(message).split('\nThe above exception was the direct cause of the following exception:')[:-1]
-		await self._submit(message if isinstance(message,str) else ''.join(message))
+		await self._submit('error',message if isinstance(message,str) else ''.join(message),**kwargs)
 
 	async def debug(self,message:str,**kwargs) -> None:
 		await self._submit('info',message,**kwargs)
