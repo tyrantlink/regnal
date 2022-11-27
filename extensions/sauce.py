@@ -61,10 +61,7 @@ class sauce_cog(Cog):
 		predict.tf.autograph.set_verbosity(0)
 		self.nsfw_model = predict.load_model('nsfw_model')
 		self.valid_formats = ['gif','jpg','png','bmp','webp']
-		self.short_limit = 4
 		self.art = art_services()
-		self.long_limit = 100
-		self.all_results = []
 		self.stdout = sys.stdout # save stdout 
 
 	async def _is_nsfw(self,url:str):
@@ -84,8 +81,8 @@ class sauce_cog(Cog):
 		for k,v in out[list(out.keys())[0]].items():
 			match k:
 				case 'hentai' if v > 0.125: return True
-				case 'porn' if v > 0.18: return True
-				case 'sexy' if v > 0.60: return True
+				case 'porn'   if v > 0.18: return True
+				case 'sexy'   if v > 0.60: return True
 				case _: pass
 		return False
 
@@ -176,14 +173,15 @@ class sauce_cog(Cog):
 		description='image sauce | use the right click message command',
 		guild_only=True,
 		options=[
-			option(str,name='message_id_or_url',description='e.g. 844131394276163614')])
-	async def slash_sauce(self,ctx:ApplicationContext,message_id_or_url:str):
-		if message_id_or_url.isnumeric(): # input is a message id
-			message = self.client.get_message(int(message_id_or_url)) or await ctx.channel.fetch_message(int(message_id_or_url))
+			option(str,name='message_id',description='e.g. 844131394276163614')])
+	async def slash_sauce(self,ctx:ApplicationContext,message_id:str):
+		if message_id.isnumeric(): # input is a message id
+			message = self.client.get_message(int(message_id)) or await ctx.channel.fetch_message(int(message_id))
 			if isinstance(message,Message):
 				await self._base_sauce(ctx,message)
 			else:
 				await ctx.response.send_message('unable to access the message.\ncheck your input or try again by running the command in the channel the message was sent\nor just use the much better message command by right clicking (holding on mobile) a message, clicking apps, then clicking sauce',ephemeral=await self.client.hide(ctx))
+
 
 	@message_command(name='sauce?')
 	async def message_pixiv_sauce(self,ctx:ApplicationContext,message:Message):
