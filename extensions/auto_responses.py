@@ -199,7 +199,7 @@ class auto_responses_cog(Cog):
 					case 'enabled'|'disabled':
 						await ctx.response.send_message(f'auto responses are currently {au_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
 					case 'whitelist'|'blacklist':
-						await ctx.response.send_message(embed=Embed(title=au_cfg,description='\n'.join(await self.client.db.guilds.read(ctx.guild.id,['au',au_cfg]))),ephemeral=await self.client.hide(ctx))
+						await ctx.response.send_message(embed=Embed(title=au_cfg,description='\n'.join([str(i) for i in await self.client.db.guilds.read(ctx.guild.id,['au',au_cfg])])),ephemeral=await self.client.hide(ctx))
 					case _: raise
 			case _: raise
 	
@@ -225,7 +225,7 @@ class auto_responses_cog(Cog):
 					case 'enabled'|'disabled':
 						await ctx.response.send_message(f'dad bot is currently {db_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
 					case 'whitelist'|'blacklist':
-						await ctx.response.send_message(embed=Embed(title=db_cfg,description='\n'.join(await self.client.db.guilds.read(ctx.guild.id,['db',db_cfg]))),ephemeral=await self.client.hide(ctx))
+						await ctx.response.send_message(embed=Embed(title=db_cfg,description='\n'.join([str(i) for i in await self.client.db.guilds.read(ctx.guild.id,['db',db_cfg])])),ephemeral=await self.client.hide(ctx))
 					case _: raise
 			case _: raise
 
