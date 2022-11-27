@@ -13,3 +13,5 @@ last_update
 /content/to_mongo
 _*
 test.py
+/tmp/nsfw_filter/*
+/nsfw_model
