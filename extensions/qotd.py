@@ -71,7 +71,9 @@ class qotd_cog(Cog):
 							title='❓❔ Question of the Day ❔❓',
 							description=question,
 							color=await self.client.db.guilds.read(guild.id,['config','embed_color'])))
-					await msg.create_thread(name=thread_name,auto_archive_duration=1440)
+					thread = await msg.create_thread(name=thread_name,auto_archive_duration=1440)
+					if role:=[i for i in msg.guild.roles if i.name.lower() == 'qotd']:
+						await thread.send(role[0].mention)
 				except Exception: continue
 
 
