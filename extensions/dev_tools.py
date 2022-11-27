@@ -40,7 +40,8 @@ class input_modal(Modal):
 
 	async def report(self,interaction:Interaction,type:str,title:str,details:str,author:User) -> None:
 		channel:ForumChannel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development',f'support']))
-		await channel.create_thread(name=title,content=f'{interaction.user.mention} ({interaction.user.name})\n\n{details}')
+		await channel.create_thread(name=title,content=f'{interaction.user.mention} ({interaction.user.name})\n\n{details}',
+			applied_tags=[tag for tag in channel.available_tags if tag.name in ['auto',type]])
 		# add tags based on type
 		# always add auto tag
 
