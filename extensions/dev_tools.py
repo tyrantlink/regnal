@@ -68,10 +68,10 @@ class input_modal(Modal):
 				await interaction.response.send_message('successfully announced commit',ephemeral=True)
 			case 'issue': 
 				await self.report(interaction,'issue',self.children[0].value,self.children[1].value,interaction.user)
-				await interaction.response.send_message('thank you for reporting this issue',ephemeral=True)
+				await interaction.response.send_message('thank you for reporting this issue.\nyou can check for a resolution on the [development server](<https://discord.gg/4mteVXBDW7>)',ephemeral=True)
 			case 'suggestion': 
 				await self.report(interaction,'suggestion',self.children[0].value,self.children[1].value,interaction.user)
-				await interaction.response.send_message('thank you for your suggestion',ephemeral=True)
+				await interaction.response.send_message('thank you for your suggestion\nyou can check for a resolution on the [development server](<https://discord.gg/4mteVXBDW7>)',ephemeral=True)
 			case _: print('unknown modal format')
 
 class dev_tools_cog(Cog):
