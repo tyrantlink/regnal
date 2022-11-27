@@ -142,12 +142,21 @@ class sauce_cog(Cog):
 		for url in valid:
 			for i in range(3):
 				result = await self._get_result(self._params(await self._api_key(ctx.guild),url))
-				
 				match result.get('header',{}).get('status',0):
 					case 0: break # success
-					case -2: # short limit
-						await sleep(30)
-						continue
+					case -2: # limited
+						match result.get('header',{}).get('message','12345678')[8]:
+							case 'D': # daily limit
+								await ctx.followup.send(f'daily search limit exceeded.\nif a server moderator would like to increase this limit, they can purchase their own sauce nao api key here: https://saucenao.com/user.php?page=account-upgrades',ephemeral=await self.client.hide(ctx))
+								return
+							case 'S': # short limit
+								await sleep(30)
+								continue
+							case '8': # no message given
+								await ctx.followup.send(f'failed to find a result',ephemeral=await self.client.hide(ctx))
+								return
+							case _: # unknown message given
+								raise f'unknown saucenao error message: {result.get("header",{}).get("message","12345678")}'
 					case _:
 						await ctx.followup.send(f'failed to find a result',ephemeral=await self.client.hide(ctx))
 						return
