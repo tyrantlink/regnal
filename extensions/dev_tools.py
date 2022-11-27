@@ -42,8 +42,6 @@ class input_modal(Modal):
 		channel:ForumChannel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development',f'support']))
 		await channel.create_thread(name=title,content=f'{interaction.user.mention} ({interaction.user.name})\n\n{details}',
 			applied_tags=[tag for tag in channel.available_tags if tag.name in ['auto',type]])
-		# add tags based on type
-		# always add auto tag
 
 	async def commit(self,interaction:Interaction,title:str,version_bump:str,new_features:str,fixes:str,notes:str) -> None:
 		channel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development','change-log']))
