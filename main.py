@@ -73,8 +73,12 @@ class client_cls(Bot):
 		return await self.db.guilds.read(ctx.guild.id,['config','embed_color']) if ctx.guild else await self.db.guilds.read(0,['config','embed_color'])
 
 	async def hide(self,ctx:ApplicationContext) -> bool:
-		if isinstance(ctx,ApplicationContext): return await self.db.users.read(ctx.author.id,['config','hide_commands'])
-		if isinstance(ctx,Interaction): return await self.db.users.read(ctx.user.id,['config','hide_commands'])
+		try:
+			if isinstance(ctx,ApplicationContext): return await self.db.users.read(ctx.author.id,['config','hide_commands'])
+			if isinstance(ctx,Interaction): return await self.db.users.read(ctx.user.id,['config','hide_commands'])
+		except Exception: pass
+		return True
+
 
 	async def on_connect(self) -> None:
 		if 'clear' in argv:
