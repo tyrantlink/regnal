@@ -51,10 +51,11 @@ class qotd_cog(Cog):
 			case 'add to question pool':
 				await self.client.db.guilds.append(ctx.guild.id,['qotd','pool'],question)
 		await ctx.response.send_message('successfully added question.',ephemeral=await self.client.hide(ctx))
-	
+
 	@loop(minutes=1)
 	async def qotd_loop(self) -> None:
-		if datetime.now().strftime("%H:%M") == '09:00':
+		if datetime.now().strftime("%H:%M") == '14:53':
+			thread_name = f'qotd-{datetime.now().strftime("%A").lower()}'
 			for guild in self.client.guilds:
 				try:
 					data = await self.client.db.guilds.read(guild.id,[])
@@ -65,11 +66,12 @@ class qotd_cog(Cog):
 					else:
 						with open('content/qotd') as file:
 							question = choice(file.readlines()+data['qotd']['pool'])
-					await guild.get_channel(data['channels']['qotd']).send(
+					msg = await guild.get_channel(data['channels']['qotd']).send(
 						embed=Embed(
 							title='❓❔ Question of the Day ❔❓',
 							description=question,
 							color=await self.client.db.guilds.read(guild.id,['config','embed_color'])))
+					await msg.create_thread(name=thread_name,auto_archive_duration=1440)
 				except Exception: continue
 
 
