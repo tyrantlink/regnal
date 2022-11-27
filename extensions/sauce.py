@@ -83,7 +83,7 @@ class sauce_cog(Cog):
 
 		for k,v in out[list(out.keys())[0]].items():
 			match k:
-				case 'hentai' if v > 0.20: return True
+				case 'hentai' if v > 0.125: return True
 				case 'porn' if v > 0.18: return True
 				case 'sexy' if v > 0.60: return True
 				case _: pass
