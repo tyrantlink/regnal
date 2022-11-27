@@ -64,7 +64,7 @@ class sauce_cog(Cog):
 		self.art = art_services()
 		self.stdout = sys.stdout # save stdout 
 
-	async def _is_nsfw(self,url:str):
+	async def _is_nsfw(self,url:str) -> bool:
 		filepath = f'./tmp/nsfw_filter/{token_hex(8)}.{url.split(".")[-1]}'
 		async with ClientSession() as session:
 			async with session.get(url) as res:
@@ -86,10 +86,10 @@ class sauce_cog(Cog):
 				case _: pass
 		return False
 
-	async def _api_key(self,guild:Guild):
+	async def _api_key(self,guild:Guild) -> str:
 		return await self.client.db.guilds.read(guild.id,['data','saucenao_key']) or self.client.env.saucenao_key	
 
-	def _params(self,api_key:str,url:str):
+	def _params(self,api_key:str,url:str) -> dict:
 		return {
 			'api_key':api_key,
 			'output_type':2,
@@ -126,7 +126,7 @@ class sauce_cog(Cog):
 				async with session.get(f'https://saucenao.com/search.php',params=params) as res:
 					return await res.json()
 	
-	async def _base_sauce(self,ctx:ApplicationContext,message:Message):
+	async def _base_sauce(self,ctx:ApplicationContext,message:Message) -> None:
 		if len(message.attachments) == 0:
 			await ctx.response.send_message('this message has no attachments.',ephemeral=await self.client.hide(ctx))
 			return
@@ -174,7 +174,7 @@ class sauce_cog(Cog):
 		guild_only=True,
 		options=[
 			option(str,name='message_id',description='e.g. 844131394276163614')])
-	async def slash_sauce(self,ctx:ApplicationContext,message_id:str):
+	async def slash_sauce(self,ctx:ApplicationContext,message_id:str) -> None:
 		if message_id.isnumeric(): # input is a message id
 			message = self.client.get_message(int(message_id)) or await ctx.channel.fetch_message(int(message_id))
 			if isinstance(message,Message):
@@ -182,9 +182,8 @@ class sauce_cog(Cog):
 			else:
 				await ctx.response.send_message('unable to access the message.\ncheck your input or try again by running the command in the channel the message was sent\nor just use the much better message command by right clicking (holding on mobile) a message, clicking apps, then clicking sauce',ephemeral=await self.client.hide(ctx))
 
-
 	@message_command(name='sauce?')
-	async def message_pixiv_sauce(self,ctx:ApplicationContext,message:Message):
+	async def message_pixiv_sauce(self,ctx:ApplicationContext,message:Message) -> None:
 		await self._base_sauce(ctx,message)
 
 def setup(client) -> None: client.add_cog(sauce_cog(client))

@@ -54,7 +54,7 @@ class auto_responses_cog(Cog):
 		self.guild_responses = {}
 
 	@Cog.listener()
-	async def on_connect(self):
+	async def on_connect(self) -> None:
 		self.responses = await self.client.db.inf.read('auto_responses',['au'])
 		self.client.au = self.responses
 

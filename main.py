@@ -102,7 +102,7 @@ class client_cls(Bot):
 		if ctx.command.qualified_name.startswith('test '): return
 		await self.log.command(ctx,command=ctx.command.qualified_name)
 	
-	async def on_unknown_application_command(self,interaction:Interaction):
+	async def on_unknown_application_command(self,interaction:Interaction) -> None:
 		await interaction.response.send_message('u wot m8?',ephemeral=True)
 
 	async def on_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
@@ -116,7 +116,7 @@ class client_cls(Bot):
 		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
 		await channel.send(f'```\n{"".join(format_tb(error.original.__traceback__))[:1992]}\n```')
 	
-	async def on_error(self,event:str,*args,**kwargs):
+	async def on_error(self,event:str,*args,**kwargs) -> None:
 		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
 		await channel.send(f'```\n{format_exc()[:1992]}\n```')
 

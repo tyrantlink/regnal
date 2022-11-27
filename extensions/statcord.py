@@ -12,7 +12,7 @@ class statcord_cog(Cog):
 		self.api.start_loop()
 	
 	@Cog.listener()
-	async def on_application_command(self,ctx:ApplicationContext):
+	async def on_application_command(self,ctx:ApplicationContext) -> None:
 		self.api.command_run(ctx)
 
 def setup(client:client_cls) -> None: client.add_cog(statcord_cog(client))

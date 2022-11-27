@@ -60,7 +60,7 @@ def get_line_count(file_path:str) -> int:
 	with open(file_path,'r') as file:
 		return len([i for i in file.read().replace(' ','').replace('	','').splitlines() if not (i != '') == (i.startswith('#'))])
 
-def split_list(lst:list,size:int):
+def split_list(lst:list,size:int) -> list:
 	for i in range(0,len(lst),size):
 		yield lst[i:i+size]
 
