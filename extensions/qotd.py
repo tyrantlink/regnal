@@ -14,12 +14,6 @@ class qotd_cog(Cog):
 
 	qotd = SlashCommandGroup('qotd','question of the day commands')
 
-	async def check(self,ctx:ApplicationContext) -> bool:
-		if not await self.client.db.guilds.read(ctx.guild.id,['config','qotd']):
-			await ctx.response.send_message('qotd is not enabled on this server. enable it with /config',ephemeral=await self.client.hide(ctx))
-			return False
-		return True
-
 	@qotd.command(
 		name='setup',
 		description='setup the question of the day',
@@ -27,10 +21,13 @@ class qotd_cog(Cog):
 		options=[
 			option(TextChannel,name='channel',description='qotd question channel')])
 	async def slash_qotd_setup(self,ctx:ApplicationContext,channel:TextChannel) -> None:
-		if not await self.check(ctx): return
+		response = Embed(title='QOTD setup complete!',color=await self.client.embed_color(ctx))
+		response.add_field(name='channel',value=channel.mention,inline=False)
+		if not await self.client.db.guilds.read(ctx.guild.id,['config','qotd']):
+			await self.client.db.guilds.write(ctx.guild.id,['config','qotd'],True)
+			response.add_field(name='warning!',value='qotd was disabled in config, it has been enabled for your convenience\nif you wish to disable it, run /config',inline=False)
 		await self.client.db.guilds.write(ctx.guild.id,['channels','qotd'],channel.id)
-		await ctx.response.send_message(
-			f'setup complete.\nchannel: {channel.mention}',
+		await ctx.response.send_message(embed=response,
 			ephemeral=await self.client.hide(ctx))
 
 	@qotd.command(
@@ -40,17 +37,22 @@ class qotd_cog(Cog):
 		options=[
 			option(str,name='type',description='ask as next question or add to question pool?',
 				choices=['add as next question','add as next question, then add to pool','add to question pool']),
-			option(str,name='question',description='question to be asked')])
+			option(str,name='question',description='question to be asked',max_length=1024)])
 	async def slash_qotd_add_question(self,ctx:ApplicationContext,type:str,question:str) -> None:
+		embed = Embed(title='successfully added a qotd question',color=await self.client.embed_color(ctx))
+		print(question)
 		match type:
 			case 'add as next question':
 				await self.client.db.guilds.append(ctx.guild.id,['qotd','nextup'],question)
+				embed.add_field(name='added as next question, then discarded',value=question)
 			case 'add as next question, then add to pool':
 				await self.client.db.guilds.append(ctx.guild.id,['qotd','nextup'],question)
 				await self.client.db.guilds.append(ctx.guild.id,['qotd','pool'],question)
+				embed.add_field(name='added as next question, then added to pool',value=question)
 			case 'add to question pool':
 				await self.client.db.guilds.append(ctx.guild.id,['qotd','pool'],question)
-		await ctx.response.send_message('successfully added question.',ephemeral=await self.client.hide(ctx))
+				embed.add_field(name='added to question pool',value=question)
+		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@loop(minutes=1)
 	async def qotd_loop(self) -> None:
