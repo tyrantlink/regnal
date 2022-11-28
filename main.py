@@ -182,7 +182,7 @@ class message_handler(Cog):
 		current_data = await self.client.db.users.read(message.author.id)
 		if not current_data:
 			await self.client.db.users.new(message.author.id)
-			if message.author.bot: await self.client.db.users.write(message.author.id,['bot'],True)
+			await self.client.db.users.write(message.author.id,['bot'],message.author.bot)
 			
 		# check user no_track
 		if await self.client.db.users.read(message.author.id,['config','no_track']): return
