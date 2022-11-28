@@ -21,6 +21,10 @@ class qotd_cog(Cog):
 		options=[
 			option(TextChannel,name='channel',description='qotd question channel')])
 	async def slash_qotd_setup(self,ctx:ApplicationContext,channel:TextChannel) -> None:
+		if not channel.can_send():
+			await ctx.response.send_message(embed=Embed(title='ERROR',description='/reg/nal must be able to send messages in this channel.\nplease fix the permissions and try again.',color=0xff6969),
+			ephemeral=await self.client.hide(ctx))
+			return
 		response = Embed(title='QOTD setup complete!',color=await self.client.embed_color(ctx))
 		response.add_field(name='channel',value=channel.mention,inline=False)
 		if not await self.client.db.guilds.read(ctx.guild.id,['config','qotd']):
