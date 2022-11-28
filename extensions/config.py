@@ -68,6 +68,12 @@ class view(View):
 		await interaction.response.send_message(error,ephemeral=True)
 		await self.client.log.error(error)
 	
+	async def _no_track_enabled(self,interaction:Interaction) -> None:
+		await self.client.db.users.write(interaction.user.id,['messages'],None)
+		for guild in interaction.user.mutual_guilds:
+			await self.client.db.guilds.unset(guild.id,['leaderboards','messages',str(interaction.user.id)])
+			await self.client.db.guilds.unset(guild.id,['leaderboards','sticks',str(interaction.user.id)])
+	
 	async def update_self(self,new_self:View) -> None:
 		self = new_self
 
@@ -94,6 +100,9 @@ class view(View):
 			case 'logging': await self.client.db.guilds.write(interaction.guild.id,['log_config',self.selected],value)
 			case '/reg/nal': await self.client.db.inf.write('/reg/nal',['config',self.selected],value)
 			case _: await self.client.log.debug('unknown menu in modify_config callback')
+		if self.selected == 'no_track':
+			if value: await self._no_track_enabled(interaction)
+			else: await self.client.db.users.write(interaction.user.id,['messages'],0)
 		await self.client.log.debug(f'[CONFIG] [{self.current_menu.upper()}] {interaction.user} set {self.selected} to {value}')
 		if not from_modal:
 			self.embed.clear_fields()
