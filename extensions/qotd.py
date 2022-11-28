@@ -40,7 +40,6 @@ class qotd_cog(Cog):
 			option(str,name='question',description='question to be asked',max_length=1024)])
 	async def slash_qotd_add_question(self,ctx:ApplicationContext,type:str,question:str) -> None:
 		embed = Embed(title='successfully added a qotd question',color=await self.client.embed_color(ctx))
-		print(question)
 		match type:
 			case 'add as next question':
 				await self.client.db.guilds.append(ctx.guild.id,['qotd','nextup'],question)
