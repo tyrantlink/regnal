@@ -55,7 +55,7 @@ class qotd_cog(Cog):
 	@loop(minutes=1)
 	async def qotd_loop(self) -> None:
 		if datetime.now().strftime("%H:%M") == '09:00':
-			thread_name = f'qotd-{datetime.now().strftime("%A").lower()}'
+			thread_name = f'qotd-{datetime.now().strftime("%A.%d.%m.%y").lower()}'
 			for guild in self.client.guilds:
 				try:
 					data = await self.client.db.guilds.read(guild.id,[])
