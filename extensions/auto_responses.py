@@ -33,7 +33,8 @@ class input_text(Modal):
 				if trigger not in custom.keys():
 					await interaction.response.send_message(f'> {trigger}\nnot found in custom auto responses!',ephemeral=True)
 					return
-				await self.client.db.guilds.unset(self.guild_id,['au','custom'],trigger)
+				await self.client.db.guilds.unset(self.guild_id,['au','custom',self.method,trigger])
+				await interaction.response.send_message(f'> {trigger}\nsuccessfully removed from auto responses',ephemeral=True)
 			case 2: # means is add
 				if trigger in custom.keys():
 					await interaction.response.send_message(f'> {trigger}\nis already in the auto responses:',ephemeral=True)
