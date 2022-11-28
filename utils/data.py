@@ -110,7 +110,6 @@ class DataCollection():
 		return True
 
 	async def new(self,id:int|str,input=None) -> bool:
-		self.delete()
 		if isinstance(id,str):
 			if id[0] == '+': id = await self.raw.count_documents({})+int(id[1:])
 		if input == None:
