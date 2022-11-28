@@ -25,7 +25,7 @@ class qotd_cog(Cog):
 			await ctx.response.send_message(embed=Embed(title='ERROR',description='/reg/nal must be able to send messages in this channel.\nplease fix the permissions and try again.',color=0xff6969),
 			ephemeral=await self.client.hide(ctx))
 			return
-		response = Embed(title='QOTD setup complete!',color=await self.client.embed_color(ctx))
+		response = Embed(title='QOTD setup complete!',description='/reg/nal will ping any role named qotd, bringing all users with that role into the thread\nconsider making a role menu with /role_menu to allow users to self-assign a role',color=await self.client.embed_color(ctx))
 		response.add_field(name='channel',value=channel.mention,inline=False)
 		if not await self.client.db.guilds.read(ctx.guild.id,['config','qotd']):
 			await self.client.db.guilds.write(ctx.guild.id,['config','qotd'],True)
@@ -77,7 +77,7 @@ class qotd_cog(Cog):
 							description=question,
 							color=await self.client.db.guilds.read(guild.id,['config','embed_color'])))
 					thread = await msg.create_thread(name=thread_name,auto_archive_duration=1440)
-					if role:=[i for i in msg.guild.roles if i.name.lower() == 'qotd']:
+					if role:=[i for i in msg.guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]:
 						await thread.send(role[0].mention)
 				except Exception: continue
 
