@@ -21,12 +21,10 @@ class commands_cog(Cog):
 			discriminator: {user.discriminator}""",
 			color=await self.client.embed_color(ctx))
 		embed.set_thumbnail(url=user.display_avatar.with_size(512).with_format('png').url)
-		bday = await self.client.db.users.read(user.id,['birthday'])
 		embed.add_field(
 			name='information:',
 			value=f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			display name: {user.display_name}
-			birthday: {'not set' if not bday else 'hidden' if bday.startswith('h') else bday}
 			seen messages: {await self.client.db.users.read(user.id,['messages'])}""")
 		return embed
 
