@@ -111,7 +111,9 @@ class client_cls(Bot):
 
 	async def on_application_command_error(self,ctx:ApplicationContext,error:ApplicationCommandInvokeError) -> None:
 		if isinstance(error,CheckFailure): return
-		await ctx.respond(f'an error has occurred: {error}\n\nthe issue has been automatically reported and should be fixed soon.',ephemeral=True)
+		embed = Embed(title='an error has occurred!',description='the issue has been automatically reported and should be fixed soon.',color=0xff6969)
+		embed.add_field(name='error',value=str(error))
+		await ctx.respond(embed=embed,ephemeral=True)
 		await self.log.error(error)
 		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
 		await channel.send(f'```\n{"".join(format_tb(error.original.__traceback__))[:1992]}\n```')
