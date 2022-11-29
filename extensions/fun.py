@@ -116,7 +116,7 @@ class fun_cog(Cog):
 		options=[
 			option(str,name='question',description='question to ask')])
 	async def slash_eightball(self,ctx:ApplicationContext,question:str) -> None:
-		with open('content/8ball') as file: await ctx.response.send_message(choice(file.readlines()))
+		with open('content/8ball') as file: await ctx.response.send_message(choice(file.readlines()),ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
 		name='color',
