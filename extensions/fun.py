@@ -127,7 +127,6 @@ class fun_cog(Cog):
 			embed=Embed(
 				title='random color:',
 				description=f"""#{color[2:]}
-
 				R: {int(color[2:4],16)}
 				G: {int(color[4:6],16)}
 				B: {int(color[6:8],16)}""",
@@ -178,7 +177,7 @@ class fun_cog(Cog):
 			option(Role,name='role',description='role to roll users from'),
 			option(bool,name='ping',description='ping the result user? (requires mention_everyone)')])
 	async def slash_random(self,ctx:ApplicationContext,role:Role,ping:bool) -> None:
-		if ping and ctx.author.guild_permissions.mention_everyone: return
+		if ping and not ctx.author.guild_permissions.mention_everyone: return
 		result = choice(role.members)
 		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.hide(ctx))
 
