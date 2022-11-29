@@ -43,7 +43,7 @@ class input_modal(Modal):
 		embed = Embed(title=title,description=details,color=await self.client.embed_color(interaction))
 		embed.set_author(name=str(interaction.user),url=interaction.user.jump_url,icon_url=interaction.user.avatar.url)
 		await channel.create_thread(name=title,embed=embed,
-			applied_tags=[tag for tag in channel.available_tags if tag.name in [type]])
+			applied_tags=[tag for tag in channel.available_tags if tag.name in [type,'open']])
 
 	async def commit(self,interaction:Interaction,title:str,version_bump:str,new_features:str,fixes:str,notes:str) -> None:
 		channel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development','change-log']))
