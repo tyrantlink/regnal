@@ -84,7 +84,8 @@ class auto_responses_cog(Cog):
 		if message.content is None: return
 
 		for i in reload_guilds:
-			self.guild_responses.pop(i)
+			try: self.guild_responses.pop(i)
+			except KeyError: pass
 		if self.responses is None:
 			self.responses = await self.client.db.inf.read('auto_responses',['au'])
 			self.client.au = self.responses
