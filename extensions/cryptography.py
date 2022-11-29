@@ -37,7 +37,7 @@ class cryptography_cog(Cog):
 			option(str,name='message',description='decode input'),
 			option(str,name='algorithm',description='algorithm to decode with',choices=algo_list),
 			option(str,name='argument',description='argument, refer to /help',required=False)])
-	async def slash_encode(self,ctx:ApplicationContext,message:str,algorithm:str,argument:str) -> None:
+	async def slash_decode(self,ctx:ApplicationContext,message:str,algorithm:str,argument:str) -> None:
 		match algorithm:
 			case 'base64': output = b64decode(message)
 			case 'caesar cipher': output = self.caesar_cipher(False,message,int(argument) if argument else 7)
