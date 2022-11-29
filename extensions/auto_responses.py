@@ -191,9 +191,13 @@ class auto_responses_cog(Cog):
 					case 'enabled'|'disabled':
 						await ctx.response.send_message(f'auto responses are currently {au_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
 					case 'whitelist'|'blacklist':
-						if option == 'add': await self.client.db.guilds.append(ctx.guild.id,['au',au_cfg],ctx.channel.id)
-						else              : await self.client.db.guilds.remove(ctx.guild.id,['au',au_cfg],ctx.channel.id)
-						await ctx.response.send_message(f'successfully added <#{ctx.channel.id}> to the {au_cfg}.',ephemeral=await self.client.hide(ctx))
+						if option == 'add':
+							await self.client.db.guilds.append(ctx.guild.id,['au',au_cfg],ctx.channel.id)
+							res = ('added','to')
+						else:
+							await self.client.db.guilds.remove(ctx.guild.id,['au',au_cfg],ctx.channel.id)
+							res = ('removed','from')
+						await ctx.response.send_message(f'successfully {res[0]} {ctx.channel.mention} {res[1]} the {au_cfg}.',ephemeral=await self.client.hide(ctx))
 					case _: raise
 			case 'list':
 				match au_cfg:
@@ -217,9 +221,13 @@ class auto_responses_cog(Cog):
 					case 'enabled'|'disabled':
 						await ctx.response.send_message(f'dad bot is currently {db_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
 					case 'whitelist'|'blacklist':
-						if option == 'add': await self.client.db.guilds.append(ctx.guild.id,['db',db_cfg],ctx.channel.id)
-						else              : await self.client.db.guilds.remove(ctx.guild.id,['db',db_cfg],ctx.channel.id)
-						await ctx.response.send_message(f'successfully added <#{ctx.channel.id}> to the {db_cfg}.',ephemeral=await self.client.hide(ctx))
+						if option == 'add':
+							await self.client.db.guilds.append(ctx.guild.id,['db',db_cfg],ctx.channel.id)
+							res = ('added','to')
+						else:
+							await self.client.db.guilds.remove(ctx.guild.id,['db',db_cfg],ctx.channel.id)
+							res = ('removed','from')
+						await ctx.response.send_message(f'successfully {res[0]} {ctx.channel.mention} {res[1]} the {db_cfg}.',ephemeral=await self.client.hide(ctx))
 					case _: raise
 			case 'list':
 				match db_cfg:
