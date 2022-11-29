@@ -1,6 +1,6 @@
 from discord import Message,ApplicationContext,Embed,Permissions,Member,Interaction,InputTextStyle
 from discord.commands import slash_command,Option as option
-from re import sub,search,IGNORECASE,split,fullmatch
+from regex import sub,search,IGNORECASE,split,fullmatch
 from discord.errors import Forbidden,HTTPException
 from utils.tyrantlib import merge_dicts
 from discord.ui import Modal,InputText
