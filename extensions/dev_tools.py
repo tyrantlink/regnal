@@ -167,6 +167,27 @@ class dev_tools_cog(Cog):
 		await ctx.response.send_message(f'successfully set {self.client.user.mention} to False',ephemeral=await self.client.hide(ctx))
 		await self.client.log.command(ctx)
 		exit(0)
+	
+	@dev.command(
+		name='get_log',
+		description='get log by id',
+		options=[
+			option(int,name='id',description='id of the log'),
+			option(str,name='mode',description='embed or raw',choices=['embed','raw'])])
+	@dev_only()
+	async def slash_dev_get_log(self,ctx:ApplicationContext,log_id:int,mode:str) -> None:
+		log = await self.client.db.logs.read(log_id)
+		if log is None:
+			await ctx.response.send_message(embed=Embed(title='ERROR',description=f'no log was found with the id `{log_id}`',color=0xff6969),ephemeral=await self.client.hide(ctx))
+			return
+		if mode == 'raw':
+			msg = dumps(log,indent=2)
+			if len(msg)+8 > 2000: await ctx.response.send_message(f'character limited\n```\n{msg[:1974]}\n```',ephemeral=await self.client.hide(ctx))
+			else: await ctx.response.send_message(f'```\n{msg}\n```',ephemeral=await self.client.hide(ctx))
+			return
+		embed = Embed(title=f'log #{log_id}',description=log.get('log',None),color=await self.client.embed_color(ctx))
+		if user:=self.client.get_user(log.get('author')): embed.set_author(name=user,icon_url=user.avatar.url)
+		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@dev.command(
 		name='db',
