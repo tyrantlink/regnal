@@ -23,11 +23,11 @@ class input_modal(Modal):
 			case 'issue':
 				super().__init__(title='submit an issue')
 				self.add_item(InputText(label='title',max_length=256,placeholder='title of issue',style=InputTextStyle.short))
-				self.add_item(InputText(label='details',max_length=1024,placeholder='details of issues',style=InputTextStyle.long))
+				self.add_item(InputText(label='details',max_length=1024,placeholder='details of issues',style=InputTextStyle.long,required=False))
 			case 'suggestion':
 				super().__init__(title='submit a suggestion')
 				self.add_item(InputText(label='title',max_length=256,placeholder='title of suggestion',style=InputTextStyle.short))
-				self.add_item(InputText(label='details',max_length=1024,placeholder='details of suggestion',style=InputTextStyle.long))
+				self.add_item(InputText(label='details',max_length=1024,placeholder='details of suggestion',style=InputTextStyle.long,required=False))
 			case _: print('unknown modal format')
 
 	def bump_version(self,current_version:str,bump_type:str) -> str:
@@ -39,7 +39,7 @@ class input_modal(Modal):
 		return '.'.join([ma,mi,p])
 
 	async def report(self,interaction:Interaction,type:str,title:str,details:str) -> None:
-		channel:ForumChannel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development',f'support']))
+		channel:ForumChannel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development','support']))
 		embed = Embed(title=title,description=details,color=await self.client.embed_color(interaction))
 		embed.set_author(name=str(interaction.user),url=interaction.user.jump_url,icon_url=interaction.user.avatar.url)
 		await channel.create_thread(name=title,embed=embed,
