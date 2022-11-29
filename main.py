@@ -80,7 +80,6 @@ class client_cls(Bot):
 		except Exception: pass
 		return True
 
-
 	async def on_connect(self) -> None:
 		if 'clear' in argv:
 			await self.sync_commands()
@@ -103,7 +102,8 @@ class client_cls(Bot):
 
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return
-		await self.log.command(ctx,command=ctx.command.qualified_name,options={i['name']:i['value'] for i in ctx.selected_options})
+		options = {} if ctx.selected_options is None else {i['name']:i['value'] for i in ctx.selected_options}
+		await self.log.command(ctx,command=ctx.command.qualified_name,options=options)
 
 	async def on_unknown_application_command(self,interaction:Interaction) -> None:
 		await interaction.response.send_message('u wot m8?',ephemeral=True)
