@@ -2,6 +2,7 @@ from discord import ApplicationContext
 from discord.ext.commands import check
 from os import path,walk
 import collections.abc
+from collections.abc import Mapping
 
 sizes = ['bytes','KBs','MBs','GBs','TBs','PBs','EBs','ZBs','YBs']
 
@@ -13,11 +14,13 @@ def load_data(tester_list:list=None,ownerid:int=None,bypass:bool=None) -> None:
 	testers = tester_list if tester_list != None else testers
 	bypass_permissions = bypass if bypass != None else bypass_permissions
 
-def merge_dicts(dict1:dict,dict2:dict) -> dict:
-	for key, value in dict2.items():
-		if isinstance(value,collections.abc.Mapping): dict1[key] = merge_dicts(dict1.get(key,{}),value)
-		else: dict1[key] = value
-	return dict1
+def merge_dicts(*dicts) -> dict:
+	out = {}
+	for d in dicts:
+		for k,v in d.items():
+			if isinstance(v,Mapping): out[k] = merge_dicts(out.get(k,{}),v)
+			else: out[k] = v
+	return out
 
 def get_dir_size(dir:str) -> str:
 	size = 0
