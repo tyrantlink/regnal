@@ -103,7 +103,8 @@ class view(View):
 		if self.selected == 'no_track':
 			if value: await self._no_track_enabled(interaction)
 			else: await self.client.db.users.write(interaction.user.id,['messages'],0)
-		await self.client.log.debug(f'[CONFIG] [{self.current_menu.upper()}] {interaction.user} set {self.selected} to {value}')
+		await self.client.log.debug(f'[CONFIG] [{self.current_menu.upper()}] {interaction.user} set {self.selected} to {value}',{'config':
+			{'category':self.current_menu,'option':self.selected,'set_to':value}})
 		if not from_modal:
 			self.embed.clear_fields()
 			await self.reload_embed(interaction)
