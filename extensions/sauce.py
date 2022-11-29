@@ -183,7 +183,7 @@ class sauce_cog(Cog):
 				await ctx.response.send_message('unable to access the message.\ncheck your input or try again by running the command in the channel the message was sent\nor just use the much better message command by right clicking (holding on mobile) a message, clicking apps, then clicking sauce',ephemeral=await self.client.hide(ctx))
 
 	@message_command(name='sauce?')
-	async def message_pixiv_sauce(self,ctx:ApplicationContext,message:Message) -> None:
+	async def message_sauce(self,ctx:ApplicationContext,message:Message) -> None:
 		await self._base_sauce(ctx,message)
 
 def setup(client) -> None: client.add_cog(sauce_cog(client))

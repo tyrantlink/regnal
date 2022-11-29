@@ -138,7 +138,7 @@ class poll_cog(Cog):
 	@slash_command(name='poll',
 		description='create a poll',
 		guild_only=True)
-	async def poll(self,ctx:ApplicationContext) -> None:
+	async def slash_poll(self,ctx:ApplicationContext) -> None:
 		embed = Embed(title='set a poll title!',description='and the description too!\nif you want, i guess. a description isn\'t required.',color=await self.client.embed_color(ctx))
 		await ctx.response.send_message(embed=embed,
 		view=view(
