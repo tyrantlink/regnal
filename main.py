@@ -69,10 +69,10 @@ class client_cls(Bot):
 		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[EXT_LOAD] {cog}')
 		self._raw_loaded_extensions.append(cog)
 
-	async def embed_color(self,ctx:ApplicationContext) -> int:
+	async def embed_color(self,ctx:ApplicationContext|Interaction) -> int:
 		return await self.db.guilds.read(ctx.guild.id,['config','embed_color']) if ctx.guild else await self.db.guilds.read(0,['config','embed_color'])
 
-	async def hide(self,ctx:ApplicationContext) -> bool:
+	async def hide(self,ctx:ApplicationContext|Interaction) -> bool:
 		try:
 			if isinstance(ctx,ApplicationContext): return await self.db.users.read(ctx.author.id,['config','hide_commands'])
 			if isinstance(ctx,Interaction): return await self.db.users.read(ctx.user.id,['config','hide_commands'])
