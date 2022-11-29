@@ -122,7 +122,7 @@ class auto_responses_cog(Cog):
 				if fullmatch(key,message):
 					return ('exact-cs',key)
 				continue
-			if message.lower() == key:
+			if message == key:
 				return ('exact-cs',message)
 		for i in responses['contains']:
 			s = search(i,message.lower(),IGNORECASE)
