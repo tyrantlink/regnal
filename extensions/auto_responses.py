@@ -142,6 +142,7 @@ class auto_responses_cog(Cog):
 			data = responses[check[0]][redir]
 		
 		if (response:=data.get('response',None)) is None: return False
+		if data.get('nsfw',False) and not message.channel.nsfw: return False
 		if (user_id:=data.get('user',None)) is not None and str(message.author.id) != user_id: return False
 		if data.get('file',False): response = f'https://cdn.tyrant.link/reg/nal/auto_responses/{quote(response)}'
 
