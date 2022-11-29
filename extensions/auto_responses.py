@@ -9,6 +9,8 @@ from urllib.parse import quote
 from main import client_cls
 from asyncio import sleep
 
+from json import dumps
+
 c_au_choices = {
 	'trigger anywhere within message':'contains',
 	'message is exactly trigger (case insensitive)':'exact',
@@ -53,13 +55,13 @@ class auto_responses_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
 		client._extloaded()
 		self.client = client
-		self.responses = None
+		self.base_responses = None
 		self.guild_responses = {}
 
 	@Cog.listener()
 	async def on_connect(self) -> None:
-		self.responses = await self.client.db.inf.read('auto_responses',['au'])
-		self.client.au = self.responses
+		self.base_responses = await self.client.db.inf.read('auto_responses',['au'])
+		self.client.au = self.base_responses
 
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
@@ -82,13 +84,14 @@ class auto_responses_cog(Cog):
 			return
 		
 		if message.content is None: return
-
-		for i in reload_guilds:
-			try: self.guild_responses.pop(i)
-			except KeyError: pass
-		if self.responses is None:
-			self.responses = await self.client.db.inf.read('auto_responses',['au'])
-			self.client.au = self.responses
+		if reload_guilds:
+			for i in reload_guilds:
+				self.guild_responses.pop(i,None)
+				try: reload_guilds.remove(i)
+				except ValueError: pass
+		if self.base_responses is None:
+			self.base_responses = await self.client.db.inf.read('auto_responses',['au'])
+			self.client.au = self.base_responses
 		if self.guild_responses.get(message.guild.id,None) is None:
 			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['au','custom'])
 
@@ -135,7 +138,7 @@ class auto_responses_cog(Cog):
 			return ('contains',i)
 
 	async def listener_auto_response(self,message:Message) -> None:
-		responses = merge_dicts(self.responses,self.guild_responses[message.guild.id])
+		responses = merge_dicts(self.base_responses,self.guild_responses[message.guild.id])
 		try: check = self.au_check(responses,message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
 		except Exception: return False
 		if check is None: return False
