@@ -1,7 +1,7 @@
 #!./venv/bin/python3.10
 from time import perf_counter,time
 st = perf_counter()
-from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError
+from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup
 from utils.tyrantlib import convert_time,load_data,format_bytes,get_line_count
 from discord.ext.commands import Cog,Bot,slash_command
 from traceback import format_exc,format_tb
@@ -16,6 +16,7 @@ from inspect import stack
 from utils.log import log
 from asyncio import sleep
 from json import loads
+from os import _exit
 from sys import argv
 
 DEV_MODE = exists('dev')
@@ -84,8 +85,10 @@ class client_cls(Bot):
 		if 'clear' in argv:
 			await self.sync_commands()
 			print('cleared commands')
-			exit(0)
-		if not DEV_MODE: await self.db.ready()
+			_exit(0)
+		if not DEV_MODE:
+			await self.db.ready()
+			await self.sync_commands()
 		load_data(
 			await self.db.inf.read('/reg/nal',['development','testers']),
 			await self.db.inf.read('/reg/nal',['development','owner']),
@@ -139,8 +142,9 @@ class base_commands(Cog):
 			color=await self.client.embed_color(ctx))
 		lifetime,session  = [],[]
 		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=False)
-		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=not self.client.au)
+		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
 		embed.add_field(name='line count',value=f'{sum(self.client.lines.values())} lines',inline=True)
+		embed.add_field(name='commands',value=len([cmd for cmd in self.client.walk_application_commands() if not isinstance(cmd,SlashCommandGroup)]),inline=True)
 		if self.client.au:
 			auto_response_count = len([j for k in [list(self.client.au[i].keys()) for i in list(self.client.au.keys())] for j in k])
 			if ctx.guild:
