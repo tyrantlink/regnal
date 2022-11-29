@@ -103,8 +103,8 @@ class client_cls(Bot):
 
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return
-		await self.log.command(ctx,command=ctx.command.qualified_name)
-	
+		await self.log.command(ctx,command=ctx.command.qualified_name,options={i['name']:i['value'] for i in ctx.selected_options})
+
 	async def on_unknown_application_command(self,interaction:Interaction) -> None:
 		await interaction.response.send_message('u wot m8?',ephemeral=True)
 
