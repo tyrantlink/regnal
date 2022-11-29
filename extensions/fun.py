@@ -23,7 +23,9 @@ class fun_cog(Cog):
 		options=[
 			option(str,name='activity',description='name of application',choices=activity_options)])
 	async def slash_activity_invite(self,ctx:ApplicationContext,activity:str) -> None:
-		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
+		if not ctx.author.voice:
+			await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
+			return
 		activity_id = await self.client.db.inf.read('/reg/nal',['activities',activity])
 
 		try: cache = await self.client.db.guilds.read(0,['activity_cache',str(ctx.author.voice.channel.id)])
@@ -42,7 +44,9 @@ class fun_cog(Cog):
 		options=[
 			option(str,name='activity_id',description='application id')])
 	async def slash_activity_custom(self,ctx:ApplicationContext,activity_id:str) -> None:
-		if not ctx.author.voice: await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
+		if not ctx.author.voice:
+			await ctx.response.send_message('you must be in a voice channel to use this command!',ephemeral=await self.client.hide(ctx))
+			return
 		try: cache = await self.client.db.guilds.read(0,['activity_cache',str(ctx.author.voice.channel.id)])
 		except: cache = []
 		if str(activity_id) in cache: await ctx.response.send_message(f'[click to open {activity_id} in {ctx.author.voice.channel.name}](<https://discord.gg/{cache[str(activity_id)]}>)',ephemeral=await self.client.hide(ctx))
