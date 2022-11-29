@@ -38,10 +38,12 @@ class input_modal(Modal):
 			case 'patch': p = str(int(p)+1)
 		return '.'.join([ma,mi,p])
 
-	async def report(self,interaction:Interaction,type:str,title:str,details:str,author:User) -> None:
+	async def report(self,interaction:Interaction,type:str,title:str,details:str) -> None:
 		channel:ForumChannel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development',f'support']))
-		await channel.create_thread(name=title,content=f'{interaction.user.mention} ({interaction.user.name})\n\n{details}',
-			applied_tags=[tag for tag in channel.available_tags if tag.name in ['auto',type]])
+		embed = Embed(title=title,description=details,color=await self.client.embed_color(interaction))
+		embed.set_author(name=str(interaction.user),url=interaction.user.jump_url,icon_url=interaction.user.avatar.url)
+		await channel.create_thread(name=title,embed=embed,
+			applied_tags=[tag for tag in channel.available_tags if tag.name in [type]])
 
 	async def commit(self,interaction:Interaction,title:str,version_bump:str,new_features:str,fixes:str,notes:str) -> None:
 		channel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development','change-log']))
@@ -64,13 +66,11 @@ class input_modal(Modal):
 			case 'commit': 
 				await self.commit(interaction,self.children[0].value,self.children[1].value,self.children[2].value,self.children[3].value,self.children[4].value)
 				await interaction.response.send_message('successfully announced commit',ephemeral=True)
-			case 'issue': 
-				await self.report(interaction,'issue',self.children[0].value,self.children[1].value,interaction.user)
-				await interaction.response.send_message('thank you for reporting this issue.\nyou can check for a resolution on the [development server](<https://discord.gg/4mteVXBDW7>)',ephemeral=True)
-			case 'suggestion': 
-				await self.report(interaction,'suggestion',self.children[0].value,self.children[1].value,interaction.user)
-				await interaction.response.send_message('thank you for your suggestion\nyou can check for a resolution on the [development server](<https://discord.gg/4mteVXBDW7>)',ephemeral=True)
-			case _: print('unknown modal format')
+			case 'issue'|'suggestion': 
+				await self.report(interaction,self.format,self.children[0].value,self.children[1].value)
+				embed = Embed(title=f'{self.format} reported',description='you can check for a resolution on the [development server](<https://discord.gg/4mteVXBDW7>)',color=await self.client.embed_color(interaction))
+				await interaction.response.send_message(embed=embed,ephemeral=True)
+			case _: raise ValueError('unknown modal format')
 
 class dev_tools_cog(Cog):
 	def __init__(self,client:client_cls) -> None:
@@ -135,7 +135,7 @@ class dev_tools_cog(Cog):
 	@dev_only()
 	async def slash_dev_test(self,ctx:ApplicationContext,_exec:str) -> None:
 		if _exec: exec(_exec)
-		else: raise
+		else: raise Exception('just testing')
 
 	@dev.command(
 		name='clear_console',
