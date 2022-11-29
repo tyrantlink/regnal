@@ -16,12 +16,13 @@ c_au_choices = {
 reload_guilds = []
 
 class input_text(Modal):
-	def __init__(self,client:client_cls,guild_id:int,title:str,items:list[InputText],method:str,user:Member=None,regex:bool=False) -> None:
+	def __init__(self,client:client_cls,guild_id:int,title:str,items:list[InputText],method:str,user:Member=None,regex:bool=False,nsfw:bool=False) -> None:
 		self.client   = client
 		self.guild_id = guild_id
 		self.method   = method
 		self.user     = user
 		self.regex    = regex
+		self.nsfw     = nsfw
 		super().__init__(title=title)
 		for i in items: self.add_item(i)
 
@@ -42,6 +43,7 @@ class input_text(Modal):
 				au = {'response':self.children[1].value}
 				if self.user is not None: au.update({'user':str(self.user.id)})
 				if self.regex: au.update({'regex':True})
+				if self.nsfw : au.update({'nsfw':True})
 				await self.client.db.guilds.write(self.guild_id,['au','custom',self.method,trigger],au)
 				await interaction.response.send_message(f'> {trigger}\nsuccessfully added to auto responses',ephemeral=await self.client.hide(interaction))
 			case _: raise
@@ -247,8 +249,9 @@ class auto_responses_cog(Cog):
 			option(str,name='action',description='add, remove, or list custom auto responses',choices=['add','remove','list']),
 			option(str,name='method',description='when the auto response is triggered',required=False,default='message is exactly trigger (case insensitive)',choices=list(c_au_choices.keys())),
 			option(bool,name='regex',description='match with regex. useless with `contains`',required=False,default=False),
-			option(Member,name='user',description='limit response to specific user',required=False,default=None)])
-	async def slash_custom_auto_response(self,ctx:ApplicationContext,action:str,method:str,regex:bool,user:Member):
+			option(Member,name='user',description='limit response to specific user',required=False,default=None),
+			option(bool,name='nsfw',description='only respond in nsfw channels',required=False,default=None)])
+	async def slash_custom_auto_response(self,ctx:ApplicationContext,action:str,method:str,regex:bool,user:Member,nsfw:bool) -> None:
 		custom_au = await self.client.db.guilds.read(ctx.guild.id,['au','custom'])
 		au_length = sum([len(i) for i in custom_au.values()])
 		match action:
@@ -261,7 +264,7 @@ class auto_responses_cog(Cog):
 						'add an auto response',[
 							InputText(label='trigger message',min_length=1,max_length=100,style=InputTextStyle.short),
 							InputText(label='response',min_length=1,max_length=500,style=InputTextStyle.long)],
-						c_au_choices.get(method,'error'),user))
+						c_au_choices.get(method,'error'),user,regex,nsfw))
 			case 'remove':
 				if au_length == 0:
 					await ctx.response.send_message('there are no custom auto responses in this server!',ephemeral=await self.client.hide(ctx))
