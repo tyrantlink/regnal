@@ -1,6 +1,7 @@
 from pymongo.errors import DuplicateKeyError
 import motor.motor_asyncio,collections.abc
 from pymongo.collection import Collection
+from utils.tyrantlib import merge_dicts
 from typing import Any
 from time import time
 
@@ -22,14 +23,12 @@ class env:
 		for k,v in env_dict.items():
 			setattr(self,k,v)
 
-class utils():
-	def merge(dict:dict,new:dict) -> dict:
-		for key,value in new.items():
-			if isinstance(value, collections.abc.Mapping): dict[key] = utils.merge(dict.get(key,{}),value)
-			else: dict[key] = value
-		return dict
+class DataCollection():
+	def __init__(self,collection:Collection) -> None:
+		self.collection = collection
+		self.stats = client.status_logs
 
-	def form_path(path:list,value:Any,dotnotation:bool=False) -> dict:
+	def _form_path(self,path:list,value:Any,dotnotation:bool=False) -> dict:
 		res = current = {}
 		length = len(path)
 		if len(path) == 1: return {path[0]:value}
@@ -43,11 +42,6 @@ class utils():
 				current = current[name]
 		return res
 
-class DataCollection():
-	def __init__(self,collection:Collection) -> None:
-		self.collection = collection
-		self.stats = client.status_logs
-
 	@property
 	def raw(self) -> Collection:
 		"""returns raw pymongo Collection"""
@@ -57,46 +51,46 @@ class DataCollection():
 		"""returns the value given at the specified path"""
 		res = await self.collection.find_one({'_id':id})
 		for key in path: res = res[key]
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_reads'],1,True)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],2,True)})
 		return res
 
 	async def write(self,id:int|str,path:list=[],value:Any=None) -> bool:
 		"""write the given object to the given path"""
-		await self.collection.replace_one({'_id':id},utils.merge((await self.collection.find_one({'_id':id})),utils.form_path(path,value)))
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_reads'],1,True)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],3,True)})
+		await self.collection.replace_one({'_id':id},merge_dicts((await self.collection.find_one({'_id':id})),self._form_path(path,value)))
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],3,True)})
 		return True
 	
 	async def append(self,id:int|str,path:list=[],value:Any=None) -> bool:
 		"""append the specified element to an array"""
-		await self.collection.update_one({'_id':id},{'$push':utils.form_path(path,value,True)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
+		await self.collection.update_one({'_id':id},{'$push':self._form_path(path,value,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],2,True)})
 		return True
 
 	async def remove(self,id:int|str,path:list=[],value:Any=None) -> bool:
 		"""remove the specified element from an array"""
-		await self.collection.update_one({'_id':id},{'$pull':utils.form_path(path,value,True)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
+		await self.collection.update_one({'_id':id},{'$pull':self._form_path(path,value,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],2,True)})
 		return True
 	
 	async def unset(self,id:int|str,path:list=[],value:Any=None) -> bool:
 		"""delete the specified field"""
-		await self.collection.update_one({'_id':id},{'$unset':utils.form_path(path,value,True)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
+		await self.collection.update_one({'_id':id},{'$unset':self._form_path(path,value,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],2,True)})
 		return True
 	
 	async def pop(self,id:int|str,path:list=[],position:int=None) -> bool:
 		"""removes the first or last element of an array\nthe element is not returned"""
 		if position not in [1,-1]: return False # -1 first last value, 1 removes first
-		await self.collection.update_one({'_id':id},{'$pop':utils.form_path(path,position*-1,True)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
+		await self.collection.update_one({'_id':id},{'$pop':self._form_path(path,position*-1,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],2,True)})
 		return True
 
 	async def inc(self,id:int|str,path:list=[],value:int|float=1) -> bool:
 		"""increment a number"""
-		await self.collection.update_one({'_id':id},{'$inc':utils.form_path(path,value,True)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
+		await self.collection.update_one({'_id':id},{'$inc':self._form_path(path,value,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],2,True)})
 		return True
 	
 	async def dec(self,id:int|str,path:list=[],value:int|float=1) -> bool:
@@ -106,7 +100,7 @@ class DataCollection():
 	async def delete(self,id:int|str) -> bool:
 		"""delete a document by id"""
 		await self.collection.delete_one({'_id':id})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],2,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],2,True)})
 		return True
 
 	async def new(self,id:int|str,input=None) -> bool:
@@ -121,8 +115,8 @@ class DataCollection():
 			except KeyError: res['_id'] = id
 		try: await self.collection.insert_one(res)
 		except DuplicateKeyError: return False
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_reads'],1,True)})
-		await self.stats.update_one({'_id':2},{'$inc':utils.form_path(['stats','db_writes'],3,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],3,True)})
 		return True
 
 class db:
