@@ -1,8 +1,7 @@
 from discord import ApplicationContext
 from discord.ext.commands import check
-from os import path,walk
-import collections.abc
 from collections.abc import Mapping
+from os import path,walk
 
 sizes = ['bytes','KBs','MBs','GBs','TBs','PBs','EBs','ZBs','YBs']
 
@@ -14,7 +13,7 @@ def load_data(tester_list:list=None,ownerid:int=None,bypass:bool=None) -> None:
 	testers = tester_list if tester_list != None else testers
 	bypass_permissions = bypass if bypass != None else bypass_permissions
 
-def merge_dicts(*dicts) -> dict:
+def merge_dicts(*dicts:dict) -> dict:
 	out = {}
 	for d in dicts:
 		for k,v in d.items():
