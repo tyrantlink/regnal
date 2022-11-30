@@ -6,6 +6,7 @@ environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # needs to be before nsfw_detector import
 from discord.ext.commands import Cog
 from aiohttp import ClientSession
 from nsfw_detector import predict
+from urllib.parse import quote
 from secrets import token_hex
 from main import client_cls
 from asyncio import sleep
@@ -31,26 +32,26 @@ class art_services:
 	def get_embed_data(self,service:str,data:dict,header:dict) -> Embed|bool:
 		match service:
 			case 'pixiv': return (
-				f'[{data.get("member_name",None)}](<https://www.pixiv.net/en/users/{data.get("member_id",None)}>)',
-				f'[pixiv](<https://www.pixiv.net/en/artworks/{data.get("pixiv_id",None)}>)')
+				f'[{data.get("member_name",None)}](<https://www.pixiv.net/en/users/{quote(str(data.get("member_id",None)))}>)',
+				f'[pixiv](<https://www.pixiv.net/en/artworks/{quote(str(data.get("pixiv_id",None)))}>)')
 			case 'danbooru': return (
-				f'[{data.get("creator",None)}](<https://danbooru.donmai.us/posts?tags={data.get("creator",None)}&z=1>)',
-				f'[danbooru](<https://danbooru.donmai.us/post/show/{data.get("danbooru_id",None)}>)')
+				f'[{data.get("creator",None)}](<https://danbooru.donmai.us/posts?tags={quote(str(data.get("creator",None)).replace(" ","_"))}&z=1>)',
+				f'[danbooru](<https://danbooru.donmai.us/post/show/{quote(str(data.get("danbooru_id",None)))}>)')
 			case 'gelbooru': return (
-				f'[{data.get("creator",None)}](<https://gelbooru.com/index.php?page=post&s=list&tags={data.get("creator",None)}>)',
-				f'[gelbooru](<https://gelbooru.com/index.php?page=post&s=view&id={data.get("gelbooru_id",None)}>)')
+				f'[{data.get("creator",None)}](<https://gelbooru.com/index.php?page=post&s=list&tags={quote(str(data.get("creator",None)).replace(" ","_"))}>)',
+				f'[gelbooru](<https://gelbooru.com/index.php?page=post&s=view&id={quote(str(data.get("gelbooru_id",None)))}>)')
 			case 'deviantart': return (
-				f'[{data.get("author_name",None)}](<{data.get("author_url",None)}>)',
-				f'[deviantart](<https://deviantart.com/view/{data.get("da_id",None)}>)')
+				f'[{data.get("author_name",None)}](<{quote(str(data.get("author_url",None)))}>)',
+				f'[deviantart](<https://deviantart.com/view/{quote(str(data.get("da_id",None)))}>)')
 			case 'furaffinity': return (
-				f'[{data.get("author_name",None)}](<{data.get("author_url",None)}>)',
-				f'[furaffinity](<https://www.furaffinity.net/view/{data.get("fa_id",None)}>)')
+				f'[{data.get("author_name",None)}](<{quote(str(data.get("author_url",None)))}>)',
+				f'[furaffinity](<https://www.furaffinity.net/view/{quote(str(data.get("fa_id",None)))}>)')
 			case 'twitter': return (
-				f'[@{data.get("twitter_user_handle",None)}](<https://twitter.com/i/user/{data.get("twitter_user_id",None)}>)',
-				f'[twitter](<https://twitter.com/i/web/status/{data.get("tweet_id",None)}>)')
+				f'[@{data.get("twitter_user_handle",None)}](<https://twitter.com/i/user/{quote(str(data.get("twitter_user_id",None)))}>)',
+				f'[twitter](<https://twitter.com/i/web/status/{quote(str(data.get("tweet_id",None)))}>)')
 			case 'nhentai': return (
-				f'[{data.get("creator",[None])[0]}](<https://nhentai.net/artist/{data.get("creator",["None"])[0].sub(" ","-")}>)',
-				f'[nhentai](<https://nhentai.net/g/{header.get("thumbnail","None").split("%")[0].split("/")[-1]}>)')
+				f'[{data.get("creator",[None])[0]}](<https://nhentai.net/artist/{quote(str(data.get("creator",["None"])[0].sub(" ","-")))}>)',
+				f'[nhentai](<https://nhentai.net/g/{quote(str(header.get("thumbnail","None").split("%")[0].split("/")[-1]))}>)')
 			case _: return False
 
 class sauce_cog(Cog):
@@ -63,6 +64,11 @@ class sauce_cog(Cog):
 		self.valid_formats = ['gif','jpg','png','bmp','webp']
 		self.art = art_services()
 		self.stdout = sys.stdout # save stdout 
+
+		self.invalid_embed = Embed(title='ERROR',description='no valid images were found',color=0xff6969)
+		self.invalid_embed.add_field(name='valid image types',value=", ".join(self.valid_formats))
+
+		self.no_result_embed = Embed(title='failed to find a result',description='uhhhhh, good luck',color=0xff6969)
 
 	async def _is_nsfw(self,url:str) -> bool:
 		filepath = f'./tmp/nsfw_filter/{token_hex(8)}.{url.split(".")[-1]}'
@@ -127,12 +133,15 @@ class sauce_cog(Cog):
 					return await res.json()
 	
 	async def _base_sauce(self,ctx:ApplicationContext,message:Message) -> None:
-		if len(message.attachments) == 0:
-			await ctx.response.send_message('this message has no attachments.',ephemeral=await self.client.hide(ctx))
+		if len(message.attachments) == 0 and len(message.embeds) == 0:
+			await ctx.response.send_message('this message has no attachments or embeds.',ephemeral=await self.client.hide(ctx))
 			return
-		valid = [a.url for a in message.attachments if a.filename.split('.')[-1] in self.valid_formats]
+		valid = [
+			a.url for a in message.attachments if a.filename.split('.')[-1] in self.valid_formats]+[
+			e.image.url for e in [i for i in message.embeds if i.image] if e.image.url.split('.')[-1] in self.valid_formats]+[
+			e.thumbnail.url for e in [i for i in message.embeds if i.thumbnail] if e.thumbnail.url.split('.')[-1] in self.valid_formats]
 		if len(valid) == 0:
-			await ctx.response.send_message(f'no valid attachments were found\nfile types must be one of the following:\n{", ".join(self.valid_formats)}',ephemeral=await self.client.hide(ctx))
+			await ctx.response.send_message(embed=self.invalid_embed,ephemeral=await self.client.hide(ctx))
 			return
 		await ctx.response.defer(ephemeral=await self.client.hide(ctx))
 		results = []
@@ -150,21 +159,21 @@ class sauce_cog(Cog):
 								await sleep(30)
 								continue
 							case '9': # no message given
-								await ctx.followup.send(f'failed to find a result',ephemeral=await self.client.hide(ctx))
+								await ctx.followup.send(embed=self.no_result_embed,ephemeral=await self.client.hide(ctx))
 								return
 							case _: # unknown message given
 								raise f'unknown saucenao error message: {result.get("header",{}).get("message","12345678")}'
 					case _:
-						await ctx.followup.send(f'failed to find a result',ephemeral=await self.client.hide(ctx))
+						await ctx.followup.send(embed=self.no_result_embed,ephemeral=await self.client.hide(ctx))
 						return
 			else:
-				await ctx.followup.send(f'failed to find a result',ephemeral=await self.client.hide(ctx))
+				await ctx.followup.send(embed=self.no_result_embed,ephemeral=await self.client.hide(ctx))
 				return
 			embed = await self._to_embed(url,result.get('results',[{}])[0],await self.client.embed_color(ctx),ctx.channel.nsfw,
 				f'30s limit: {result.get("header",{}).get("short_remaining",0)}/{result.get("header",{}).get("short_limit",0)} | 24h limit: {result.get("header",{}).get("long_remaining",0)}/{result.get("header",{}).get("long_limit",0)}')
 			if embed: results.append(embed)
 		if len(results) == 0:
-			await ctx.followup.send(f'failed to find a result',ephemeral=await self.client.hide(ctx))
+			await ctx.followup.send(embed=self.no_result_embed,ephemeral=await self.client.hide(ctx))
 			return
 		await ctx.followup.send(embeds=results)
 
