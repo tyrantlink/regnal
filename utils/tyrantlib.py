@@ -25,7 +25,7 @@ def get_dir_size(dir:str) -> str:
 	size = 0
 	for path,dirs,files in walk(dir):
 		for f in files:
-			fp = path.join(path, f)
+			fp = path.join(path,f)
 			size += path.getsize(fp)
 	return format_bytes(size)
 
