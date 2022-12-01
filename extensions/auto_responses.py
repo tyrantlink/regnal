@@ -172,7 +172,7 @@ class auto_responses_cog(Cog):
 				if s.span()[0] != 0:
 					if input[s.span()[0]-1] != ' ': continue
 				if input[s.span()[0]+(len(p_splitter))] != ' ': continue
-			except IndexError: return
+			except IndexError: continue
 
 			p_response = split(p_splitter,input,1,IGNORECASE)[1:]
 			if len(response) < len(''.join(p_response)): response,splitter = ''.join(p_response),p_splitter
