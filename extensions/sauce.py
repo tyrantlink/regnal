@@ -50,7 +50,7 @@ class art_services:
 				f'[@{data.get("twitter_user_handle",None)}](<https://twitter.com/i/user/{quote(str(data.get("twitter_user_id",None)))}>)',
 				f'[twitter](<https://twitter.com/i/web/status/{quote(str(data.get("tweet_id",None)))}>)')
 			case 'nhentai': return (
-				f'[{data.get("creator",[None])[0]}](<https://nhentai.net/artist/{quote(str(data.get("creator",["None"])[0].sub(" ","-")))}>)',
+				f'[{data.get("creator",[None])[0]}](<https://nhentai.net/artist/{quote(str(data.get("creator",["None"])[0].replace(" ","-")))}>)',
 				f'[nhentai](<https://nhentai.net/g/{quote(str(header.get("thumbnail","None").split("%")[0].split("/")[-1]))}>)')
 			case _: return False
 
