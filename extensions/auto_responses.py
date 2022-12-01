@@ -163,7 +163,7 @@ class auto_responses_cog(Cog):
 
 	async def listener_dad_bot(self,message:Message) -> None:
 		response = ''
-		input = sub(r"""<(@!|@|@&)\d{10,25}>|@everyone|@here|(?:(?:https?|ftp):\/\/|\b(?:[a-z\d]+\.))(?:(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))?\))+(?:\((?:[^\s()<>]+|(?:\(?:[^\s()<>]+\)))?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))?""",'[REDACTED]',sub(r'\*|\_|\~|\`|\|','',message.content))
+		input = sub(r"""<(@!|@|@&)\d{10,25}>|@everyone|@here|(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?""",'[REDACTED]',sub(r'\*|\_|\~|\`|\|','',message.content))
 		for p_splitter in ["I'm",'im','I am','I will be',"I've",'ive']:
 			s = search(p_splitter,input,IGNORECASE)
 
