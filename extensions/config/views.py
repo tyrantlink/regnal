@@ -15,7 +15,6 @@ class config_view(View):
 		self.embed = embed
 		self.embed_color = embed_color
 		self.config_type = None
-		self.menu_history = []
 		if 'user' in self.allowed_config: self.add_item(self.button_user)
 		if 'guild' in self.allowed_config: self.add_item(self.button_guild)
 		if 'logging' in self.allowed_config: self.add_item(self.button_logging)
@@ -35,7 +34,7 @@ class config_view(View):
 		self = new_self
 
 	async def reload_embed(self,interaction:Interaction) -> None:
-		match self.menu_history[-1]:
+		match self.current_menu:
 			case 'user':
 				for k,v in (await self.client.db.users.read(interaction.user.id,['config'])).items():
 					self.embed.add_field(name=f'{k}: {v}',value=config[self.current_menu][k]['description'])
@@ -51,7 +50,7 @@ class config_view(View):
 					self.embed.add_field(name=f'{k}: {v}',value=config[self.current_menu][k]['description'])
 	
 	async def modify_config(self,value:bool|str|int,interaction:Interaction,from_modal:bool=False) -> None:
-		match self.menu_history[-1]:
+		match self.current_menu:
 			case 'user': await self.client.db.users.write(interaction.user.id,['config',self.selected],value)
 			case 'guild': await self.client.db.guilds.write(interaction.guild.id,['config',self.selected],value)
 			case 'logging': await self.client.db.guilds.write(interaction.guild.id,['log_config',self.selected],value)
@@ -60,14 +59,14 @@ class config_view(View):
 		if self.selected == 'no_track':
 			if value: await self._no_track_enabled(interaction)
 			else: await self.client.db.users.write(interaction.user.id,['messages'],0)
-		await self.client.log.debug(f'[CONFIG] {" ".join([f"[{menu.upper()}]" for menu in self.menu_history])} {interaction.user} set {self.selected} to {value}',config={'category':self.current_menu,'option':self.selected,'set_to':value})
+		await self.client.log.debug(f'[CONFIG] [{self.current_menu.upper()}] {interaction.user} set {self.selected} to {value}',config={'category':self.current_menu,'option':self.selected,'set_to':value})
 		if not from_modal:
 			self.embed.clear_fields()
 			await self.reload_embed(interaction)
 			await interaction.response.edit_message(embed=self.embed,view=self)
 	
 	async def validate_input(self,value:str) -> int:
-		match self.menu_history[-1]:
+		match self.current_menu:
 			case 'user': pass #none used
 			case 'guild': 
 				match self.selected:
@@ -85,7 +84,7 @@ class config_view(View):
 		return value
 
 	async def base_config_option_button(self,option:str,interaction:Interaction) -> None:
-		self.menu_history.append(option)
+		self.current_menu = option
 		self.config_type = option
 		self.embed.title = f'{option} config'
 		self.embed.description = None
@@ -98,7 +97,6 @@ class config_view(View):
 
 	@button(label='<',style=2)
 	async def button_back(self,button:Button,interaction:Interaction) -> None:
-		self.menu_history.pop()
 		self.embed.clear_fields()
 		self.embed.title = 'config options'
 		self.embed.description = 'please select a config category'
