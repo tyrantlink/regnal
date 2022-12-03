@@ -7,6 +7,7 @@ from .shared import reload_guilds
 from urllib.parse import quote
 from main import client_cls
 from asyncio import sleep
+from time import time
 
 
 class auto_response_listeners(Cog):
@@ -14,6 +15,7 @@ class auto_response_listeners(Cog):
 		self.client = client
 		self.base_responses = None
 		self.guild_responses = {}
+		self.cooldowns = {'au':{},'db':{}}
 
 	@Cog.listener()
 	async def on_connect(self) -> None:
@@ -53,23 +55,24 @@ class auto_response_listeners(Cog):
 			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['data','auto_responses','custom'])
 
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
-
-		match guild['config']['auto_responses']['enabled']:
-			case 'enabled':
-				if await self.listener_auto_response(message): return
-			case 'whitelist' if channel.id in guild['data']['auto_responses']['whitelist']:
-				if await self.listener_auto_response(message): return
-			case 'blacklist' if channel.id not in guild['data']['auto_responses']['blacklist']:
-				if await self.listener_auto_response(message): return
-			case 'disabled': pass
-		match guild['config']['dad_bot']['enabled']:
-			case 'enabled':
-				if await self.listener_dad_bot(message): return
-			case 'whitelist' if channel.id in guild['data']['dad_bot']['whitelist']:
-				if await self.listener_dad_bot(message): return
-			case 'blacklist' if channel.id not in guild['data']['dad_bot']['blacklist']:
-				if await self.listener_dad_bot(message): return
-			case 'disabled': pass
+		if time()-self.cooldowns['au'].get(message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
+			match guild['config']['auto_responses']['enabled']:
+				case 'enabled':
+					if await self.listener_auto_response(message): return
+				case 'whitelist' if channel.id in guild['data']['auto_responses']['whitelist']:
+					if await self.listener_auto_response(message): return
+				case 'blacklist' if channel.id not in guild['data']['auto_responses']['blacklist']:
+					if await self.listener_auto_response(message): return
+				case 'disabled': pass
+		if time()-self.cooldowns['db'].get(message.channel.id,0) > guild['config']['dad_bot']['cooldown']:
+			match guild['config']['dad_bot']['enabled']:
+				case 'enabled':
+					if await self.listener_dad_bot(message): return
+				case 'whitelist' if channel.id in guild['data']['dad_bot']['whitelist']:
+					if await self.listener_dad_bot(message): return
+				case 'blacklist' if channel.id not in guild['data']['dad_bot']['blacklist']:
+					if await self.listener_dad_bot(message): return
+				case 'disabled': pass
 	
 	def au_check(self,responses,message:str) -> tuple[str,str]|None:
 		for key,data in responses['exact'].items():
@@ -117,6 +120,7 @@ class auto_response_listeners(Cog):
 			await sleep(delay)
 			await message.channel.send(followup)
 
+		self.cooldowns['au'].update({message.channel.id:int(time())})
 		await self.client.log.listener(message,category=check[0],trigger=check[1])
 		return True
 
@@ -142,4 +146,5 @@ class auto_response_listeners(Cog):
 		except Forbidden: return False
 		except HTTPException: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
 
+		self.cooldowns['db'].update({message.channel.id:int(time())})
 		await self.client.log.listener(message,splitter=splitter)
