@@ -79,7 +79,6 @@ class config_view(View):
 				await self.client.db.inf.write('/reg/nal',['config',self.selected_option],value)
 				self.current_config['dev'][self.selected_option] = value
 			case 'main'|'guild'|_: raise
-		
 
 	def validate_modal_input(self,value:str) -> int:
 		data = config.get(self.category,config.get('guild',{}).get(self.category,{})).get(self.selected_option,None)
@@ -145,9 +144,6 @@ class config_view(View):
 			self.remove_item(i)
 
 		data = config.get(self.category,config.get('guild',{}).get(self.category,{})).get(value,None)
-		# print(t)
-		# data = t
-		# print(data)
 		if data is None: raise
 		self.embed.description = data.get('description',None)
 		opt_type = data.get('type',None)
@@ -167,7 +163,7 @@ class config_view(View):
 				self.add_items(self.role_select,self.back_button,self.default_button)
 			case None|_: raise
 
-		self._selected_option = value#(value,opt_type)
+		self._selected_option = value
 	
 	@string_select(
 		custom_id='category_select',
@@ -199,13 +195,6 @@ class config_view(View):
 		await self.modify_config(select.values[0].id)
 		self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
-	# @user_select(
-	# 	custom_id='user_select',
-	# 	placeholder='select a role')
-	# async def user_select(self,select:Select,interaction:Interaction) -> None:
-	# 	self.selected_option = select.values[0]
-	# 	await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
 		label='<',style=2,
@@ -262,10 +251,10 @@ class config_view(View):
 		label='set',style=1,
 		custom_id='set_button')
 	async def set_button(self,button:Button,interaction:Interaction) -> None:
-		
+		option = config.get(self.category,config.get('guild',{}).get(self.category,{})).get(self.selected_option,{})
 		modal = config_modal(self,f'set {self.selected_option}',
 			[InputText(label=self.selected_option,
-				max_length=config.get(self.category,config.get('guild',{}).get(self.category,{})).get(self.selected_option,{}).get('max_length',None))])
+				max_length=option.get('max_length',None))])
 		
 		await interaction.response.send_modal(modal)
 		await modal.wait()

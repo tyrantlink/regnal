@@ -174,7 +174,8 @@ config = {
 			{
 				"description": "time (in seconds) after sending an auto response where another one will not be sent",
 				"default": 0,
-				"type": "int"
+				"type": "modal",
+				"max_length":3
 			}
 		},
 		"dad_bot":
@@ -189,7 +190,8 @@ config = {
 			{
 				"description": "time (in seconds) after sending a dad bot message where another one will not be sent",
 				"default": 0,
-				"type": "int"
+				"type": "modal",
+				"max_length":3
 			}
 		}
 	},
