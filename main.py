@@ -82,8 +82,8 @@ class client_cls(Bot):
 			guild = await self.db.guilds.read(ctx.guild.id)
 			match guild['config']['general']['hide_commands']:
 				case 'enabled': return True
-				case 'whitelist' if ctx.channel.id in guild['hc']['whitelist']: return True
-				case 'blacklist' if ctx.channel.id not in guild['hc']['blacklist']: return True
+				case 'whitelist' if ctx.channel.id in guild['data']['hide_commands']['whitelist']: return True
+				case 'blacklist' if ctx.channel.id not in guild['data']['hide_commands']['blacklist']: return True
 				case 'disabled': pass
 		try:
 			if isinstance(ctx,ApplicationContext): return await self.db.users.read(ctx.author.id,['config','hide_commands'])
