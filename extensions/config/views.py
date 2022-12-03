@@ -88,6 +88,8 @@ class config_view(View):
 			case 'max_roll':
 				if not (16384 > int(value) > 2): raise
 				return int(value)
+			case 'cooldown':
+				return int(value)
 			case _: raise
 
 	@property
