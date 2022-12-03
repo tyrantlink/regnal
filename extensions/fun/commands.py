@@ -12,6 +12,7 @@ from re import sub
 class fun_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
 		self.client = client
+		self.bees_running = {}
 
 	@slash_command(
 		name='hello',
@@ -199,8 +200,13 @@ class fun_commands(Cog):
 		if ctx.channel.name != 'spam':
 			await ctx.response.send_message('bees are not allowed here.',ephemeral=await self.client.hide(ctx))
 			return
+		if self.bees_running.get(ctx.guild.id,False):
+			await ctx.response.send_message('there may only be one bees at a time.',ephemeral=await self.client.hide(ctx))
+			return
 		await ctx.response.send_message('why. you can\'t turn it off. this is going to go on for like, 2 hours, 44 minutes, and 30 seconds. why.',ephemeral=await self.client.hide(ctx))
+		self.bees_running[ctx.guild.id] = True
 		for line in bees:
 			try: await ctx.channel.send(line)
 			except Exception: pass
 			await sleep(5)
+		self.bees_running[ctx.guild.id] = False
