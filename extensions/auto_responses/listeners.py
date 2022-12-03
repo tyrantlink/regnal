@@ -2,10 +2,10 @@ from regex import sub,search,IGNORECASE,split,fullmatch
 from discord.errors import Forbidden,HTTPException
 from utils.tyrantlib import merge_dicts
 from discord.ext.commands import Cog
+from discord import Message,Thread
 from .shared import reload_guilds
 from urllib.parse import quote
 from main import client_cls
-from discord import Message
 from asyncio import sleep
 
 
@@ -52,20 +52,22 @@ class auto_response_listeners(Cog):
 		if self.guild_responses.get(message.guild.id,None) is None:
 			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['au','custom'])
 
+		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
+
 		match guild['config']['auto_responses']:
 			case 'enabled':
 				if await self.listener_auto_response(message): return
-			case 'whitelist' if message.channel.id in guild['au']['whitelist']:
+			case 'whitelist' if channel.id in guild['au']['whitelist']:
 				if await self.listener_auto_response(message): return
-			case 'blacklist' if message.channel.id not in guild['au']['blacklist']:
+			case 'blacklist' if channel.id not in guild['au']['blacklist']:
 				if await self.listener_auto_response(message): return
 			case 'disabled': pass
 		match guild['config']['dad_bot']:
 			case 'enabled':
 				if await self.listener_dad_bot(message): return
-			case 'whitelist' if message.channel.id in guild['db']['whitelist']:
+			case 'whitelist' if channel.id in guild['db']['whitelist']:
 				if await self.listener_dad_bot(message): return
-			case 'blacklist' if message.channel.id not in guild['db']['blacklist']:
+			case 'blacklist' if channel.id not in guild['db']['blacklist']:
 				if await self.listener_dad_bot(message): return
 			case 'disabled': pass
 	
