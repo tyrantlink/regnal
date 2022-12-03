@@ -14,17 +14,14 @@ class config_commands(Cog):
 		name='config',
 		description='set config')
 	async def slash_config(self,ctx:ApplicationContext) -> None:
-		allowed_config = ['user']
-		if ctx.guild:
-			if ctx.author.guild_permissions.manage_guild:
-				allowed_config.append('guild')
-				if ctx.author.guild_permissions.view_audit_log: allowed_config.append('logging')
-		if await dev_only(ctx): allowed_config.append('/reg/nal')
-		embed_color = await self.client.embed_color(ctx)
-		embed = Embed(title='config options',description='please select a config category',color=embed_color)
-		await ctx.response.send_message(embed=embed,view=config_view(
+		embed = Embed(title='config',color=await self.client.embed_color(ctx))
+		view = config_view(
 			client=self.client,
-			allowed_config=allowed_config,
 			embed=embed,
-			embed_color=embed_color),
+			user=ctx.author,
+			current_config={
+				'user':await self.client.db.users.read(ctx.author.id,['config']),
+				'guild':await self.client.db.guilds.read(ctx.guild.id,['config']),
+				'dev':await self.client.db.inf.read('/reg/nal',['config'])})
+		await ctx.response.send_message(embed=embed,view=view,
 			ephemeral=True)

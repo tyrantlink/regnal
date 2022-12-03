@@ -62,6 +62,11 @@ class client_cls(Bot):
 				self.load_extension(f'extensions.{extension}')
 				self.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
 
+	async def _owner_init(self) -> None:
+		app = await self.application_info()
+		if app.team: self.owner_ids = {m.id for m in app.team.members}
+		else: self.owner_id = app.owner.id
+
 	def _extloaded(self) -> None:
 		cog = stack()[1].filename.split('/')[-2]
 		if cog in self._raw_loaded_extensions: return
@@ -70,12 +75,12 @@ class client_cls(Bot):
 		self._raw_loaded_extensions.append(cog)
 
 	async def embed_color(self,ctx:ApplicationContext|Interaction) -> int:
-		return await self.db.guilds.read(ctx.guild.id,['config','embed_color']) if ctx.guild else await self.db.guilds.read(0,['config','embed_color'])
+		return int(await self.db.guilds.read(ctx.guild.id,['config','general','embed_color']) if ctx.guild else await self.db.guilds.read(0,['config','general','embed_color']),16)
 
 	async def hide(self,ctx:ApplicationContext|Interaction) -> bool:
 		if ctx.guild:
 			guild = await self.db.guilds.read(ctx.guild.id)
-			match guild['config']['hide_commands']:
+			match guild['config']['general']['hide_commands']:
 				case 'enabled': return True
 				case 'whitelist' if ctx.channel.id in guild['hc']['whitelist']: return True
 				case 'blacklist' if ctx.channel.id not in guild['hc']['blacklist']: return True
@@ -86,12 +91,12 @@ class client_cls(Bot):
 		except Exception: pass
 		return True
 		
-
 	async def on_connect(self) -> None:
 		if 'clear' in argv:
 			await self.sync_commands()
 			print('cleared commands')
 			_exit(0)
+		await self._owner_init()
 		if not DEV_MODE:
 			await self.db.ready()
 			await self.sync_commands()
@@ -119,11 +124,14 @@ class client_cls(Bot):
 		if isinstance(error,CheckFailure): return
 		await self.log.error(error)
 
-	async def on_application_command_error(self,ctx:ApplicationContext,error:ApplicationCommandInvokeError) -> None:
+	async def on_application_command_error(self,ctx:ApplicationContext|Interaction,error:ApplicationCommandInvokeError) -> None:
 		if isinstance(error,CheckFailure): return
 		embed = Embed(title='an error has occurred!',description='the issue has been automatically reported and should be fixed soon.',color=0xff6969)
 		embed.add_field(name='error',value=str(error))
-		await ctx.respond(embed=embed,ephemeral=True)
+		if isinstance(ctx,Interaction):
+			if not ctx.response.is_done(): await ctx.response.send_message(embed=embed,ephemeral=True)
+			else: await ctx.followup.send(embed=embed,ephemeral=True)
+		else: await ctx.respond(embed=embed,ephemeral=True)
 		await self.log.error(error)
 		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
 		await channel.send(f'```\n{"".join(format_tb(error.original.__traceback__))[:1992]}\n```')
@@ -155,7 +163,7 @@ class base_commands(Cog):
 		if self.client.au:
 			auto_response_count = len([j for k in [list(self.client.au[i].keys()) for i in list(self.client.au.keys())] for j in k])
 			if ctx.guild:
-				g_au = await self.client.db.guilds.read(ctx.guild.id,['au','custom'])
+				g_au = await self.client.db.guilds.read(ctx.guild.id,['data','auto_responses','custom'])
 				if g_au_count:=len([j for k in [list(g_au[i].keys()) for i in list(g_au.keys())] for j in k]):
 					auto_response_count = f'{auto_response_count}(+{g_au_count})'
 			embed.add_field(name='auto responses',value=auto_response_count,inline=True)
@@ -187,6 +195,7 @@ class message_handler(Cog):
 		if not await self.client.db.guilds.read(guild.id):
 			await self.client.db.guilds.new(guild.id)
 			await self.client.db.guilds.write(guild.id,['name'],guild.name)
+			await self.client.db.guilds.write(guild.id,['owner'],guild.owner.id)
 
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
@@ -208,18 +217,17 @@ class message_handler(Cog):
 		if message.guild:
 			# create new guild document if current guild doesn't exist
 			if not await self.client.db.guilds.read(message.guild.id):
-				await self.client.db.guilds.new(message.guild.id)
-				await self.client.db.guilds.write(message.guild.id,['name'],message.guild.name)
+				await self.on_guild_join(message.guild)
 			# increase user message count on guild leaderboard
-			await self.client.db.guilds.inc(message.guild.id,['leaderboards','messages',str(message.author.id)])
+			await self.client.db.guilds.inc(message.guild.id,['data','leaderboards','messages',str(message.author.id)])
 			# if author not in active member or ignored, add to active member list
 			if message.author.bot: return
-			if message.author.id in await self.client.db.guilds.read(message.guild.id,['active_members']): return
+			if message.author.id in await self.client.db.guilds.read(message.guild.id,['data','talking_stick','active']): return
 			if await self.client.db.users.read(message.author.id,['config','ignored']): return
-			if ts_limit:=await self.client.db.guilds.read(message.guild.id,['roles','talking_stick_limit']):
+			if ts_limit:=await self.client.db.guilds.read(message.guild.id,['config','talking_stick','limit']):
 				if not message.author.get_role(ts_limit): return
 
-			await self.client.db.guilds.append(message.guild.id,['active_members'],message.author.id)
+			await self.client.db.guilds.append(message.guild.id,['data','talking_stick','active'],message.author.id)
 
 client = client_cls()
 

@@ -50,24 +50,24 @@ class auto_response_listeners(Cog):
 			self.base_responses = await self.client.db.inf.read('auto_responses',['au'])
 			self.client.au = self.base_responses
 		if self.guild_responses.get(message.guild.id,None) is None:
-			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['au','custom'])
+			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['data','auto_responses','custom'])
 
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
 
-		match guild['config']['auto_responses']:
+		match guild['config']['auto_responses']['enabled']:
 			case 'enabled':
 				if await self.listener_auto_response(message): return
-			case 'whitelist' if channel.id in guild['au']['whitelist']:
+			case 'whitelist' if channel.id in guild['data']['auto_responses']['whitelist']:
 				if await self.listener_auto_response(message): return
-			case 'blacklist' if channel.id not in guild['au']['blacklist']:
+			case 'blacklist' if channel.id not in guild['data']['auto_responses']['blacklist']:
 				if await self.listener_auto_response(message): return
 			case 'disabled': pass
-		match guild['config']['dad_bot']:
+		match guild['config']['dad_bot']['enabled']:
 			case 'enabled':
 				if await self.listener_dad_bot(message): return
-			case 'whitelist' if channel.id in guild['db']['whitelist']:
+			case 'whitelist' if channel.id in guild['data']['dad_bot']['whitelist']:
 				if await self.listener_dad_bot(message): return
-			case 'blacklist' if channel.id not in guild['db']['blacklist']:
+			case 'blacklist' if channel.id not in guild['data']['dad_bot']['blacklist']:
 				if await self.listener_dad_bot(message): return
 			case 'disabled': pass
 	

@@ -79,7 +79,7 @@ class commands_commands(Cog):
 		guild_only=True)
 	async def slash_leaderboard_messages(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['leaderboards','messages'])).items(),key=lambda item: item[1],reverse=True)}.items()
+		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['data','leaderboards','messages'])).items(),key=lambda item: item[1],reverse=True)}.items()
 		output,index,nl = [f'total: {sum([int(v) for k,v in res])}\n'],1,'\n'
 		for id,count in res:
 			line = f'{index}{("th" if 4<=index%100<=20 else {1:"st",2:"nd",3:"rd"}.get(index%10, "th"))} - '
@@ -101,7 +101,7 @@ class commands_commands(Cog):
 		guild_only=True)
 	async def slash_leaderboard_sticks(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['leaderboards','sticks'])).items(),key=lambda item: item[1],reverse=True)}.items()
+		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['data','leaderboards','sticks'])).items(),key=lambda item: item[1],reverse=True)}.items()
 		output,index,nl = [f'total: {sum([int(v) for k,v in res])}\n'],1,'\n'
 		for id,count in res:
 			line = f'{index}{("th" if 4<=index%100<=20 else {1:"st",2:"nd",3:"rd"}.get(index%10, "th"))} - '

@@ -17,7 +17,7 @@ class auto_response_commands(Cog):
 		guild_only=True,default_member_permissions=Permissions(manage_channels=True),
 		options=[option(str,name='option',description='auto_response commands',choices=['add','remove','list'])])
 	async def slash_auto_response(self,ctx:ApplicationContext,option:str):
-		au_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','auto_responses'])
+		au_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','auto_responses','enabled'])
 		match option:
 			case 'add'|'remove':
 				match au_cfg:
@@ -25,10 +25,10 @@ class auto_response_commands(Cog):
 						await ctx.response.send_message(f'auto responses are currently {au_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
 					case 'whitelist'|'blacklist':
 						if option == 'add':
-							await self.client.db.guilds.append(ctx.guild.id,['au',au_cfg],ctx.channel.id)
+							await self.client.db.guilds.append(ctx.guild.id,['data','auto_responses',au_cfg],ctx.channel.id)
 							res = ('added','to')
 						else:
-							await self.client.db.guilds.remove(ctx.guild.id,['au',au_cfg],ctx.channel.id)
+							await self.client.db.guilds.remove(ctx.guild.id,['data','auto_responses',au_cfg],ctx.channel.id)
 							res = ('removed','from')
 						await ctx.response.send_message(f'successfully {res[0]} {ctx.channel.mention} {res[1]} the {au_cfg}.',ephemeral=await self.client.hide(ctx))
 					case _: raise
@@ -37,7 +37,7 @@ class auto_response_commands(Cog):
 					case 'enabled'|'disabled':
 						await ctx.response.send_message(f'auto responses are currently {au_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
 					case 'whitelist'|'blacklist':
-						await ctx.response.send_message(embed=Embed(title=au_cfg,description='\n'.join([str(i) for i in await self.client.db.guilds.read(ctx.guild.id,['au',au_cfg])])),ephemeral=await self.client.hide(ctx))
+						await ctx.response.send_message(embed=Embed(title=au_cfg,description='\n'.join([str(i) for i in await self.client.db.guilds.read(ctx.guild.id,['data','auto_responses',au_cfg])])),ephemeral=await self.client.hide(ctx))
 					case _: raise
 			case _: raise
 	
@@ -47,7 +47,7 @@ class auto_response_commands(Cog):
 		guild_only=True,default_member_permissions=Permissions(manage_channels=True),
 		options=[option(str,name='option',description='dad_bot commands',choices=['add','remove','list'])])
 	async def slash_dad_bot(self,ctx:ApplicationContext,option:str):
-		db_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','dad_bot'])
+		db_cfg = await self.client.db.guilds.read(ctx.guild.id,['config','dad_bot','enabled'])
 		match option:
 			case 'add'|'remove':
 				match db_cfg:
@@ -55,10 +55,10 @@ class auto_response_commands(Cog):
 						await ctx.response.send_message(f'dad bot is currently {db_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
 					case 'whitelist'|'blacklist':
 						if option == 'add':
-							await self.client.db.guilds.append(ctx.guild.id,['db',db_cfg],ctx.channel.id)
+							await self.client.db.guilds.append(ctx.guild.id,['data','dad_bot',db_cfg],ctx.channel.id)
 							res = ('added','to')
 						else:
-							await self.client.db.guilds.remove(ctx.guild.id,['db',db_cfg],ctx.channel.id)
+							await self.client.db.guilds.remove(ctx.guild.id,['data','dad_bot',db_cfg],ctx.channel.id)
 							res = ('removed','from')
 						await ctx.response.send_message(f'successfully {res[0]} {ctx.channel.mention} {res[1]} the {db_cfg}.',ephemeral=await self.client.hide(ctx))
 					case _: raise
@@ -67,7 +67,7 @@ class auto_response_commands(Cog):
 					case 'enabled'|'disabled':
 						await ctx.response.send_message(f'dad bot is currently {db_cfg} for all channels. use /config to switch to a whitelist or blacklist.',ephemeral=await self.client.hide(ctx))
 					case 'whitelist'|'blacklist':
-						await ctx.response.send_message(embed=Embed(title=db_cfg,description='\n'.join([str(i) for i in await self.client.db.guilds.read(ctx.guild.id,['db',db_cfg])])),ephemeral=await self.client.hide(ctx))
+						await ctx.response.send_message(embed=Embed(title=db_cfg,description='\n'.join([str(i) for i in await self.client.db.guilds.read(ctx.guild.id,['data','dad_bot',db_cfg])])),ephemeral=await self.client.hide(ctx))
 					case _: raise
 			case _: raise
 
@@ -82,7 +82,7 @@ class auto_response_commands(Cog):
 			option(Member,name='user',description='limit response to specific user',required=False,default=None),
 			option(bool,name='nsfw',description='only respond in nsfw channels',required=False,default=None)])
 	async def slash_custom_auto_response(self,ctx:ApplicationContext,action:str,method:str,regex:bool,user:Member,nsfw:bool) -> None:
-		custom_au = await self.client.db.guilds.read(ctx.guild.id,['au','custom'])
+		custom_au = await self.client.db.guilds.read(ctx.guild.id,['data','auto_responses','custom'])
 		au_length = sum([len(i) for i in custom_au.values()])
 		match action:
 			case 'add':

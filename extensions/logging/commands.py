@@ -55,15 +55,6 @@ class logging_commands(Cog):
 
 		return embed
 
-	@logging.command(name='set_channel',
-		description='set logging channel',
-		guild_only=True,default_member_permissions=Permissions(manage_guild=True),
-		options=[
-			option(TextChannel,name='channel',description='channel to broadcast logs to')])
-	async def slash_logging_set_channel(self,ctx:ApplicationContext,channel:TextChannel) -> None:
-		await self.client.db.guilds.write(ctx.guild.id,['log_config','log_channel'],channel.id)
-		await ctx.response.send_message('logging enabled',ephemeral=await self.client.hide(ctx))
-
 	@logging.command(name='get',
 		description='get logs from message by id',
 		guild_only=True,default_member_permissions=Permissions(view_audit_log=True),
@@ -103,7 +94,7 @@ class logging_commands(Cog):
 			option(str,name='sorting',description='sorting order',choices=['newest first','oldest first'])])
 	async def slash_logging_all(self,ctx:ApplicationContext,sorting:str) -> None:
 		await ctx.defer(ephemeral=True)
-		if time()-await self.client.db.guilds.read(ctx.guild.id,['data','last_history']) < 86400:
+		if time()-await self.client.db.guilds.read(ctx.guild.id,['data','logging','last_history']) < 86400:
 			await ctx.followup.send('you cannot use this command again until 24 hours have passed.',ephemeral=True)
 			return
 
@@ -115,7 +106,7 @@ class logging_commands(Cog):
 			return
 
 		await ctx.followup.send('all logs',file=File(StringIO(dumps(data,indent=2)),'history.json'),ephemeral=True)
-		await self.client.db.guilds.write(ctx.guild.id,['data','last_history'],time())
+		await self.client.db.guilds.write(ctx.guild.id,['data','logging','last_history'],time())
 
 	@message_command(
 		name='message data',
