@@ -1,4 +1,6 @@
 /.vscode
+_*
+!__*
 __pycache__
 /images
 /log
@@ -6,12 +8,11 @@ __pycache__
 /utils2
 venv
 /.testfiles
-dev
+/dev
 *.old
 last_update
 /music
 /content/to_mongo
-_*
 test.py
 /tmp/nsfw_filter/*
 /nsfw_model

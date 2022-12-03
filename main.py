@@ -15,8 +15,8 @@ from os.path import exists
 from inspect import stack
 from utils.log import log
 from asyncio import sleep
+from os import _exit,walk
 from json import loads
-from os import _exit
 from sys import argv
 
 DEV_MODE = exists('dev')
@@ -35,7 +35,6 @@ with open('mongo') as mongo:
 	mongo = MongoClient(mongo.read())['reg-nal']['INF']
 	extensions = mongo.find_one({'_id':'/reg/nal'})['extensions']
 	benv = mongo.find_one({'_id':'env'})
-	config = benv['config']
 	activity_options = benv['activities']
 
 if DEV_MODE:
@@ -55,16 +54,16 @@ class client_cls(Bot):
 		self.log = log(self.db,DEV_MODE)
 		self.add_cog(base_commands(self))
 		self.add_cog(message_handler(self))
-		self.lines = {k.split('/')[-1]:get_line_count(f'{k}.py') for k in ['main','utils/data','utils/log','utils/tyrantlib']}
+		self.lines = {k.split('/')[-1]:get_line_count(f'{k}.py') for k in ['main']+[f"utils/{'.'.join(i.split('.')[:-1])}" for i in [f for p,d,f in walk('utils')][0] if not (i.startswith('_') or i.endswith('.old'))]}
 		with open('.git/refs/heads/master') as git: self.commit_id = git.read(7)
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
 		for extension in extensions:
 			if extensions[extension]:
 				self.load_extension(f'extensions.{extension}')
-				self.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
+				self.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
 
 	def _extloaded(self) -> None:
-		cog = stack()[1].filename.replace('.py','').split('/')[-1]
+		cog = stack()[1].filename.split('/')[-2]
 		if cog in self._raw_loaded_extensions: return
 
 		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[EXT_LOAD] {cog}')

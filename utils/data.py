@@ -135,7 +135,7 @@ class db:
 	@property
 	def inf(self) -> DataCollection: return DataCollection(client.INF)
 	@property
-	def dd_roles(self) -> DataCollection: return DataCollection(client.dd_roles)
+	def role_menu(self) -> DataCollection: return DataCollection(client.role_menu)
 	@property
 	def guilds(self) -> DataCollection: return DataCollection(client.guilds)
 	@property
