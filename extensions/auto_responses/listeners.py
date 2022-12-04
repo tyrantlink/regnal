@@ -2,7 +2,7 @@ from regex import sub,search,IGNORECASE,split,fullmatch
 from discord.errors import Forbidden,HTTPException
 from utils.tyrantlib import merge_dicts
 from discord.ext.commands import Cog
-from discord import Message,Thread
+from discord import Message,Thread,TextChannel
 from .shared import reload_guilds
 from urllib.parse import quote
 from main import client_cls
@@ -55,7 +55,7 @@ class auto_response_listeners(Cog):
 			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['data','auto_responses','custom'])
 
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
-		if time()-self.cooldowns['au'].get(message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
+		if time()-self.cooldowns['au'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
 			match guild['config']['auto_responses']['enabled']:
 				case 'enabled':
 					if await self.listener_auto_response(message): return
@@ -64,7 +64,7 @@ class auto_response_listeners(Cog):
 				case 'blacklist' if channel.id not in guild['data']['auto_responses']['blacklist']:
 					if await self.listener_auto_response(message): return
 				case 'disabled': pass
-		if time()-self.cooldowns['db'].get(message.channel.id,0) > guild['config']['dad_bot']['cooldown']:
+		if time()-self.cooldowns['db'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['dad_bot']['cooldown']:
 			match guild['config']['dad_bot']['enabled']:
 				case 'enabled':
 					if await self.listener_dad_bot(message): return
@@ -73,7 +73,7 @@ class auto_response_listeners(Cog):
 				case 'blacklist' if channel.id not in guild['data']['dad_bot']['blacklist']:
 					if await self.listener_dad_bot(message): return
 				case 'disabled': pass
-	
+
 	def au_check(self,responses,message:str) -> tuple[str,str]|None:
 		for key,data in responses['exact'].items():
 			if data.get('regex',False):
@@ -120,7 +120,7 @@ class auto_response_listeners(Cog):
 			await sleep(delay)
 			await message.channel.send(followup)
 
-		self.cooldowns['au'].update({message.channel.id:int(time())})
+		self.cooldowns['au'].update({message.author.id if await self.client.db.guilds.read(message.guild.id,['config','auto_responses','cooldown_per_user']) else message.channel.id:int(time())})
 		await self.client.log.listener(message,category=check[0],trigger=check[1])
 		return True
 
@@ -145,6 +145,6 @@ class auto_response_listeners(Cog):
 		try: await message.channel.send(f'hi{response}, {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
 		except Forbidden: return False
 		except HTTPException: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
-
-		self.cooldowns['db'].update({message.channel.id:int(time())})
+		
+		self.cooldowns['db'].update({message.author.id if await self.client.db.guilds.read(message.guild.id,['config','dad_bot','cooldown_per_user']) else message.channel.id:int(time())})
 		await self.client.log.listener(message,splitter=splitter)

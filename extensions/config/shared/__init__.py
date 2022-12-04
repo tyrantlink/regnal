@@ -176,6 +176,12 @@ config = {
 				"default": 0,
 				"type": "modal",
 				"max_length":3
+			},
+			"cooldown_per_user":
+			{
+				"description": "if true, the set cooldown will be on a per user basis,\nif false, the cooldown will be on a per channel basis",
+				"default": False,
+				"type": "bool"
 			}
 		},
 		"dad_bot":
@@ -192,6 +198,12 @@ config = {
 				"default": 0,
 				"type": "modal",
 				"max_length":3
+			},
+			"cooldown_per_user":
+			{
+				"description": "if true, the set cooldown will be on a per user basis,\nif false, the cooldown will be on a per channel basis",
+				"default": False,
+				"type": "bool"
 			}
 		}
 	},
