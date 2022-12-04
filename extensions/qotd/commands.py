@@ -1,9 +1,10 @@
 from discord import Embed,ApplicationContext,Permissions,Guild,Message,Thread
 from discord.commands import Option as option,SlashCommandGroup
+from datetime import datetime,time as dtime,timedelta
 from utils.tyrantlib import MakeshiftClass
+from discord.errors import Forbidden
 from discord.ext.commands import Cog
 from discord.ext.tasks import loop
-from datetime import datetime
 from .shared import questions
 from main import client_cls
 from random import choice
@@ -13,66 +14,59 @@ from time import time
 class qotd_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
 		self.client = client
+		# do if DEV_MODE when you eventually make this some kind of accessible flag
+		# self.qotd_loop.change_interval(time=(datetime.now()+timedelta(seconds=10)).astimezone(datetime.now().astimezone().tzinfo).timetz())
 		self.qotd_loop.start()
 
 	qotd = SlashCommandGroup('qotd','question of the day commands')
 
 	async def _send_qotd(self,guild:Guild) -> tuple[Message|None,Thread|None]:
-		data = await self.client.db.guilds.read(guild.id,[])
-		if not data['config']['qotd']['enabled'] or not data['config']['qotd']['channel']: return (None,None)
-		if data['data']['qotd']['nextup']:
-			question = data['data']['qotd']['nextup'][0]
+		doc = await self.client.db.guilds.read(guild.id,[])
+		data:dict   = doc.get('data',{}).get('qotd',None)
+		config:dict = doc.get('config',{}).get('qotd',None)
+		if not config.get('enabled',False) or not config.get('channel',None): return (None,None)
+		if next:=data.get('nextup',[]):
+			question = next[0]
 			await self.client.db.guilds.pop(guild.id,['data','qotd','nextup'],1)
 		else:
-			question = choice(questions+data['data']['qotd']['pool'])
-		msg = await guild.get_channel(data['config']['qotd']['channel']).send(
+			question = choice(questions+data.get('pool',[]))
+		msg = await guild.get_channel(config.get('channel',None)).send(
 			embed=Embed(
 				title='❓❔ Question of the Day ❔❓',
 				description=question,
 				color=await self.client.embed_color(MakeshiftClass(guild=guild))))
-		thread = await msg.create_thread(name=f'qotd-{datetime.now().strftime("%A.%d.%m.%y").lower()}',auto_archive_duration=1440)
-		if role:=[i for i in msg.guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]:
-			await thread.send(role[0].mention)
-		await self.client.db.guilds.write(guild.id,['data','qotd','last'],int(time()))
-		return (msg,thread)
+		save = [int(time()),msg.id]
 
-	# @qotd.command(
-	# 	name='setup',
-	# 	description='setup the question of the day',
-	# 	guild_only=True,default_member_permissions=Permissions(manage_guild=True),
-	# 	options=[
-	# 		option(TextChannel,name='channel',description='qotd question channel')])
-	# async def slash_qotd_setup(self,ctx:ApplicationContext,channel:TextChannel) -> None:
-	# 	if not channel.can_send():
-	# 		await ctx.response.send_message(embed=Embed(title='ERROR',description='/reg/nal must be able to send messages in this channel.\nplease fix the permissions and try again.',color=0xff6969),
-	# 			ephemeral=await self.client.hide(ctx))
-	# 		return
-	# 	await ctx.response.defer(ephemeral=await self.client.hide(ctx))
-	# 	response = Embed(title='QOTD setup complete!',description='/reg/nal will ping any role named qotd, bringing all users with that role into the thread\nconsider making a role menu with /role_menu to allow users to self-assign a role',color=await self.client.embed_color(ctx))
-	# 	response.add_field(name='channel',value=channel.mention,inline=False)
+		if config.get('spawn_threads',False):
+			if config.get('delete_after',False):
+				thread_name = 'qotd'
+				if len(last:=data.get('last',[])) == 3:
+					try: await guild.get_channel(config.get('channel',None)).get_thread(last[-1]).delete()
+					except Forbidden:
+						if guild.owner:
+							await guild.owner.send(embed=Embed(title='permission error!',description='you enabled the `delete_after` QOTD option,\nbut /reg/nal does not have permission to delete threads,\nplease give him the `Manage Threads` permission, or disable the `delete_after` option',color=0xff6969))
+			else: thread_name = f'qotd-{datetime.now().strftime("%A.%d.%m.%y").lower()}'
+			thread = await msg.create_thread(name=thread_name,auto_archive_duration=1440)
+			save.append(thread.id)
+			if role:=[i for i in msg.guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]:
+				await thread.send(role[0].mention)
 
-	# 	if not await self.client.db.guilds.read(ctx.guild.id,['config','qotd']):
-	# 		await self.client.db.guilds.write(ctx.guild.id,['config','qotd'],True)
-	# 		response.add_field(name='warning!',value='qotd was disabled in config, it has been enabled for your convenience\nif you wish to disable it, run `/config`',inline=False)
-	# 	if not time()-await self.client.db.guilds.read(ctx.guild.id,['data','last_qotd']) < 86400:
-	# 		response.add_field(name='ask the first question!',value='run the command `/qotd now` to ask a question immediately, or you can wait until <t:1669568400:t> for the question to be automatically asked.',inline=False)
-
-	# 	await self.client.db.guilds.write(ctx.guild.id,['channels','qotd'],channel.id)
-	# 	await ctx.followup.send(embed=response,ephemeral=await self.client.hide(ctx))
+		await self.client.db.guilds.write(guild.id,['data','qotd','last'],save)
+		return msg
 
 	@qotd.command(
 		name='now',
 		description='ask a question immediately | once per day',
 		guild_only=True,default_member_permissions=Permissions(manage_guild=True))
 	async def slash_qotd_now(self,ctx:ApplicationContext) -> None:
-		if time()-await self.client.db.guilds.read(ctx.guild.id,['data','qotd','last']) < 86400:
+		if time()-await self.client.db.guilds.read(ctx.guild.id,['data','qotd','last'])[0] < 86400:
 			await ctx.response.send_message(embed=Embed(title='ERROR',description='it has not been 24 hours since the last question was asked!',color=0xff6969),
 				ephemeral=await self.client.hide(ctx))
 			return
 		await ctx.response.defer(ephemeral=await self.client.hide(ctx))
 		output = await self._send_qotd(ctx.guild)
 		if None in output: return
-		await ctx.followup.send(embed=Embed(title='success',description=f'read the question [here](<{output[0].jump_url}>)',color=await self.client.embed_color(ctx)),
+		await ctx.followup.send(embed=Embed(title='success',description=f'read the question [here](<{output.jump_url}>)',color=await self.client.embed_color(ctx)),
 			ephemeral=await self.client.hide(ctx))
 
 	@qotd.command(
@@ -98,9 +92,8 @@ class qotd_commands(Cog):
 				embed.add_field(name='added to question pool',value=question)
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
-	@loop(minutes=1)
+	@loop(time=dtime(9,0,tzinfo=datetime.now().astimezone().tzinfo))
 	async def qotd_loop(self) -> None:
-		if datetime.now().strftime("%H:%M") == '09:00':
-			for guild in self.client.guilds:
-				try: await self._send_qotd(guild)
-				except Exception: continue
+		for guild in self.client.guilds:
+			try: await self._send_qotd(guild)
+			except Exception as e: self.client.on_error(e)
