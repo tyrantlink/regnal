@@ -29,7 +29,7 @@ class logging_listeners(Cog):
 				await message.delete()
 
 				if (
-					not guild_data['config']['logging']['log_channel'] or
+					not guild_data['config']['logging']['channel'] or
 					not guild_data['config']['logging']['filtered_messages'] or
 					guild_data['config']['logging']['log_bots'] and message.author.bot):
 					await self.log(message)
@@ -42,7 +42,7 @@ class logging_listeners(Cog):
 				embed.set_footer(text=f'message id: {message.id}\nuser id:    {message.author.id}')
 				embed.add_field(name=f'DELETED  <t:{int(message.created_at.timestamp())}:t>',value=(message.content if len(message.content) <= 1024 else f'{message.content[:1021]}...') or '​',inline=False)
 				
-				log_msg = await self.client.get_channel(guild_data['config']['logging']['log_channel']).send(embed=embed)
+				log_msg = await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
 				await self.log(message,log_message=log_msg)
 
 	@Cog.listener()
@@ -61,7 +61,7 @@ class logging_listeners(Cog):
 				await after.delete()
 
 		if (
-			not guild_data['config']['logging']['log_channel'] or
+			not guild_data['config']['logging']['channel'] or
 			not guild_data['config']['logging']['edited_messages'] or
 			guild_data['config']['logging']['log_bots'] and before.author.bot):
 			await self.log(before,after)
@@ -85,7 +85,7 @@ class logging_listeners(Cog):
 		embed.add_field(name=f'ORIGINAL <t:{int((before.edited_at or before.created_at).timestamp())}:t>',value=(before.content if len(before.content) <= 1024 else f'{before.content[:1021]}...') or '​',inline=False)
 		embed.add_field(name=f'EDITED   <t:{int((after.edited_at or after.created_at).timestamp())}:t>',value=(after.content if len(after.content) <= 1024 else f'{after.content[:1021]}...') or '​',inline=False)
 		
-		log_msg = await self.client.get_channel(guild_data['config']['logging']['log_channel']).send(embed=embed)
+		log_msg = await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
 		await self.log(before,after,log_message=log_msg)
 	
 	@Cog.listener()
@@ -101,7 +101,7 @@ class logging_listeners(Cog):
 		if not guild_data['config']['logging']['enabled']: return
 
 		if (
-			not guild_data['config']['logging']['log_channel'] or
+			not guild_data['config']['logging']['channel'] or
 			not guild_data['config']['logging']['deleted_messages'] or
 			guild_data['config']['logging']['log_bots'] and message.author.bot):
 			await self.log(message,deleted_at=deleted_at)
@@ -125,7 +125,7 @@ class logging_listeners(Cog):
 			
 			embed.add_field(name='attachments',value='\n'.join([a.filename for a in message.attachments]),inline=False)
 
-		log_msg = await self.client.get_channel(guild_data['config']['logging']['log_channel']).send(embed=embed)
+		log_msg = await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
 		await self.log(message,deleted_at=deleted_at,log_message=log_msg)
 
 	@Cog.listener()
@@ -136,7 +136,7 @@ class logging_listeners(Cog):
 		if not guild_data['config']['logging']['enabled']: return
 
 		if (
-			not guild_data['config']['logging']['log_channel'] or
+			not guild_data['config']['logging']['channel'] or
 			not guild_data['config']['logging']['deleted_messages'] or
 			guild_data['config']['logging']['log_bots'] and message[0].author.bot):
 			for message in messages: await self.log(message)
@@ -148,14 +148,14 @@ class logging_listeners(Cog):
 		for chunk in split_list([str(m.id) for m in messages],48):
 			embed.add_field(name=f'DELETED <t:{int(deleted_at.timestamp())}:t>',value='\n'.join(chunk))
 
-		log_msg = await self.client.get_channel(guild_data['config']['logging']['log_channel']).send(embed=embed)
+		log_msg = await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
 		for message in messages: await self.log(message,deleted_at=deleted_at,log_message=log_msg)
 
 	@Cog.listener()
 	async def on_member_join(self,member:Member) -> None:
 		guild_data = await self.client.db.guilds.read(member.guild.id)
 
-		if guild_data['config']['logging']['log_channel'] and guild_data['config']['logging']['member_join']:
+		if guild_data['config']['logging']['channel'] and guild_data['config']['logging']['member_join']:
 			embed = Embed(
 				title=f'{member.name} joined the server',
 				description=f"""id: {member.id}
@@ -163,13 +163,13 @@ class logging_listeners(Cog):
 				discriminator: {member.discriminator}""",
 				color=0x69ff69)
 			embed.set_thumbnail(url=member.display_avatar.with_size(512).with_format('png').url)
-			await self.client.get_channel(guild_data['config']['logging']['log_channel']).send(embed=embed)
+			await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
 
 	@Cog.listener()
 	async def on_member_remove(self,member:Member) -> None:
 		guild_data = await self.client.db.guilds.read(member.guild.id)
 		
-		if guild_data['config']['logging']['log_channel'] and guild_data['config']['logging']['member_leave']:
+		if guild_data['config']['logging']['channel'] and guild_data['config']['logging']['member_leave']:
 			embed = Embed(
 				title=f'{member.name} left the server',
 				description=f"""id: {member.id}
@@ -177,7 +177,7 @@ class logging_listeners(Cog):
 				discriminator: {member.discriminator}""",
 				color=0xff6969)
 			embed.set_thumbnail(url=member.display_avatar.with_size(512).with_format('png').url)
-			await self.client.get_channel(guild_data['config']['logging']['log_channel']).send(embed=embed)
+			await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
 
 	async def log(self,message:Message,after_message:Message=None,deleted_at:datetime=None,log_message:Message=None) -> None:
 		if message.author == self.client.user: return
