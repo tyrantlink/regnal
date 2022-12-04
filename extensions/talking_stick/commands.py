@@ -96,7 +96,7 @@ class talking_stick_commands(Cog):
 			embed=Embed(
 				title=f'chances: 1/{len(active_members)}',
 				description='\n'.join([f'<@!{member_id}>' if member_id != rand else f'>>><@!{member_id}><<<' for member_id in active_members]),
-				color=await self.client.db.guilds.read(guild.id,['config','general','embed_color'])))
+				color=await self.client.embed_color(MakeshiftClass(guild=guild))))
 
 		await self.client.log.talking_stick(MakeshiftClass(guild=guild,user=member))
 

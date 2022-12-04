@@ -1,5 +1,6 @@
-from discord import TextChannel,Embed,ApplicationContext,Permissions,Guild,Message,Thread
+from discord import Embed,ApplicationContext,Permissions,Guild,Message,Thread
 from discord.commands import Option as option,SlashCommandGroup
+from utils.tyrantlib import MakeshiftClass
 from discord.ext.commands import Cog
 from discord.ext.tasks import loop
 from datetime import datetime
@@ -7,6 +8,7 @@ from .shared import questions
 from main import client_cls
 from random import choice
 from time import time
+
 
 class qotd_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
@@ -27,7 +29,7 @@ class qotd_commands(Cog):
 			embed=Embed(
 				title='❓❔ Question of the Day ❔❓',
 				description=question,
-				color=await self.client.db.guilds.read(guild.id,['config','general','embed_color'])))
+				color=await self.client.embed_color(MakeshiftClass(guild=guild))))
 		thread = await msg.create_thread(name=f'qotd-{datetime.now().strftime("%A.%d.%m.%y").lower()}',auto_archive_duration=1440)
 		if role:=[i for i in msg.guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]:
 			await thread.send(role[0].mention)
