@@ -6,7 +6,7 @@ from main import client_cls,extensions
 from .modals import dev_modal
 from asyncio import sleep
 from json import dumps
-from os import system
+from os import system,walk
 
 
 class dev_commands(Cog):
@@ -187,8 +187,8 @@ class dev_commands(Cog):
 			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
 			return
 		self.client.reload_extension(f'extensions.{extension}')
-		if sync: await self.client.sync_commands()
-		self.client.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
+		if sync: await self.client.sync_commands(force=True)
+		self.client.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
 		await ctx.response.send_message(f'successfully reloaded {extension}',ephemeral=True)
 
 	@dev.command(
@@ -205,7 +205,7 @@ class dev_commands(Cog):
 		self.client.load_extension(f'extensions.{extension}')
 		if sync: await self.client.sync_commands()
 		self.client._raw_loaded_extensions.append(extension)
-		self.client.lines.update({extension:get_line_count(f'extensions/{extension}.py')})
+		self.client.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
 		await ctx.response.send_message(f'successfully loaded {extension}',ephemeral=True)
 
 	@dev.command(
