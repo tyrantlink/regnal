@@ -1,10 +1,10 @@
 from discord import Role,TextChannel,Embed,ApplicationContext,Guild,Permissions,Member
-from discord.commands import Option as option,SlashCommandGroup
+from discord.commands import SlashCommandGroup
+from datetime import datetime,time as dtime
 from utils.tyrantlib import MakeshiftClass
 from discord.ext.commands import Cog
 from discord.errors import NotFound
 from discord.ext.tasks import loop
-from datetime import datetime
 from main import client_cls
 from random import choice
 
@@ -21,24 +21,6 @@ class talking_stick_commands(Cog):
 			await ctx.response.send_message('the talking stick is not enabled on this server. enable it with /config',ephemeral=await self.client.hide(ctx))
 			return False
 		return True
-
-	# @stick.command(
-	# 	name='setup',
-	# 	description='setup the talking stick',
-	# 	guild_only=True,default_member_permissions=Permissions(manage_guild=True,manage_roles=True),
-	# 	options=[
-	# 		option(Role,name='role',description='talking stick role'),
-	# 		option(TextChannel,name='channel',description='talking stick broadcast channel'),
-	# 		option(Role,name='limit_role',description='required role to be eligible for talking stick',default=None,required=False)])
-	# async def slash_stick_setup(self,ctx:ApplicationContext,role:Role,channel:TextChannel,limit_role:Role) -> None:	
-
-	# 	if not await self.check(ctx): return
-		
-	# 	await self.client.db.guilds.write(ctx.guild.id,['roles','talking_stick'],role.id)
-	# 	await self.client.db.guilds.write(ctx.guild.id,['channels','talking_stick'],channel.id)
-	# 	await self.client.db.guilds.write(ctx.guild.id,['roles','talking_stick_limit'],limit_role.id)
-
-	# 	await ctx.response.send_message(f'successfully set channel to {channel.name} and role to {role.mention}',ephemeral=await self.client.hide(ctx))
 
 	@stick.command(
 		name='reroll',
@@ -100,13 +82,12 @@ class talking_stick_commands(Cog):
 
 		await self.client.log.talking_stick(MakeshiftClass(guild=guild,user=member))
 
-	@loop(minutes=1)
+	@loop(time=dtime(9,0,tzinfo=datetime.now().astimezone().tzinfo))
 	async def talking_stick_loop(self) -> None:
-		if datetime.now().strftime("%H:%M") == '09:00':
-			for guild in self.client.guilds:
-				try:
-					data = await self.client.db.guilds.read(guild.id,['config','talking_stick'])
-					if not data['enabled'] or not data['role'] or not data['channel']: continue
-					await self.roll_talking_stick(guild)
-				except Exception as error:
-					continue
+		for guild in self.client.guilds:
+			try:
+				data = await self.client.db.guilds.read(guild.id,['config','talking_stick'])
+				if not data['enabled'] or not data['role'] or not data['channel']: continue
+				await self.roll_talking_stick(guild)
+			except Exception as error:
+				continue
