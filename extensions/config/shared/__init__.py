@@ -15,7 +15,7 @@ config = {
 		},
 		"no_track":
 		{
-			"description": "no data other than your discord id and your config options will be stored by /reg/nal\nyou will not show up on message or talking stick leaderboards\nyou also will not have your birthday announced",
+			"description": "no data other than your discord id and your config options will be stored by /reg/nal\nyou will not show up on message or talking stick leaderboards\nfor the most part, all this does is stop counting the messages you send",
 			"default": False,
 			"type": "bool"
 		},

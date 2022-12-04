@@ -28,6 +28,12 @@ class config_view(View):
 	def add_items(self,*items:Item) -> None:
 		for item in items: self.add_item(item)
 
+	async def _no_track_enabled(self) -> None:
+		await self.client.db.users.write(self.user.id,['messages'],None)
+		for guild in self.user.mutual_guilds:
+			await self.client.db.guilds.unset(guild.id,['data','leaderboards','messages',str(self.user.id)])
+			await self.client.db.guilds.unset(guild.id,['data','leaderboards','sticks',str(self.user.id)])
+
 	def _item_init(self):
 		for func in self.__view_children_items__:
 			item: Item = func.__discord_ui_model_type__(**func.__discord_ui_model_kwargs__)
@@ -79,6 +85,10 @@ class config_view(View):
 				await self.client.db.inf.write('/reg/nal',['config',self.selected_option],value)
 				self.current_config['dev'][self.selected_option] = value
 			case 'main'|'guild'|_: raise
+		if self.selected_option == 'no_track':
+			if value: await self._no_track_enabled()
+			else    : await self.client.db.users.write(self.user.id,['messages'],0)
+		await self.client.log.debug(f'[CONFIG] [{self.category.upper()}] {self.user} set {self.selected_option} to {value}',config={'category':self.category,'option':self.selected_option,'set_to':value})
 
 	def validate_modal_input(self,value:str) -> int:
 		data = config.get(self.category,config.get('guild',{}).get(self.category,{})).get(self.selected_option,None)
