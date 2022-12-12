@@ -19,7 +19,7 @@ class auto_response_listeners(Cog):
 
 	@Cog.listener()
 	async def on_connect(self) -> None:
-		self.base_responses = await self.client.db.inf.read('auto_responses',['au'])
+		self.base_responses = await self.client.db.inf.read('/reg/nal',['auto_responses'])
 		self.client.au = self.base_responses
 
 	@Cog.listener()
@@ -49,7 +49,7 @@ class auto_response_listeners(Cog):
 				try: reload_guilds.remove(i)
 				except ValueError: pass
 		if self.base_responses is None:
-			self.base_responses = await self.client.db.inf.read('auto_responses',['au'])
+			self.base_responses = await self.client.db.inf.read('auto_responses',['auto_responses'])
 			self.client.au = self.base_responses
 		if self.guild_responses.get(message.guild.id,None) is None:
 			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['data','auto_responses','custom'])

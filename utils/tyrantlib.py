@@ -5,14 +5,6 @@ from os import path,walk
 
 sizes = ['bytes','KBs','MBs','GBs','TBs','PBs','EBs','ZBs','YBs']
 
-owner_id,testers,bypass_permissions = None,None,None
-
-def load_data(tester_list:list=None,ownerid:int=None,bypass:bool=None) -> None:
-	global owner_id,testers,bypass_permissions
-	owner_id = ownerid if ownerid != None else owner_id
-	testers = tester_list if tester_list != None else testers
-	bypass_permissions = bypass if bypass != None else bypass_permissions
-
 def merge_dicts(*dicts:dict) -> dict:
 	out = {}
 	for d in dicts:
@@ -50,9 +42,10 @@ def convert_time(seconds:int|float,decimal=15) -> str:
 	return ', '.join(res)
 
 def dev_only(ctx:ApplicationContext=None) -> bool:
+	
 	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT THIS HAS TO BE AWAITED
 	async def perms(ctx,respond=True) -> bool:
-		if ctx.author.id == owner_id: return True
+		if ctx.author.id == ctx.bot.owner_id: return True
 		if respond: await ctx.response.send_message('you must be the bot developer to run this command.',ephemeral=True)
 		return False
 	return check(perms) if not ctx else perms(ctx,False)

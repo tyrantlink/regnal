@@ -2,7 +2,7 @@
 from time import perf_counter,time
 st = perf_counter()
 from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup
-from utils.tyrantlib import convert_time,load_data,format_bytes,get_line_count
+from utils.tyrantlib import convert_time,format_bytes,get_line_count
 from discord.ext.commands import Cog,Bot,slash_command
 from traceback import format_exc,format_tb
 from discord.errors import CheckFailure
@@ -100,10 +100,6 @@ class client_cls(Bot):
 		if not DEV_MODE:
 			await self.db.ready()
 			await self.sync_commands()
-		load_data(
-			await self.db.inf.read('/reg/nal',['development','testers']),
-			await self.db.inf.read('/reg/nal',['development','owner']),
-			await self.db.inf.read('/reg/nal',['config','bypass_permissions']))
 		if DEV_MODE:
 			await self.log.debug('LAUNCHED IN DEV MODE')
 			if 'sync' in argv: await self.sync_commands()

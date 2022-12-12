@@ -121,7 +121,7 @@ class commands_commands(Cog):
 		name='command_stats',
 		description='command usage stats')
 	async def slash_command_stats(self,ctx:ApplicationContext) -> None:
-		usage = {key: value for key, value in sorted((await self.client.db.inf.read('command_usage',['usage'])).items(),key=lambda item: item[1],reverse=True)}
+		usage = {key: value for key, value in sorted((await self.client.db.inf.read('/reg/nal',['command_usage'])).items(),key=lambda item: item[1],reverse=True)}
 		
 		await ctx.response.send_message(embed=Embed(
 			title='command usage:',

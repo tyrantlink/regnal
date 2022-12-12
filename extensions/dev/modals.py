@@ -41,7 +41,7 @@ class dev_modal(Modal):
 			applied_tags=[tag for tag in channel.available_tags if tag.name in [type,'open']])
 
 	async def commit(self,interaction:Interaction,title:str,version_bump:str,new_features:str,fixes:str,notes:str) -> None:
-		channel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development','change-log']))
+		channel = await self.client.fetch_channel(await self.client.db.inf.read('/reg/nal',['development','change_log']))
 		if version_bump != 'none':
 			await self.client.db.inf.write('/reg/nal',['version'],self.bump_version(await self.client.db.inf.read('/reg/nal',['version']),version_bump))
 		embed=Embed(title=f"v{await self.client.db.inf.read('/reg/nal',['version'])} | {title}",color=await self.client.embed_color(interaction))
