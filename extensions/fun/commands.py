@@ -19,7 +19,7 @@ class fun_commands(Cog):
 		description='say hello to /reg/nal?')
 	async def slash_hello(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(
-			f'https://cdn.tyrant.link/reg/nal/{"regnal" if randint(0,100) else "erglud"}.png',
+			f'https://regn.al/{"regnal" if randint(0,100) else "erglud"}.png',
 			ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
