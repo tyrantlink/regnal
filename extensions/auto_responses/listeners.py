@@ -112,7 +112,7 @@ class auto_response_listeners(Cog):
 		if (response:=data.get('response',None)) is None: return False
 		if data.get('nsfw',False) and not message.channel.nsfw: return False
 		if (user_id:=data.get('user',None)) is not None and str(message.author.id) != user_id: return False
-		if data.get('file',False): response = f'https://regn.al/auto_responses/{quote(response)}'
+		if data.get('file',False): response = f'https://regn.al/au/{quote(response)}'
 
 		try: await message.channel.send(response)
 		except Forbidden: return False
