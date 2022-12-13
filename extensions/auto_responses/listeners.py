@@ -1,8 +1,7 @@
 from regex import sub,search,IGNORECASE,split,fullmatch
 from discord.errors import Forbidden,HTTPException
-from utils.tyrantlib import merge_dicts
 from discord.ext.commands import Cog
-from discord import Message,Thread,TextChannel
+from discord import Message,Thread
 from .shared import reload_guilds
 from urllib.parse import quote
 from main import client_cls
@@ -102,7 +101,7 @@ class auto_response_listeners(Cog):
 	async def listener_auto_response(self,message:Message) -> None:
 		for responses in [self.guild_responses[message.guild.id],self.base_responses]:
 			try: check = self.au_check(responses,message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
-			except Exception: return False
+			except Exception: continue
 			if check is not None: break
 		else: return False
 
