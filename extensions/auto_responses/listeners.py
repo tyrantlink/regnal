@@ -100,10 +100,11 @@ class auto_response_listeners(Cog):
 			return ('contains',i)
 
 	async def listener_auto_response(self,message:Message) -> None:
-		responses = merge_dicts(self.base_responses,self.guild_responses[message.guild.id])
-		try: check = self.au_check(responses,message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
-		except Exception: return False
-		if check is None: return False
+		for responses in [self.guild_responses[message.guild.id],self.base_responses]:
+			try: check = self.au_check(responses,message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
+			except Exception: return False
+			if check is not None: break
+		else: return False
 
 		data = responses[check[0]][check[1]]
 		while redir:=data.get('redir',False):
