@@ -45,6 +45,7 @@ class qotd_commands(Cog):
 					except Forbidden:
 						if guild.owner:
 							await guild.owner.send(embed=Embed(title='permission error!',description='you enabled the `delete_after` QOTD option,\nbut /reg/nal does not have permission to delete threads,\nplease give him the `Manage Threads` permission, or disable the `delete_after` option',color=0xff6969))
+							await self.client.log.debug(f'failed to create qotd thread for guild {guild.name}')
 			else: thread_name = f'qotd-{datetime.now().strftime("%A.%d.%m.%y").lower()}'
 			thread = await msg.create_thread(name=thread_name,auto_archive_duration=1440)
 			save.append(thread.id)
