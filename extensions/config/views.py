@@ -1,18 +1,79 @@
 from discord.ui import View,Button,button,Item,channel_select,Select,string_select,role_select,user_select,InputText
 from discord.enums import ComponentType
 from discord import Interaction,Embed,Member,User,SelectOption
-from utils.tyrantlib import dev_only
 from functools import partial
 from .shared import config
 from .modals import config_modal
 from main import client_cls
 from os import urandom
 
+class configure_list_view(View):
+	def __init__(self,option_type:str,original_view:View,client:client_cls,embed:Embed) -> None:
+		tmp,self.__view_children_items__ = self.__view_children_items__,[]
+		super().__init__(timeout=0)
+		self.__view_children_items__ = tmp
+		self._item_init()
+		self.option_type    = option_type
+		self.original_view  = original_view
+		self.client         = client
+		self.embed          = embed
+		self.add_items(self.channel_select,self.back_button,self.add_button,self.remove_button)
+
+	async def on_error(self,error:Exception,item:Item,interaction:Interaction) -> None:
+		await self.client.on_error(interaction,error)
+
+	def add_items(self,*items:Item) -> None:
+		for item in items: self.add_item(item)
+	
+	def _item_init(self):
+		for func in self.__view_children_items__:
+			item: Item = func.__discord_ui_model_type__(**func.__discord_ui_model_kwargs__)
+			item.callback = partial(func,self,item)
+			item._view = self
+			setattr(self,func.__name__,item)
+
+	async def reload(self,guild_id) -> None:
+		self.embed.description = f'currently {self.option_type[1]}ed:\n'+('\n'.join([f'<#{i}>' for i in await self.client.db.guilds.read(guild_id,['data',self.option_type[0],self.option_type[1]])]) or 'None')
+
+	@channel_select(
+		custom_id='channel_select',row=0,
+		placeholder='select some channels',max_values=25)
+	async def channel_select(self,select:Select,interaction:Interaction) -> None:
+		self.channels_selected = select.values
+		await interaction.response.edit_message(embed=self.embed,view=self)
+	
+	@button(
+		label='<',style=2,row=1,
+		custom_id='back_button')
+	async def back_button(self,button:Button,interaction:Interaction) -> None:
+		await interaction.response.edit_message(embed=self.original_view.embed,view=self.original_view)
+
+	@button(
+		label='add',style=3,row=1,
+		custom_id='add_button')
+	async def add_button(self,button:Button,interaction:Interaction) -> None:
+		current:list = await self.client.db.guilds.read(interaction.guild.id,['data',self.option_type[0],self.option_type[1]])
+		for i in self.channels_selected:
+			if i.id not in current: current.append(i.id)
+		await self.client.db.guilds.write(interaction.guild.id,['data',self.option_type[0],self.option_type[1]],current)
+		await self.reload(interaction.guild.id)
+		await interaction.response.edit_message(embed=self.embed,view=self)
+
+	@button(
+		label='remove',style=4,row=1,
+		custom_id='remove_button')
+	async def remove_button(self,button:Button,interaction:Interaction) -> None:
+		current:list = await self.client.db.guilds.read(interaction.guild.id,['data',self.option_type[0],self.option_type[1]])
+		for i in self.channels_selected:
+			if i.id in current: current.remove(i.id)
+		await self.client.db.guilds.write(interaction.guild.id,['data',self.option_type[0],self.option_type[1]],current)
+		await self.reload(interaction.guild.id)
+		await interaction.response.edit_message(embed=self.embed,view=self)
 
 class config_view(View):
 	def __init__(self,client:client_cls,embed:Embed,user:User|Member,current_config:dict) -> None:
 		tmp,self.__view_children_items__ = self.__view_children_items__,[]
-		super().__init__()
+		super().__init__(timeout=0)
 		self.__view_children_items__ = tmp
 		self._item_init()
 		self.client         = client
@@ -165,6 +226,11 @@ class config_view(View):
 				self.add_items(self.enable_button,self.disable_button,self.default_button)
 			case 'ewbd':
 				self.add_items(self.enable_button,self.whitelist_button,self.blacklist_button,self.disable_button,self.default_button)
+				if mode:=self.current_config.get('guild',{}).get(self.category,{}).get(value,None) in ['whitelist','blacklist']:
+					self.add_item(self.configure_list_button)
+					for child in self.children:
+						if child.custom_id != 'configure_list_button': continue
+						child.label = f'configure {mode}'
 			case 'modal':
 				self.add_items(self.set_button,self.default_button)
 			case 'channel':
@@ -275,13 +341,21 @@ class config_view(View):
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='reset to default',row=2,style=4,
+		label='configure',style=1,row=2,
+		custom_id='configure_list_button')
+	async def configure_list_button(self,button:Button,interaction:Interaction) -> None:
+		mode = self.current_config.get('guild',{}).get(self.category,{}).get(self.selected_option,None)
+		embed = Embed(
+			title=f'configure {self.category} {mode}',
+			description=f'currently {mode}ed:\n'+('\n'.join([f'<#{i}>' for i in await self.client.db.guilds.read(interaction.guild.id,['data',self.category,mode])]) or 'None'),
+			color=self.embed.color)
+		await interaction.response.edit_message(embed=embed,view=configure_list_view((self.category,mode),self,self.client,embed))
+
+	@button(
+		label='reset to default',row=4,style=4,
 		custom_id='default_button')
 	async def default_button(self,button:Button,interaction:Interaction) -> None:
 		value = config.get(self.category,config.get('guild',{}).get(self.category,{})).get(self.selected_option,{}).get('default',self.missing)
 		await self.modify_config(value)
 		self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-
-
-	
