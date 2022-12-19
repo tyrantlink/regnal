@@ -1,7 +1,7 @@
 #!./venv/bin/python3.10
 from time import perf_counter,time
 st = perf_counter()
-from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup
+from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents
 from utils.tyrantlib import convert_time,format_bytes,get_line_count
 from discord.ext.commands import Cog,Bot,slash_command
 from traceback import format_exc,format_tb
@@ -10,7 +10,6 @@ from discord.ext.tasks import loop
 from pymongo import MongoClient
 from utils.data import db,env
 from datetime import datetime
-from discord import Intents
 from os.path import exists
 from inspect import stack
 from utils.log import log
