@@ -226,7 +226,7 @@ class config_view(View):
 				self.add_items(self.enable_button,self.disable_button,self.default_button)
 			case 'ewbd':
 				self.add_items(self.enable_button,self.whitelist_button,self.blacklist_button,self.disable_button,self.default_button)
-				if mode:=self.current_config.get('guild',{}).get(self.category,{}).get(value,None) in ['whitelist','blacklist']:
+				if (mode:=self.current_config.get('guild',{}).get(self.category,{}).get(value,None)) in ['whitelist','blacklist']:
 					self.add_item(self.configure_list_button)
 					for child in self.children:
 						if child.custom_id != 'configure_list_button': continue
