@@ -46,6 +46,7 @@ class client_cls(Bot):
 		global extensions
 		super().__init__('i lika, do, da cha cha',None,intents=Intents.all())
 		self.db = db()
+		self.flags = []
 		self.au:dict = None
 		self.env = env(benv['env_dict'])
 		if 'clear' in argv: return

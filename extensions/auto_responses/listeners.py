@@ -2,7 +2,6 @@ from regex import sub,search,IGNORECASE,split,fullmatch
 from discord.errors import Forbidden,HTTPException
 from discord.ext.commands import Cog
 from discord import Message,Thread
-from .shared import reload_guilds
 from urllib.parse import quote
 from main import client_cls
 from asyncio import sleep
@@ -42,11 +41,12 @@ class auto_response_listeners(Cog):
 			return
 		
 		if message.content is None: return
-		if reload_guilds:
-			for i in reload_guilds:
-				self.guild_responses.pop(i,None)
-				try: reload_guilds.remove(i)
-				except ValueError: pass
+		for i in self.client.flags:
+			if i[0] != 'RELOAD_AU': continue
+			for guild_id in i[1:]:
+				print(f'reloading {guild_id}')
+				self.guild_responses.pop(guild_id,None)
+			self.client.flags.remove(i)
 		if self.base_responses is None:
 			self.base_responses = await self.client.db.inf.read('/reg/nal',['auto_responses'])
 			self.client.au = self.base_responses
