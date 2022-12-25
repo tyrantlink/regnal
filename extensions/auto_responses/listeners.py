@@ -117,7 +117,8 @@ class auto_response_listeners(Cog):
 		try: await message.channel.send(response)
 		except Forbidden: return False
 		for delay,followup in data.get('followup',[]):
-			await sleep(delay)
+			async with message.channel.typing():
+				await sleep(delay)
 			await message.channel.send(followup)
 
 		self.cooldowns['au'].update({message.author.id if await self.client.db.guilds.read(message.guild.id,['config','auto_responses','cooldown_per_user']) else message.channel.id:int(time())})
