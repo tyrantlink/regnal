@@ -105,11 +105,11 @@ class auto_response_listeners(Cog):
 			if check is not None: break
 		else: return False
 
-		data = responses[check[0]][check[1]]
+		data:dict = responses[check[0]][check[1]]
 		while redir:=data.get('redir',False):
 			data = responses[check[0]][redir]
 		
-		if (response:=data.get('response',None)) is None: return False
+		if (response:=data.get('response','{none}')).lower() == '{none}': return False
 		if data.get('nsfw',False) and not message.channel.nsfw: return False
 		if (user_id:=data.get('user',None)) is not None and str(message.author.id) != user_id: return False
 		if data.get('file',False): response = f'https://regn.al/au/{quote(response)}'
