@@ -28,6 +28,7 @@ class qotd_commands(Cog):
 
 	async def _send_qotd(self,guild:Guild) -> tuple[Message|None,Thread|None]:
 		doc = await self.client.db.guilds.read(guild.id,[])
+		if doc is None: return
 		data:dict   = doc.get('data',{}).get('qotd',None)
 		config:dict = doc.get('config',{}).get('qotd',None)
 		if not config.get('enabled',False) or not config.get('channel',None): return (None,None)
@@ -36,7 +37,11 @@ class qotd_commands(Cog):
 			await self.client.db.guilds.pop(guild.id,['data','qotd','nextup'],1)
 		else:
 			asked = data.get('asked',[])
-			question = choice([q for q in questions if q not in asked]+data.get('pool',[]))
+			base_pool = [q for q in questions if q not in asked]
+			if base_pool == []:
+				base_pool = questions
+				await self.client.db.guilds.write(guild.id,['data','qotd','asked'],[])
+			question = choice(base_pool+data.get('pool',[]))
 
 		embed = Embed(
 			title='❓❔ Question of the Day ❔❓',
@@ -57,6 +62,7 @@ class qotd_commands(Cog):
 							try:
 								if (old_thread:=channel.get_thread(last[-1])) is not None:
 									await old_thread.delete()
+							except AttributeError: pass
 							except Forbidden:
 								if guild.owner:
 									await self._dm_error(guild.owner,'permission error!','you enabled the `delete_after` QOTD option,\nbut /reg/nal does not have permission to delete threads,\nplease give him the `Manage Threads` permission, or disable the `delete_after` option')
