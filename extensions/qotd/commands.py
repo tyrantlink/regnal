@@ -37,11 +37,11 @@ class qotd_commands(Cog):
 			await self.client.db.guilds.pop(guild.id,['data','qotd','nextup'],1)
 		else:
 			asked = data.get('asked',[])
-			base_pool = [q for q in questions if q not in asked]
-			if base_pool == []:
-				base_pool = questions
+			pool = [q for q in questions+data.get('pool',[]) if q not in asked]
+			if pool == []:
+				pool = questions+data.get('pool',[])
 				await self.client.db.guilds.write(guild.id,['data','qotd','asked'],[])
-			question = choice(base_pool+data.get('pool',[]))
+			question = choice(pool)
 
 		embed = Embed(
 			title='❓❔ Question of the Day ❔❓',
