@@ -196,31 +196,34 @@ class message_handler(Cog):
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
 		await self.client.db.stats.inc(2,['stats','messages_seen'])
+		# ignore webhooks
+		if message.webhook_id is not None: return
 		# create new user document if author doesn't exist
-		current_data = await self.client.db.users.read(message.author.id)
-		if not current_data:
+		if not (user:=await self.client.db.users.read(message.author.id)):
 			await self.client.db.users.new(message.author.id)
 			await self.client.db.users.write(message.author.id,['bot'],message.author.bot)
+			user = await self.client.db.users.read(message.author.id)
 			
 		# check user no_track
-		if await self.client.db.users.read(message.author.id,['config','no_track']): return
+		if user.get('config',{}).get('no_track',False): return
 		# updates username and discriminator every 50 messages
-		if await self.client.db.users.read(message.author.id,['messages'])%50 == 0:
+		if user.get('messages',0)%50 == 0:
 			await self.client.db.users.write(message.author.id,['username'],message.author.name)
 			await self.client.db.users.write(message.author.id,['discriminator'],message.author.discriminator)
 		# increase user message count
 		await self.client.db.users.inc(message.author.id,['messages'])
 		if message.guild:
 			# create new guild document if current guild doesn't exist
-			if not await self.client.db.guilds.read(message.guild.id):
+			if not (guild:=await self.client.db.guilds.read(message.guild.id)):
 				await self.on_guild_join(message.guild)
+				guild = await self.client.db.guilds.read(message.guild.id)
 			# increase user message count on guild leaderboard
 			await self.client.db.guilds.inc(message.guild.id,['data','leaderboards','messages',str(message.author.id)])
 			# if author not in active member or ignored, add to active member list
 			if message.author.bot: return
-			if message.author.id in await self.client.db.guilds.read(message.guild.id,['data','talking_stick','active']): return
-			if await self.client.db.users.read(message.author.id,['config','ignored']): return
-			if ts_limit:=await self.client.db.guilds.read(message.guild.id,['config','talking_stick','limit']):
+			if message.author.id in guild.get('data',{}).get('talking_stick',{}).get('active',[]): return
+			if user.get('config',{}).get('ignored',False): return
+			if ts_limit:=guild.get('config',{}).get('talking_stick',{}).get('limit',None):
 				if not message.author.get_role(ts_limit): return
 
 			await self.client.db.guilds.append(message.guild.id,['data','talking_stick','active'],message.author.id)
