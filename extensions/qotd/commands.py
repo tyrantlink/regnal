@@ -1,4 +1,4 @@
-from discord import Embed,ApplicationContext,Permissions,Guild,Message,Thread
+from discord import Embed,ApplicationContext,Permissions,Guild,Message,Thread,ForumChannel,User
 from discord.commands import Option as option,SlashCommandGroup
 from datetime import datetime,time as dtime,timedelta
 from utils.tyrantlib import MakeshiftClass
@@ -20,6 +20,12 @@ class qotd_commands(Cog):
 
 	qotd = SlashCommandGroup('qotd','question of the day commands')
 
+	async def _dm_error(self,user:User,title:str,description:str) -> None:
+		await user.send(embed=Embed(title=title,description=description,color=0xff6969))
+
+	async def _text_channel(self,embed:Embed) -> None:
+		pass
+
 	async def _send_qotd(self,guild:Guild) -> tuple[Message|None,Thread|None]:
 		doc = await self.client.db.guilds.read(guild.id,[])
 		data:dict   = doc.get('data',{}).get('qotd',None)
@@ -31,31 +37,58 @@ class qotd_commands(Cog):
 		else:
 			asked = data.get('asked',[])
 			question = choice([q for q in questions if q not in asked]+data.get('pool',[]))
-		msg = await guild.get_channel(config.get('channel',None)).send(
-			embed=Embed(
-				title='❓❔ Question of the Day ❔❓',
-				description=question,
-				color=await self.client.embed_color(MakeshiftClass(guild=guild))))
-		save = [int(time()),msg.id]
 
-		if config.get('spawn_threads',False):
-			if config.get('delete_after',False):
-				thread_name = 'qotd'
-				if len(last:=data.get('last',[])) == 3:
-					try: await guild.get_channel(config.get('channel',None)).get_thread(last[-1]).delete()
-					except Forbidden:
-						if guild.owner:
-							await guild.owner.send(embed=Embed(title='permission error!',description='you enabled the `delete_after` QOTD option,\nbut /reg/nal does not have permission to delete threads,\nplease give him the `Manage Threads` permission, or disable the `delete_after` option',color=0xff6969))
-							await self.client.log.debug(f'failed to create qotd thread for guild {guild.name}')
-			else: thread_name = f'qotd-{datetime.now().strftime("%A.%d.%m.%y").lower()}'
-			thread = await msg.create_thread(name=thread_name,auto_archive_duration=1440)
-			save.append(thread.id)
-			if role:=[i for i in msg.guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]:
-				await thread.send(role[0].mention)
+		embed = Embed(
+			title='❓❔ Question of the Day ❔❓',
+			description=question,
+			color=await self.client.embed_color(MakeshiftClass(guild=guild)))
+		channel = guild.get_channel(config.get('channel',None))
+		roles = [i for i in guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]
+		role = roles[0].mention if roles else None
 
+		match str(channel.type):
+			case 'text':
+				msg = await channel.send(embed=embed)
+				save = [int(time()),msg.id]
+				if config.get('spawn_threads',False):
+					if config.get('delete_after',False):
+						thread_name = 'qotd'
+						if len(last:=data.get('last',[])) == 3:
+							try:
+								if (old_thread:=channel.get_thread(last[-1])) is not None:
+									await old_thread.delete()
+							except Forbidden:
+								if guild.owner:
+									await self._dm_error(guild.owner,'permission error!','you enabled the `delete_after` QOTD option,\nbut /reg/nal does not have permission to delete threads,\nplease give him the `Manage Threads` permission, or disable the `delete_after` option')
+									await self.client.log.debug(f'failed to create qotd thread for guild {guild.name}')
+					else: thread_name = f'qotd-{datetime.now().strftime("%A.%d.%m.%y").lower()}'
+					thread = await msg.create_thread(name=thread_name,auto_archive_duration=1440)
+					save.append(thread.id)
+					if role:
+						await thread.send(role)
+				else: thread = msg
+			case 'forum':
+				try:
+					if (old_thread:=channel.get_thread(data.get('last',[])[-1])) is not None:
+						await old_thread.edit(archived=True,locked=True,pinned=False)
+				except AttributeError: pass
+				except Forbidden:
+					if guild.owner:
+						await self._dm_error(guild.owner,'permission error!','/reg/nal failed to archive the last QOTD thread, please give him the `Manage Threads` permission')
+						await self.client.log.debug(f'failed to create qotd thread for guild {guild.name}')
+				thread = await channel.create_thread(
+					name=question if len(question) <= 100 else f'{question[:97]}...',
+					content=role,
+					embed=embed,
+					auto_archive_duration=1440)
+				await thread.edit(pinned=True)
+				save = [int(time()),thread.id]
+			case _:
+				await self._dm_error(guild.owner,'channel error!',f'the QOTD channel must be set to either a text channel or a forum channel,\nit is a currently set to a {channel.type} channel')
+				return
 		await self.client.db.guilds.write(guild.id,['data','qotd','last'],save)
 		await self.client.db.guilds.append(guild.id,['data','qotd','asked'],question)
-		return msg
+		return thread
 
 	@qotd.command(
 		name='now',
@@ -68,8 +101,7 @@ class qotd_commands(Cog):
 			return
 		await ctx.response.defer(ephemeral=await self.client.hide(ctx))
 		output = await self._send_qotd(ctx.guild)
-		if None in output: return
-		await ctx.followup.send(embed=Embed(title='success',description=f'read the question [here](<{output.jump_url}>)',color=await self.client.embed_color(ctx)),
+		await ctx.followup.send(embed=Embed(title='success',description=f'read the question [here](<{output.jump_url}>)' if output else None,color=await self.client.embed_color(ctx)),
 			ephemeral=await self.client.hide(ctx))
 
 	@qotd.command(
@@ -99,4 +131,4 @@ class qotd_commands(Cog):
 	async def qotd_loop(self) -> None:
 		for guild in self.client.guilds:
 			try: await self._send_qotd(guild)
-			except Exception as e: self.client.on_error(e)
+			except Exception as e: await self.client.on_error(e)
