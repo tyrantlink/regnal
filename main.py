@@ -54,6 +54,7 @@ class client_cls(Bot):
 		self.log = log(self.db,DEV_MODE)
 		self.add_cog(base_commands(self))
 		self.add_cog(message_handler(self))
+		if DEV_MODE: self.flags.append('DEV')
 		self.lines = {k.split('/')[-1]:get_line_count(f'{k}.py') for k in ['main']+[f"utils/{'.'.join(i.split('.')[:-1])}" for i in [f for p,d,f in walk('utils')][0] if not (i.startswith('_') or i.endswith('.old'))]}
 		with open('.git/refs/heads/master') as git: self.commit_id = git.read(7)
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]

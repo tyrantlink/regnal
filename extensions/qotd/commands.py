@@ -14,8 +14,8 @@ from time import time
 class qotd_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
 		self.client = client
-		# do if DEV_MODE when you eventually make this some kind of accessible flag
-		# self.qotd_loop.change_interval(time=(datetime.now()+timedelta(seconds=10)).astimezone(datetime.now().astimezone().tzinfo).timetz())
+		if 'DEV' in self.client.flags:
+			self.qotd_loop.change_interval(time=(datetime.now()+timedelta(seconds=20)).astimezone(datetime.now().astimezone().tzinfo).timetz())
 		self.qotd_loop.start()
 
 	qotd = SlashCommandGroup('qotd','question of the day commands')
