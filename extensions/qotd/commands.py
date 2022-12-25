@@ -29,7 +29,8 @@ class qotd_commands(Cog):
 			question = next[0]
 			await self.client.db.guilds.pop(guild.id,['data','qotd','nextup'],1)
 		else:
-			question = choice(questions+data.get('pool',[]))
+			asked = data.get('asked',[])
+			question = choice([q for q in questions if q not in asked]+data.get('pool',[]))
 		msg = await guild.get_channel(config.get('channel',None)).send(
 			embed=Embed(
 				title='❓❔ Question of the Day ❔❓',
@@ -53,6 +54,7 @@ class qotd_commands(Cog):
 				await thread.send(role[0].mention)
 
 		await self.client.db.guilds.write(guild.id,['data','qotd','last'],save)
+		await self.client.db.guilds.append(guild.id,['data','qotd','asked'],question)
 		return msg
 
 	@qotd.command(
