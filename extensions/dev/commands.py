@@ -125,9 +125,9 @@ class dev_commands(Cog):
 		if user:=self.client.get_user(log.get('author')): embed.set_author(name=user,icon_url=user.avatar.url)
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
-	@dev.command(
-		name='extensions',
-		description='manage extensions')
+	# @dev.command(
+	# 	name='extensions',
+	# 	description='manage extensions')
 
 	# @dev.command(
 	# 	name='reload',
