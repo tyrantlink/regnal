@@ -3,7 +3,6 @@ from utils.tyrantlib import dev_only,get_line_count
 from discord.ext.commands import Cog,slash_command
 from discord import Embed,ApplicationContext
 from .modals import dev_modal
-from main import extensions
 from os import system,walk
 from client import Client
 from asyncio import sleep
@@ -130,79 +129,79 @@ class dev_commands(Cog):
 		name='extensions',
 		description='manage extensions')
 
-	@dev.command(
-		name='reload',
-		description='reload an extension',
-		options=[
-			option(str,name='extension',description='name of extension',choices=extensions.keys()),
-			option(bool,name='sync',description='resync commands',default=True)])
-	@dev_only()
-	async def slash_dev_reload(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
-		if extension not in self.client._raw_loaded_extensions:
-			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
-			return
-		self.client.reload_extension(f'extensions.{extension}')
-		if sync: await self.client.sync_commands(force=True)
-		self.client.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
-		await ctx.response.send_message(f'successfully reloaded {extension}',ephemeral=True)
+	# @dev.command(
+	# 	name='reload',
+	# 	description='reload an extension',
+	# 	options=[
+	# 		option(str,name='extension',description='name of extension',choices=extensions.keys()),
+	# 		option(bool,name='sync',description='resync commands',default=True)])
+	# @dev_only()
+	# async def slash_dev_reload(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
+	# 	if extension not in self.client._raw_loaded_extensions:
+	# 		await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
+	# 		return
+	# 	self.client.reload_extension(f'extensions.{extension}')
+	# 	if sync: await self.client.sync_commands(force=True)
+	# 	self.client.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
+	# 	await ctx.response.send_message(f'successfully reloaded {extension}',ephemeral=True)
 
-	@dev.command(
-		name='load',
-		description='load an extension',
-		options=[
-			option(str,name='extension',description='name of extension',choices=extensions.keys()),
-			option(bool,name='sync',description='resync commands',default=True)])
-	@dev_only()
-	async def slash_dev_load(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
-		if extension in self.client._raw_loaded_extensions:
-			await ctx.response.send_message(f'{extension} is already loaded',ephemeral=True)
-			return
-		self.client.load_extension(f'extensions.{extension}')
-		if sync: await self.client.sync_commands()
-		self.client._raw_loaded_extensions.append(extension)
-		self.client.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
-		await ctx.response.send_message(f'successfully loaded {extension}',ephemeral=True)
+	# @dev.command(
+	# 	name='load',
+	# 	description='load an extension',
+	# 	options=[
+	# 		option(str,name='extension',description='name of extension',choices=extensions.keys()),
+	# 		option(bool,name='sync',description='resync commands',default=True)])
+	# @dev_only()
+	# async def slash_dev_load(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
+	# 	if extension in self.client._raw_loaded_extensions:
+	# 		await ctx.response.send_message(f'{extension} is already loaded',ephemeral=True)
+	# 		return
+	# 	self.client.load_extension(f'extensions.{extension}')
+	# 	if sync: await self.client.sync_commands()
+	# 	self.client._raw_loaded_extensions.append(extension)
+	# 	self.client.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
+	# 	await ctx.response.send_message(f'successfully loaded {extension}',ephemeral=True)
 
-	@dev.command(
-		name='unload',
-		description='unload an extension',
-		options=[
-			option(str,name='extension',description='name of extension',choices=extensions.keys()),
-			option(bool,name='sync',description='resync commands',default=True)])
-	@dev_only()
-	async def slash_dev_unload(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
-		if extension not in self.client._raw_loaded_extensions:
-			await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
-			return
-		self.client.unload_extension(f'extensions.{extension}')
-		if sync: await self.client.sync_commands()
-		response = f'successfully unloaded {extension}'
-		self.client._raw_loaded_extensions.remove(extension)
-		del self.client.lines[extension]
-		if extension == 'dev_tools': response += '\nWARNING: THE DEV_TOOLS EXTENSION WAS UNLOADED. YOU MUST REBOOT TO USE ANYMORE DEV COMMANDS'
-		await ctx.response.send_message(response,ephemeral=True)
+	# @dev.command(
+	# 	name='unload',
+	# 	description='unload an extension',
+	# 	options=[
+	# 		option(str,name='extension',description='name of extension',choices=extensions.keys()),
+	# 		option(bool,name='sync',description='resync commands',default=True)])
+	# @dev_only()
+	# async def slash_dev_unload(self,ctx:ApplicationContext,extension:str,sync:bool=True) -> None:
+	# 	if extension not in self.client._raw_loaded_extensions:
+	# 		await ctx.response.send_message(f'{extension} is not loaded',ephemeral=True)
+	# 		return
+	# 	self.client.unload_extension(f'extensions.{extension}')
+	# 	if sync: await self.client.sync_commands()
+	# 	response = f'successfully unloaded {extension}'
+	# 	self.client._raw_loaded_extensions.remove(extension)
+	# 	del self.client.lines[extension]
+	# 	if extension == 'dev_tools': response += '\nWARNING: THE DEV_TOOLS EXTENSION WAS UNLOADED. YOU MUST REBOOT TO USE ANYMORE DEV COMMANDS'
+	# 	await ctx.response.send_message(response,ephemeral=True)
 
-	@dev.command(
-		name='enable',
-		description='enable an extension',
-		options=[
-			option(str,name='extension',description='name of extension',choices=extensions.keys())])
-	@dev_only()
-	async def slash_dev_enable(self,ctx:ApplicationContext,extension:str) -> None:
-		await self.client.db.inf.write('/reg/nal',['extensions',extension],True)
-		await ctx.response.send_message(f'successfully enabled the {extension} extension. it will start next reboot',ephemeral=True)
+	# @dev.command(
+	# 	name='enable',
+	# 	description='enable an extension',
+	# 	options=[
+	# 		option(str,name='extension',description='name of extension',choices=extensions.keys())])
+	# @dev_only()
+	# async def slash_dev_enable(self,ctx:ApplicationContext,extension:str) -> None:
+	# 	await self.client.db.inf.write('/reg/nal',['extensions',extension],True)
+	# 	await ctx.response.send_message(f'successfully enabled the {extension} extension. it will start next reboot',ephemeral=True)
 	
-	@dev.command(
-		name='disable',
-		description='disable an extension',
-		options=[
-			option(str,name='extension',description='name of extension',choices=extensions.keys())])
-	@dev_only()
-	async def slash_dev_disable(self,ctx:ApplicationContext,extension:str) -> None:
-		await self.client.db.inf.write('/reg/nal',['extensions',extension],False)
-		response = f'successfully disabled the {extension} extension. it will not start next reboot'
-		if extension == 'dev_tools': response += '\nWARNING: DEV_TOOLS WAS DISABLED. IF YOU WANT TO RE-ENABLE IT AFTER A REBOOT, YOU MUST MANUALLY ENABLE IT'
-		await ctx.response.send_message(response,ephemeral=True)
+	# @dev.command(
+	# 	name='disable',
+	# 	description='disable an extension',
+	# 	options=[
+	# 		option(str,name='extension',description='name of extension',choices=extensions.keys())])
+	# @dev_only()
+	# async def slash_dev_disable(self,ctx:ApplicationContext,extension:str) -> None:
+	# 	await self.client.db.inf.write('/reg/nal',['extensions',extension],False)
+	# 	response = f'successfully disabled the {extension} extension. it will not start next reboot'
+	# 	if extension == 'dev_tools': response += '\nWARNING: DEV_TOOLS WAS DISABLED. IF YOU WANT TO RE-ENABLE IT AFTER A REBOOT, YOU MUST MANUALLY ENABLE IT'
+	# 	await ctx.response.send_message(response,ephemeral=True)
 	
 	@dev.command(
 		name='sync_commands',
