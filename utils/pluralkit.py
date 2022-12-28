@@ -98,7 +98,7 @@ class PluralKit:
 		if req[0]: return Member(req[1])
 		else: return None
 
-	async def get_message(self,message_id:str,delay:float=0.5) -> Message|None:
+	async def get_message(self,message_id:str,delay:float=0.2) -> Message|None:
 		await sleep(delay)
 		req = await self.request(f'/messages/{message_id}')
 		if req[0]: return Message(req[1])
