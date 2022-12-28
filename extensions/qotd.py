@@ -5,14 +5,14 @@ from utils.tyrantlib import MakeshiftClass
 from discord.errors import Forbidden
 from discord.ext.commands import Cog
 from discord.ext.tasks import loop
-from .shared import questions
-from main import client_cls
+from ._shared_vars import questions
+from client import Client
 from random import choice
 from time import time
 
 
 class qotd_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 		if 'DEV' in self.client.flags:
 			self.qotd_loop.change_interval(time=(datetime.now()+timedelta(seconds=20)).astimezone(datetime.now().astimezone().tzinfo).timetz())
@@ -22,9 +22,6 @@ class qotd_commands(Cog):
 
 	async def _dm_error(self,user:User,title:str,description:str) -> None:
 		await user.send(embed=Embed(title=title,description=description,color=0xff6969))
-
-	async def _text_channel(self,embed:Embed) -> None:
-		pass
 
 	async def _send_qotd(self,guild:Guild) -> tuple[Message|None,Thread|None]:
 		doc = await self.client.db.guilds.read(guild.id,[])
@@ -138,3 +135,7 @@ class qotd_commands(Cog):
 		for guild in self.client.guilds:
 			try: await self._send_qotd(guild)
 			except Exception as e: await self.client.on_error(e)
+
+def setup(client:Client) -> None:
+	client._extloaded()
+	client.add_cog(qotd_commands(client))

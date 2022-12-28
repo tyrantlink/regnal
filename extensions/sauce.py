@@ -8,7 +8,7 @@ from aiohttp import ClientSession
 from nsfw_detector import predict
 from urllib.parse import quote
 from secrets import token_hex
-from main import client_cls
+from client import Client
 from asyncio import sleep
 import sys
 
@@ -55,7 +55,7 @@ class art_services:
 			case _: return False
 
 class sauce_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 		predict.tf.get_logger().setLevel(50)
 		predict.tf.autograph.set_verbosity(0)
@@ -193,3 +193,7 @@ class sauce_commands(Cog):
 	@message_command(name='sauce?')
 	async def message_sauce(self,ctx:ApplicationContext,message:Message) -> None:
 		await self._base_sauce(ctx,message)
+
+def setup(client:Client) -> None:
+	client._extloaded()
+	client.add_cog(sauce_commands(client))

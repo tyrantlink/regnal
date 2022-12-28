@@ -3,13 +3,13 @@ from discord.errors import Forbidden,HTTPException
 from discord.ext.commands import Cog
 from discord import Message,Thread
 from urllib.parse import quote
-from main import client_cls
+from client import Client,MixedUser
 from asyncio import sleep
 from time import time
 
 
 class auto_response_listeners(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.base_responses = None
 		self.guild_responses = {}
@@ -21,20 +21,36 @@ class auto_response_listeners(Cog):
 		self.client.au = self.base_responses
 
 	@Cog.listener()
-	async def on_message(self,message:Message) -> None:
+	async def on_message(self,message:Message,user:MixedUser=None) -> None:
+		# ignore webhooks except pk
+		if message.webhook_id is not None:
+			if user is not None: pass
+			else: return
+		
+
 		if message.guild:
 			try: guild = await self.client.db.guilds.read(message.guild.id)
 			except: guild = await self.client.db.guilds.read(0)
 		else: guild = await self.client.db.guilds.read(0)
-		if guild is None: return 
+		if guild is None: return
+
+		if guild.get('config',{}).get('general',{}).get('pluralkit',False) and user is None:
+			if (pk:=await self.client.pk.get_message(message.id)):
+				if pk.original == message.id:
+					await self.on_message(self.client.get_message(pk.id),MixedUser('pluralkit',message.author,
+						id=pk.member.uuid,
+						bot=False))
+				return
+		if user is None: user = message.author
 
 		try:
 			if (
-				message.author.bot or
-				message.author == self.client.user or 
-				await self.client.db.users.read(message.author.id,['config','ignored'])):
+				user.bot or
+				user.id == self.client.user.id or 
+				await self.client.db.users.read(user.id,['config','ignored'])):
 					return
 		except: return
+
 
 		if message.guild is None:
 			await message.channel.send('https://regn.al/dm.png')
@@ -44,7 +60,7 @@ class auto_response_listeners(Cog):
 		for i in self.client.flags:
 			if i[0] != 'RELOAD_AU': continue
 			for guild_id in i[1:]:
-				print(f'reloading {guild_id}')
+				if guild_id == 'base': self.base_responses = None
 				self.guild_responses.pop(guild_id,None)
 			self.client.flags.remove(i)
 		if self.base_responses is None:
@@ -57,20 +73,20 @@ class auto_response_listeners(Cog):
 		if time()-self.cooldowns['au'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
 			match guild['config']['auto_responses']['enabled']:
 				case 'enabled':
-					if await self.listener_auto_response(message): return
+					if await self.listener_auto_response(message,user): return
 				case 'whitelist' if channel.id in guild['data']['auto_responses']['whitelist']:
-					if await self.listener_auto_response(message): return
+					if await self.listener_auto_response(message,user): return
 				case 'blacklist' if channel.id not in guild['data']['auto_responses']['blacklist']:
-					if await self.listener_auto_response(message): return
+					if await self.listener_auto_response(message,user): return
 				case 'disabled': pass
 		if time()-self.cooldowns['db'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['dad_bot']['cooldown']:
 			match guild['config']['dad_bot']['enabled']:
 				case 'enabled':
-					if await self.listener_dad_bot(message): return
+					if await self.listener_dad_bot(message,user): return
 				case 'whitelist' if channel.id in guild['data']['dad_bot']['whitelist']:
-					if await self.listener_dad_bot(message): return
+					if await self.listener_dad_bot(message,user): return
 				case 'blacklist' if channel.id not in guild['data']['dad_bot']['blacklist']:
-					if await self.listener_dad_bot(message): return
+					if await self.listener_dad_bot(message,user): return
 				case 'disabled': pass
 
 	def au_check(self,responses,message:str) -> tuple[str,str]|None:
@@ -98,7 +114,7 @@ class auto_response_listeners(Cog):
 			except IndexError: pass
 			return ('contains',i)
 
-	async def listener_auto_response(self,message:Message) -> None:
+	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		for responses in [self.guild_responses[message.guild.id],self.base_responses]:
 			try: check = self.au_check(responses,message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
 			except Exception: continue
@@ -121,7 +137,7 @@ class auto_response_listeners(Cog):
 				await sleep(delay)
 			await message.channel.send(followup)
 
-		self.cooldowns['au'].update({message.author.id if await self.client.db.guilds.read(message.guild.id,['config','auto_responses','cooldown_per_user']) else message.channel.id:int(time())})
+		self.cooldowns['au'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','auto_responses','cooldown_per_user']) else message.channel.id:int(time())})
 		await self.client.log.listener(message,category=check[0],trigger=check[1])
 		return True
 
@@ -149,3 +165,8 @@ class auto_response_listeners(Cog):
 		
 		self.cooldowns['db'].update({message.author.id if await self.client.db.guilds.read(message.guild.id,['config','dad_bot','cooldown_per_user']) else message.channel.id:int(time())})
 		await self.client.log.listener(message,splitter=splitter)
+		
+		
+def setup(client:Client) -> None:
+	client._extloaded()
+	client.add_cog(auto_response_listeners(client))

@@ -2,10 +2,10 @@ from discord import ApplicationContext,TextChannel,Embed,Permissions
 from discord.commands import SlashCommandGroup,Option as option
 from discord.utils import escape_markdown
 from discord.ext.commands import Cog
-from main import client_cls
+from client import Client
 
 class admin_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 
 	admin = SlashCommandGroup('admin','admin commands')
@@ -55,3 +55,7 @@ class admin_commands(Cog):
 				await ctx.response.send_message(embed=Embed(title=f'current {location} filters regex' if res else f'no {channel} regex filters set',description=escape_markdown('\n'.join(res))),ephemeral=await self.client.hide(ctx))
 
 			case _: await ctx.response.send_message('invalid mode, how did you even do that?',ephemeral=await self.client.hide(ctx))
+
+def setup(client:Client) -> None:
+	client._extloaded()
+	client.add_cog(admin_commands(client))

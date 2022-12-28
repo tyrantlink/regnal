@@ -1,10 +1,10 @@
 from discord import SelectOption,Interaction,Embed
 from discord.ui import Select
-from main import client_cls
+from client import Client
 
 
 class poll_published_select(Select):
-	def __init__(self,client:client_cls,options:list[SelectOption]) -> None:
+	def __init__(self,client:Client,options:list[SelectOption]) -> None:
 		self.client = client
 		if options is None: options = range(25)
 		super().__init__(

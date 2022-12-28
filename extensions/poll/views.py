@@ -2,11 +2,11 @@ from discord import SelectOption,Interaction,Embed,InputTextStyle
 from discord.ui import View,Button,button,InputText,Item
 from .selects import poll_published_select
 from .modals import poll_modal
-from main import client_cls
+from client import Client
 
 
 class poll_published_view(View):
-	def __init__(self,*,client:client_cls,options:dict=None) -> None:
+	def __init__(self,*,client:Client,options:dict=None) -> None:
 		self.client = client
 		super().__init__(timeout=None)
 		self.add_item(poll_published_select(client,[SelectOption(label=k) for k,v in options.items()] if options is not None else None))
@@ -16,7 +16,7 @@ class poll_published_view(View):
 		await self.client.log.error(error)
 
 class poll_view(View):
-	def __init__(self,*,client:client_cls,embed:Embed) -> None:
+	def __init__(self,*,client:Client,embed:Embed) -> None:
 		super().__init__()
 		self.clear_items()
 		self.client = client

@@ -1,10 +1,10 @@
 from discord.ui import View,Modal,InputText
 from discord import Interaction,Embed
-from main import client_cls
+from client import Client
 
 
 class poll_modal(Modal):
-	def __init__(self,attrs:tuple[client_cls,View,Embed],title:str,items:list[InputText]) -> None:
+	def __init__(self,attrs:tuple[Client,View,Embed],title:str,items:list[InputText]) -> None:
 		self.client,self.view,self.embed = attrs
 		super().__init__(title=title)
 		for i in items: self.add_item(i)

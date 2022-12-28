@@ -3,13 +3,12 @@ from discord import File,ApplicationContext,Message
 from discord.commands import Option as option
 from pyqrcode import create as qr_create
 from base64 import b64encode,b64decode
-from main import client_cls
+from ._shared_vars import algo_list
+from client import Client
 from io import BytesIO
 
-algo_list = ['base64','caesar cipher']
-
 class cryptography_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 
 	def caesar_cipher(self,encode:bool,input:str,shift:int=7) -> str:
@@ -58,3 +57,7 @@ class cryptography_commands(Cog):
 			qr.png(qr_binary,1000 // qr.get_png_size(),quiet_zone=2)
 			qr_binary.seek(0)
 			await ctx.response.send_message(file=File(qr_binary,'regnal_qr_code.png'),ephemeral=await self.client.hide(ctx))
+
+def setup(client:Client) -> None:
+	client._extloaded()
+	client.add_cog(cryptography_commands(client))

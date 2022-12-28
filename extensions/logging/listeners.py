@@ -1,16 +1,16 @@
 from discord import Message,Member,Embed
+from datetime import datetime,timedelta
 from utils.tyrantlib import split_list
 from discord.ext.commands import Cog
 from discord.errors import NotFound
-from datetime import datetime
-from main import client_cls
+from client import Client
 from re import findall
 
-
 class logging_listeners(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.recently_deleted = []
+		self.cached_counts = {}
 
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
@@ -74,10 +74,9 @@ class logging_listeners(Cog):
 		else: replying_to = None
 		reply_jmp = None if replying_to is None else f'[replying to {str(replying_to.author).lower()}](<{replying_to.jump_url}>)\n'
 
-
-		embed = Embed(title=f'edited a message in {before.channel.name}',
-		description=f'[jump to channel](<{before.channel.jump_url}>)\n[jump to message](<{before.jump_url}>)\n{reply_jmp or ""}[{str(before.author).lower()}\'s profile](<{before.author.jump_url}>)\n',
-		color=0xffff69)
+		embed = Embed(
+			description=f'{before.author.mention} edited a [message](<{before.jump_url}>) in {before.channel.mention}\n{reply_jmp or ""}[{str(before.author).lower()}\'s profile](<{before.author.jump_url}>)\n',
+			color=0xffff69)
 		embed.set_author(name=before.author.display_name,icon_url=before.author.display_avatar.url)
 		embed.set_footer(text=f'message id: {before.id}\nuser id:    {before.author.id}')
 		if before.edited_at is not None:
@@ -90,7 +89,6 @@ class logging_listeners(Cog):
 	
 	@Cog.listener()
 	async def on_message_delete(self,message:Message) -> None:
-		if message.author == client_cls.user: return
 		deleted_at = datetime.now()
 		if message.id in self.recently_deleted:
 			self.recently_deleted.remove(message.id)
@@ -106,6 +104,19 @@ class logging_listeners(Cog):
 			guild_data['config']['logging']['log_bots'] and message.author.bot):
 			await self.log(message,deleted_at=deleted_at)
 			return
+		
+		deleted_by = message.author
+		if message.guild.me.guild_permissions.view_audit_log:
+			async for log in message.guild.audit_logs(after=datetime.now()-timedelta(minutes=6),oldest_first=False):
+				if (log.action.name == "message_delete" and
+						log.target.id == message.author.id and
+						datetime.now().timestamp()-log.created_at.timestamp()<300 and
+						log.extra.channel.id == message.channel.id and
+						log.extra.count <= self.cached_counts.get(f'{message.channel.id}{log.target.id}',log.extra.count-1)+1
+					):
+					deleted_by = log.user
+					self.cached_counts.update({f'{message.channel.id}{log.target.id}':log.extra.count})
+					break
 
 		if message.reference:
 			try:
@@ -113,24 +124,25 @@ class logging_listeners(Cog):
 			except NotFound: replying_to = None
 		else: replying_to = None
 
-		reply_jmp = None if replying_to is None else f'[replying to {str(replying_to.author).lower()}](<{replying_to.jump_url}>)\n'
-
-		embed = Embed(title=f'deleted a message in {message.channel.name}',
-		description=f'[jump to channel](<{message.channel.jump_url}>)\n{reply_jmp or ""}[{str(message.author).lower()}\'s profile](<{message.author.jump_url}>)\n',
-		color=0xff6969)
+		addit = [f"[{str(message.author).lower()}\'s profile](<{message.author.jump_url}>)"]
+		if replying_to is not None: addit.append(f'[replying to {str(replying_to.author).lower()}](<{replying_to.jump_url}>)\n')
+		if deleted_by.id != message.author.id: addit.append(f'[{str(deleted_by).lower()}\'s profile](<{deleted_by.jump_url}>)')
+		addit = "\n".join(addit)
+		embed = Embed(
+			description=f'**message by** {message.author.mention} **was deleted in** {message.channel.mention} **by** {deleted_by.mention}\n{addit}',
+			color=0xff6969)
 		embed.set_author(name=message.author.display_name,icon_url=message.author.display_avatar.url)
-		embed.set_footer(text=f'message id: {message.id}\nuser id:    {message.author.id}')
+		embed.set_footer(text=f'message id: {message.id}\nuser id:    {message.author.id}\ndeleter id: {deleted_by.id}')
 		embed.add_field(name=f'DELETED  <t:{int(deleted_at.timestamp())}:t>',value=(message.content if len(message.content) <= 1024 else f'{message.content[:1021]}...') or '​',inline=False)
 		if message.attachments:
-			
 			embed.add_field(name='attachments',value='\n'.join([a.filename for a in message.attachments]),inline=False)
-
 		log_msg = await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
-		await self.log(message,deleted_at=deleted_at,log_message=log_msg)
+		await self.log(message,deleted_at=deleted_at,log_message=log_msg,deleted_by=deleted_by)
 
 	@Cog.listener()
 	async def on_bulk_message_delete(self,messages:list[Message]) -> None:
 		deleted_at = datetime.now()
+		message = messages[0]
 		if not messages[0].guild: return
 		guild_data = await self.client.db.guilds.read(messages[0].guild.id)
 		if not guild_data['config']['logging']['enabled']: return
@@ -141,15 +153,28 @@ class logging_listeners(Cog):
 			guild_data['config']['logging']['log_bots'] and message[0].author.bot):
 			for message in messages: await self.log(message)
 			return
+
+		deleted_by = message.author
+		if message.guild.me.guild_permissions.view_audit_log:
+			async for log in message.guild.audit_logs(after=datetime.now()-timedelta(minutes=6),oldest_first=False):
+				if (log.action.name == "message_delete" and
+						log.target.id == message.author.id and
+						datetime.now().timestamp()-log.created_at.timestamp()<300 and
+						log.extra.channel.id == message.channel.id and
+						log.extra.count <= self.cached_counts.get(f'{message.channel.id}{log.target.id}',log.extra.count-1)+1
+					):
+					deleted_by = log.user
+					self.cached_counts.update({f'{message.channel.id}{log.target.id}':log.extra.count})
+					break
 		
-		embed = Embed(title=f'{len(messages)} messages were bulk deleted in {messages[0].channel.name}',
-		description=f'[jump to channel](<{messages[0].channel.jump_url}>)\n',
-		color=0xff6969)
+		embed = Embed(
+			description=f'{len(messages)} **messages were bulk deleted in** {messages[0].channel.mention} **by** {deleted_by.mention}\n[jump to channel](<{messages[0].channel.jump_url}>)\n[{str(deleted_by).lower()}\'s profile](<{deleted_by.jump_url}>)',
+			color=0xff6969)
 		for chunk in split_list([str(m.id) for m in messages],48):
 			embed.add_field(name=f'DELETED <t:{int(deleted_at.timestamp())}:t>',value='\n'.join(chunk))
 
 		log_msg = await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
-		for message in messages: await self.log(message,deleted_at=deleted_at,log_message=log_msg)
+		for message in messages: await self.log(message,deleted_at=deleted_at,log_message=log_msg,deleted_by=deleted_by)
 
 	@Cog.listener()
 	async def on_member_join(self,member:Member) -> None:
@@ -179,7 +204,7 @@ class logging_listeners(Cog):
 			embed.set_thumbnail(url=member.display_avatar.with_size(512).with_format('png').url)
 			await self.client.get_channel(guild_data['config']['logging']['channel']).send(embed=embed)
 
-	async def log(self,message:Message,after_message:Message=None,deleted_at:datetime=None,log_message:Message=None) -> None:
+	async def log(self,message:Message,after_message:Message=None,deleted_at:datetime=None,log_message:Message=None,deleted_by:Member=None) -> None:
 		if message.author == self.client.user: return
 		response = await self.client.db.messages.read(message.id)
 
@@ -190,6 +215,7 @@ class logging_listeners(Cog):
 				'guild':message.guild.id,
 				'channel':message.channel.id,
 				'reply_to':0 if message.reference is None else message.reference.message_id,
+				'deleted_by':0 if deleted_by is None else deleted_by.id,
 				'log_message':[] if log_message is None else [log_message.id],
 				'logs':[[int(message.created_at.timestamp()),'original',message.content]],
 				'attachments':[a.filename for a in message.attachments]}

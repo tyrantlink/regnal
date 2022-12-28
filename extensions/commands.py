@@ -1,14 +1,14 @@
 from discord.commands import SlashCommandGroup,Option as option,slash_command,user_command
 from discord import Embed,User,ApplicationContext
+from _shared_vars import generate_options
 from discord.ext.commands import Cog
-from .shared import generate_options
-from main import client_cls
+from client import Client
 from random import choice
 from json import dumps
 
 
 class commands_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 
 	profile = SlashCommandGroup('profile','get profile of a user or server')
@@ -132,3 +132,9 @@ class commands_commands(Cog):
 	@user_command(name='get profile')
 	async def user_profile_user(self,ctx:ApplicationContext,user:User) -> None:
 		await ctx.response.send_message(embed=await self.base_profile_user(user,ctx),ephemeral=await self.client.hide(ctx))
+
+def setup(client:Client) -> None:
+	from .commands import commands_commands
+
+	client._extloaded()
+	client.add_cog(commands_commands(client))

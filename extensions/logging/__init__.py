@@ -1,6 +1,6 @@
-from main import client_cls
+from client import Client
 
-def setup(client:client_cls) -> None:
+def setup(client:Client) -> None:
 	from .listeners import logging_listeners
 	from .commands import logging_commands
 

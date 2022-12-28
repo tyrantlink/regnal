@@ -1,15 +1,14 @@
-
-from discord.ui import View,Button,button,InputText,Item
+from discord.ui import View,Button,button,InputText,Item,role_select
 from discord import Interaction,Embed,SelectOption
 from .selects import role_menu_select
 from .shared import role_inputs
 from .modals import role_menu_modal
 from discord.errors import Forbidden
-from main import client_cls
+from client import Client
 from asyncio import Event
 
 class role_menu_published_view(View):
-	def __init__(self,client:client_cls=None,options:list[SelectOption]=None,placeholder:str=None,preview:bool=False) -> None:
+	def __init__(self,client:Client=None,options:list[SelectOption]=None,placeholder:str=None,preview:bool=False) -> None:
 		self.client = client
 		super().__init__(timeout=None)
 		self.add_item(role_menu_select(client,options,placeholder,preview))
@@ -20,7 +19,7 @@ class role_menu_published_view(View):
 		await self.client.log.error(error)
 
 class role_menu_view(View):
-	def __init__(self,*,client:client_cls,embed:Embed,current_data:dict,edit:bool) -> None:
+	def __init__(self,*,client:Client,embed:Embed,current_data:dict,edit:bool) -> None:
 		super().__init__()
 		self.clear_items()
 		self.client = client
@@ -44,6 +43,8 @@ class role_menu_view(View):
 		self.clear_items()
 		self.add_item(self.button_back)
 		await interaction.response.edit_message(embed=self.embed,view=self)
+
+	@role_select()
 
 	async def base_back(self,button:Button,interaction:Interaction):
 		self.embed.title = 'create a role menu'

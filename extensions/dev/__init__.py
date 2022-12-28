@@ -1,7 +1,6 @@
+from client import Client
 
-from main import client_cls
-
-def setup(client:client_cls) -> None:
+def setup(client:Client) -> None:
 	from .commands import dev_commands
 
 	client._extloaded()

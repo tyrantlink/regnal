@@ -1,10 +1,10 @@
 from discord import Embed,ApplicationContext
 from discord.commands import slash_command
 from discord.ext.commands import Cog
-from main import client_cls
+from client import Client
 
 class help_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 
 	@slash_command(

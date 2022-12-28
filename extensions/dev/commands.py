@@ -2,15 +2,16 @@ from discord.commands import SlashCommandGroup,Option as option
 from utils.tyrantlib import dev_only,get_line_count
 from discord.ext.commands import Cog,slash_command
 from discord import Embed,ApplicationContext
-from main import client_cls,extensions
 from .modals import dev_modal
+from main import extensions
+from os import system,walk
+from client import Client
 from asyncio import sleep
 from json import dumps
-from os import system,walk
 
 
 class dev_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 
 	dev = SlashCommandGroup('dev','bot owner commands')
@@ -126,54 +127,8 @@ class dev_commands(Cog):
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@dev.command(
-		name='db',
-		description='interact with mongodb',
-		options=[
-			option(str,name='collection',description='collection to modify',choices=['guilds','users','INF','test']),
-			option(str,name='mode',description='method',choices=['read','write','append','remove','pop','increment','decrement','delete','new']),
-			option(str,name='id',description='document id. use :: to specify type (int default)'),
-			option(str,name='path',description='path to variable, separate by >',required=False,default=[]),
-			option(str,name='value',description='value. use :: to specify type (str default)',required=False,default=None)])
-	@dev_only()
-	async def slash_dev_db(self,ctx:ApplicationContext,collection:str,mode:str,id:str,path:str,value:str) -> None:
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
-
-		match collection:
-			case 'guilds': collection = self.client.db.guilds
-			case 'users': collection = self.client.db.users
-			case 'INF': collection = self.client.db.inf
-			case 'test': collection = self.client.db.test
-
-		if path != []: path = path.split('>')
-
-		id = await self.format_type(ctx,id,'int')
-		if value != None: value = await self.format_type(ctx,value,'str')
-
-		if '__failed__' in [id,value]: return
-
-		match mode:
-			case 'read': res = f'```json\n{dumps(await collection.read(id,path),indent=2)}\n```'
-			case 'write': res = await collection.write(id,path,value)
-			case 'append': res = await collection.append(id,path,value)
-			case 'remove': res = await collection.remove(id,path,value)
-			case 'pop': res = await collection.pop(id,path,value)
-			case 'increment': res = await collection.inc(id,path,value if value != None else 1)
-			case 'decrement': res = await collection.dec(id,path,value if value != None else 1)
-			case 'delete': res = await collection.delete(id)
-			case 'new': res = await collection.new(id)
-			case _: res = 'the fuck did you do this shouldn\'t be possible my homefam?'
-
-		if isinstance(res,str):
-			if len(res) > 2000:
-				if mode == 'read': res = res[8:-4]
-				for message in [res[i:i+1988] for i in range(0,len(res),1988)]:
-					await ctx.response.send_message(f'```json\n{message}\n```' if mode == 'read' else message,ephemeral=await self.client.hide(ctx))
-			else:
-				await ctx.response.send_message(res,ephemeral=await self.client.hide(ctx))
-		elif isinstance(res,bool):
-			await ctx.response.send_message(f'successfully set {">".join(path)} to {value}',ephemeral=await self.client.hide(ctx))
-		else:
-			await ctx.response.send_message('uhhhhhhhhh, somethin\' happened. you might wanna check it out.',ephemeral=await self.client.hide(ctx))
+		name='extensions',
+		description='manage extensions')
 
 	@dev.command(
 		name='reload',

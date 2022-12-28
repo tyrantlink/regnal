@@ -10,15 +10,17 @@ class log:
 	def __init__(self,db:db,DEV_MODE:bool) -> None:
 		self.db = db
 		self.DEV_MODE = DEV_MODE
+	
+	def print(self,message:str,type:str,format:bool=True):
+		print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{type.upper()}] {message}' if format else message)
 
-	async def _submit(self,type:str,message:str,ctx:ApplicationContext=None,do_print:bool=True,format_print:bool=True,**kwargs) -> None:
+	async def _submit(self,type:str,message:str,ctx:ApplicationContext=None,do_print:bool=True,**kwargs) -> None:
 		if ctx:
 			guild = ctx.guild.id if ctx.guild else None
 			channel = ctx.channel.id if ctx.channel else None
 			author = ctx.author.id if ctx.author else None
 		else: guild,channel,author = None,None,None
-		if do_print:
-			print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{stack()[1].function.upper()}] {message}' if format_print else message)
+		if do_print: self.print(message,type,kwargs.get('format_print',True))
 		log = {
 			'ts':time(),
 			'dt':datetime.now().strftime("%m/%d/%Y %H:%M:%S"),
@@ -46,8 +48,13 @@ class log:
 	async def talking_stick(self,ctx:MakeshiftClass,**kwargs) -> None:
 		await self._submit('talking stick',f'{ctx.author} got the talking stick in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
 
-	async def info(self,message:str,**kwargs) -> None:
+	async def _info(self,message:str,**kwargs) -> None:
 		await self._submit('info',message,**kwargs)
+
+	def info(self,message:str,to_db:bool=True,**kwargs) -> None:
+		"""to_db returns a coroutine"""
+		if to_db: return self._submit('info',message,**kwargs)
+		else    : self.print(message,'info',kwargs.get('format_print',True))
 
 	async def error(self,message:Exception|str,**kwargs) -> None:
 		if isinstance(message,Exception):
@@ -56,5 +63,10 @@ class log:
 				message = ''.join(message).split('\nThe above exception was the direct cause of the following exception:')[:-1]
 		await self._submit('error',message if isinstance(message,str) else ''.join(message),**kwargs)
 
-	async def debug(self,message:str,**kwargs) -> None:
-		await self._submit('info',message,**kwargs)
+	async def _debug(self,message:str,**kwargs) -> None:
+		await self._submit('debug',message,**kwargs)
+
+	def debug(self,message:str,to_db:bool=True,**kwargs) -> None:
+		"""to_db returns a coroutine"""
+		if to_db: return self._submit('debug',message,**kwargs)
+		else    : self.print(message,'info',kwargs.get('format_print',True))

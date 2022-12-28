@@ -1,27 +1,33 @@
-from discord import Embed,ApplicationContext
 from discord.commands import slash_command
+from discord import ApplicationContext
+from .views.guild import guild_config
 from discord.ext.commands import Cog
-from utils.tyrantlib import dev_only
-from .views import config_view
-from main import client_cls
+from .views.user import user_config
+from .views.home import home_view
+from .views.dev import dev_config
+from client import Client
 
 
 class config_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 
 	@slash_command(
 		name='config',
 		description='set config')
 	async def slash_config(self,ctx:ApplicationContext) -> None:
-		embed = Embed(title='config',color=await self.client.embed_color(ctx))
-		view = config_view(
+		embed_color = await self.client.embed_color(ctx)
+		view = home_view(
 			client=self.client,
-			embed=embed,
 			user=ctx.author,
-			current_config={
-				'user':await self.client.db.users.read(ctx.author.id,['config']),
-				'guild':await self.client.db.guilds.read(ctx.guild.id,['config']),
-				'dev':await self.client.db.inf.read('/reg/nal',['config'])})
-		await ctx.response.send_message(embed=embed,view=view,
-			ephemeral=True)
+			guild=ctx.guild,
+			dev_bypass=await self.client.db.inf.read('/reg/nal',['config','bypass_permissions']),
+			embed_color=embed_color)
+		if len(view.options) == 1:
+			match view.options[0].label:
+				case 'user': view = user_config(None,self.client,ctx.author,embed_color)
+				case 'guild': view = guild_config(None,self.client,ctx.author,ctx.guild,embed_color)
+				case 'user': view = dev_config(None,self.client,embed_color)
+				case _: raise ValueError('improper option selected, this probably shouldn\'t be possible')
+			await view.start()
+		await ctx.response.send_message(embed=view.embed,view=view,ephemeral=True)

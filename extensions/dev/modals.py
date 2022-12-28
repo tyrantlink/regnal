@@ -1,10 +1,10 @@
 from discord import Embed,InputTextStyle,Interaction,ForumChannel
 from discord.ui import InputText,Modal
-from main import client_cls
+from client import Client
 
 
 class dev_modal(Modal):
-	def __init__(self,client:client_cls,format:str) -> None:
+	def __init__(self,client:Client,format:str) -> None:
 		self.client = client
 		self.format = format
 		match format:

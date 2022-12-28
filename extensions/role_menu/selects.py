@@ -1,11 +1,11 @@
 from discord import Interaction,Embed,SelectOption
 from discord.errors import Forbidden
 from discord.ui import Select
-from main import client_cls
+from client import Client
 
 
 class role_menu_select(Select):
-	def __init__(self,client:client_cls,options:list[SelectOption],placeholder:str,preview:bool=False) -> None:
+	def __init__(self,client:Client,options:list[SelectOption],placeholder:str,preview:bool=False) -> None:
 		self.client = client
 		self.preview = preview
 		if options is None: options = range(25)

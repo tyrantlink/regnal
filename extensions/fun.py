@@ -1,16 +1,16 @@
 from discord.commands import Option as option,slash_command
 from discord import Embed,Role,ApplicationContext
 from discord.ext.commands import Cog
-from .shared import bees,eightball
+from ._shared_vars import bees,eightball
 from aiohttp import ClientSession
 from random import randint,choice
 from datetime import datetime
-from main import client_cls
+from client import Client
 from asyncio import sleep
 from re import sub
 
 class fun_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.bees_running = {}
 
@@ -210,3 +210,7 @@ class fun_commands(Cog):
 			except Exception: pass
 			await sleep(5)
 		self.bees_running[ctx.guild.id] = False
+
+def setup(client:Client) -> None:
+	client._extloaded()
+	client.add_cog(fun_commands(client))

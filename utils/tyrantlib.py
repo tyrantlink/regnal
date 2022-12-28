@@ -1,7 +1,9 @@
 from discord import ApplicationContext
 from discord.ext.commands import check
 from collections.abc import Mapping
-from os import path,walk
+from os.path import isdir
+from os import walk
+from re import sub
 
 sizes = ['bytes','KBs','MBs','GBs','TBs','PBs','EBs','ZBs','YBs']
 
@@ -42,7 +44,6 @@ def convert_time(seconds:int|float,decimal=15) -> str:
 	return ', '.join(res)
 
 def dev_only(ctx:ApplicationContext=None) -> bool:
-	
 	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT THIS HAS TO BE AWAITED
 	async def perms(ctx,respond=True) -> bool:
 		if ctx.author.id == ctx.bot.owner_id: return True
@@ -50,10 +51,23 @@ def dev_only(ctx:ApplicationContext=None) -> bool:
 		return False
 	return check(perms) if not ctx else perms(ctx,False)
 
-def get_line_count(file_path:str) -> int:
-	# i know it's really gross i just don't care enough to fix it
-	with open(file_path,'r') as file:
-		return len([i for i in file.read().replace(' ','').replace('	','').splitlines() if not (i != '') == (i.startswith('#'))])
+def get_line_count(input_path:str,excluded_dirs:list=None,excluded_files:list=None) -> int:
+	if excluded_dirs is None: excluded_dirs = []
+	if excluded_files is None: excluded_files = []
+	if isdir(input_path):
+		line_count = 0
+		for path,dirs,files in walk(input_path):
+			dirs[:] = [d for d in dirs if d not in excluded_dirs]
+			files[:] = [f for f in files if f not in excluded_files]
+			for file in files: line_count += get_line_count('/'.join([path,file]))
+		return line_count
+	else:
+		with open(input_path, 'r') as f: file = f.read()
+		file = sub(r'^\s*"""(?:[^"]|"{1,2}(?!"))*"""\s*','',file,flags=8)
+		file = sub(r'^\s*#.*','',file, flags=8)
+		file = sub(r'^\s*','',file, flags=8)
+		file = sub(r'\s*$','',file, flags=8)
+		return sum(1 for l in file.splitlines() if l.strip())
 
 def split_list(lst:list,size:int) -> list:
 	for i in range(0,len(lst),size):

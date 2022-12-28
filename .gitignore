@@ -1,6 +1,7 @@
 /.vscode
 _*
 !__*
+!_shared_vars.py
 __pycache__
 /images
 /log

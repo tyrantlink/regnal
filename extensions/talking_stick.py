@@ -1,16 +1,16 @@
-from discord import Role,TextChannel,Embed,ApplicationContext,Guild,Permissions,Member
+from discord import Embed,ApplicationContext,Guild,Permissions,Member
 from discord.commands import SlashCommandGroup
 from datetime import datetime,time as dtime
 from utils.tyrantlib import MakeshiftClass
 from discord.ext.commands import Cog
 from discord.errors import NotFound
 from discord.ext.tasks import loop
-from main import client_cls
+from client import Client
 from random import choice
 
 
 class talking_stick_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.talking_stick_loop.start()
 	
@@ -91,3 +91,7 @@ class talking_stick_commands(Cog):
 				await self.roll_talking_stick(guild)
 			except Exception as error:
 				continue
+
+def setup(client:Client) -> None:
+	client._extloaded()
+	client.add_cog(talking_stick_commands(client))

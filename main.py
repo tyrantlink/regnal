@@ -3,19 +3,20 @@ from time import perf_counter,time
 st = perf_counter()
 from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents
 from utils.tyrantlib import convert_time,format_bytes,get_line_count
-from discord.ext.commands import Cog,Bot,slash_command
+from discord.ext.commands import Cog,slash_command
 from traceback import format_exc,format_tb
 from discord.errors import CheckFailure
+from utils.pluralkit import PluralKit
+from client import Client,MixedUser
 from discord.ext.tasks import loop
 from pymongo import MongoClient
 from utils.data import db,env
-from datetime import datetime
 from os.path import exists
 from inspect import stack
 from utils.log import log
 from asyncio import sleep
-from os import _exit,walk
 from json import loads
+from os import _exit
 from sys import argv
 
 DEV_MODE = exists('dev')
@@ -41,7 +42,7 @@ if DEV_MODE:
 		dev = loads(dev.read())
 		extensions = dev['extensions']
 
-class client_cls(Bot):
+class client_cls(Client):
 	def __init__(self) -> None:
 		global extensions
 		super().__init__('i lika, do, da cha cha',None,intents=Intents.all())
@@ -50,18 +51,27 @@ class client_cls(Bot):
 		self.au:dict = None
 		self.env = env(benv['env_dict'])
 		if 'clear' in argv: return
-		self.help = benv['help']
 		self.log = log(self.db,DEV_MODE)
+		self.pk = PluralKit()
 		self.add_cog(base_commands(self))
 		self.add_cog(message_handler(self))
-		if DEV_MODE: self.flags.append('DEV')
-		self.lines = {k.split('/')[-1]:get_line_count(f'{k}.py') for k in ['main']+[f"utils/{'.'.join(i.split('.')[:-1])}" for i in [f for p,d,f in walk('utils')][0] if not (i.startswith('_') or i.endswith('.old'))]}
+		if DEV_MODE:
+			self.flags.append('DEV')
+			self.log.debug('LAUNCHED IN DEV MODE',to_db=False)
 		with open('.git/refs/heads/master') as git: self.commit_id = git.read(7)
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
-		for extension in extensions:
-			if extensions[extension]:
+		for extension,enabled in extensions.items():
+			if enabled:
 				self.load_extension(f'extensions.{extension}')
-				self.lines.update({extension:sum([get_line_count(f'extensions/{extension}/{i}') for i in [f for p,d,f in walk(f'extensions/{extension}')][0]])})
+				self.loaded_extensions.append(extension)
+		self.generate_line_count()
+
+	def generate_line_count(self):
+		unloaded_extensions = [ext for ext in extensions.keys() if ext not in self.loaded_extensions]
+		self.lines = sum([
+			get_line_count('main.py'),
+			get_line_count('utils',['__pycache__','_testing']),
+			get_line_count('extensions',['__pycache__','.old','shared']+unloaded_extensions,['_shared_vars.py']+[f'{u}.py' for u in unloaded_extensions])])
 
 	async def _owner_init(self) -> None:
 		app = await self.application_info()
@@ -69,11 +79,12 @@ class client_cls(Bot):
 		else: self.owner_id = app.owner.id
 
 	def _extloaded(self) -> None:
-		cog = stack()[1].filename.split('/')[-2]
-		if cog in self._raw_loaded_extensions: return
-
-		self.loaded_extensions.append(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if DEV_MODE else " "}[EXT_LOAD] {cog}')
-		self._raw_loaded_extensions.append(cog)
+		if len(ext:=stack()[1].filename.split('extensions/')[-1].split('/')) == 1:
+			extension = ext[0].replace('.py','')
+		else: extension = ext[0]
+		if extension in self._raw_loaded_extensions: return
+		self.log.info(f'[EXT_LOAD] {extension}',to_db=False)
+		self._raw_loaded_extensions.append(extension)
 
 	async def embed_color(self,ctx:ApplicationContext|Interaction) -> int:
 		return int(await self.db.guilds.read(ctx.guild.id,['config','general','embed_color']) if ctx.guild else await self.db.guilds.read(0,['config','general','embed_color']),16)
@@ -101,13 +112,11 @@ class client_cls(Bot):
 		if not DEV_MODE:
 			await self.db.ready()
 			await self.sync_commands()
-		if DEV_MODE:
-			await self.log.debug('LAUNCHED IN DEV MODE')
-			if 'sync' in argv: await self.sync_commands()
-		await self.log.info('\n'.join(self.loaded_extensions),format_print=False)
+		if DEV_MODE and 'sync' in argv: await self.sync_commands()
+		await self.pk.delay_benchmark()
 	
 	async def on_ready(self) -> None:
-		await self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds')
+		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds',to_db=False)
 
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return
@@ -155,7 +164,7 @@ class base_commands(Cog):
 		lifetime,session  = [],[]
 		embed.add_field(name='uptime',value=convert_time(perf_counter()-st,3),inline=False)
 		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
-		embed.add_field(name='line count',value=f'{sum(self.client.lines.values())} lines',inline=True)
+		embed.add_field(name='line count',value=f'{self.client.lines} lines',inline=True)
 		embed.add_field(name='commands',value=len([cmd for cmd in self.client.walk_application_commands() if not isinstance(cmd,SlashCommandGroup)]),inline=True)
 		if self.client.au:
 			auto_response_count = len([j for k in [list(self.client.au[i].keys()) for i in list(self.client.au.keys())] for j in k])
@@ -199,35 +208,53 @@ class message_handler(Cog):
 		await self.client.db.stats.inc(2,['stats','messages_seen'])
 		# ignore webhooks
 		if message.webhook_id is not None: return
+		# wait for pluralkit
+		author = None
+		if (pk:=await self.client.pk.get_message(message.id)) is not None:
+			author = MixedUser('pluralkit',pk.member,
+				id=pk.member.uuid,
+				name=pk.member.name,
+				discriminator=None,
+				bot=True)
+		else: # message is not a pluralkit message
+			author = MixedUser('discord',message.author,
+				id=message.author.id,
+				name=message.author.name,
+				discriminator=message.author.discriminator,
+				bot=message.author.bot)
+
 		# create new user document if author doesn't exist
-		if not (user:=await self.client.db.users.read(message.author.id)):
-			await self.client.db.users.new(message.author.id)
-			await self.client.db.users.write(message.author.id,['bot'],message.author.bot)
-			user = await self.client.db.users.read(message.author.id)
+		if not (user:=await self.client.db.users.read(author.id)):
+			await self.client.db.users.new(author.id)
+			if author.type == 'pluralkit':
+				await self.client.db.users.write(author.id,['pluralkit'],True)
+				await self.client.db.users.write(author.id,['config','talking_stick'],False)
+			else: await self.client.db.users.write(author.id,['bot'],author.bot)
+			user = await self.client.db.users.read(author.id)
 			
 		# check user no_track
 		if user.get('config',{}).get('no_track',False): return
 		# updates username and discriminator every 50 messages
 		if user.get('messages',0)%50 == 0:
-			await self.client.db.users.write(message.author.id,['username'],message.author.name)
-			await self.client.db.users.write(message.author.id,['discriminator'],message.author.discriminator)
+			await self.client.db.users.write(author.id,['username'],author.name)
+			await self.client.db.users.write(author.id,['discriminator'],author.discriminator)
 		# increase user message count
-		await self.client.db.users.inc(message.author.id,['messages'])
+		await self.client.db.users.inc(author.id,['messages'])
 		if message.guild:
 			# create new guild document if current guild doesn't exist
 			if not (guild:=await self.client.db.guilds.read(message.guild.id)):
 				await self.on_guild_join(message.guild)
 				guild = await self.client.db.guilds.read(message.guild.id)
 			# increase user message count on guild leaderboard
-			await self.client.db.guilds.inc(message.guild.id,['data','leaderboards','messages',str(message.author.id)])
+			await self.client.db.guilds.inc(message.guild.id,['data','leaderboards','messages',str(author.id)])
 			# if author not in active member or ignored, add to active member list
-			if message.author.bot: return
-			if message.author.id in guild.get('data',{}).get('talking_stick',{}).get('active',[]): return
+			if author.bot: return
+			if author.id in guild.get('data',{}).get('talking_stick',{}).get('active',[]): return
 			if user.get('config',{}).get('ignored',False): return
 			if ts_limit:=guild.get('config',{}).get('talking_stick',{}).get('limit',None):
-				if not message.author.get_role(ts_limit): return
+				if not author.get_role(ts_limit): return
 
-			await self.client.db.guilds.append(message.guild.id,['data','talking_stick','active'],message.author.id)
+			await self.client.db.guilds.append(guild.id,['data','talking_stick','active'],author.id)
 
 client = client_cls()
 

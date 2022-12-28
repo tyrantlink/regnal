@@ -4,11 +4,11 @@ from discord import Embed,ApplicationContext,Role,Message,Permissions
 from .views import role_menu_published_view,role_menu_view
 from discord.ext.commands import Cog
 from .shared import role_inputs
-from main import client_cls
+from client import Client
 
 
 class role_menu_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 
 	@Cog.listener()

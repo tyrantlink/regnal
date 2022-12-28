@@ -2,14 +2,14 @@ from discord import User,TextChannel,File,Message,ApplicationContext,Member,Perm
 from discord.commands import SlashCommandGroup,Option as option
 from discord.ext.commands import Cog,message_command
 from discord.errors import NotFound
-from main import client_cls
+from client import Client
 from io import StringIO
 from json import dumps
 from time import time
 
 
 class logging_commands(Cog):
-	def __init__(self,client:client_cls) -> None:
+	def __init__(self,client:Client) -> None:
 		self.client = client
 
 	logging = SlashCommandGroup('logging','logging commands')
@@ -29,16 +29,16 @@ class logging_commands(Cog):
 			return False
 
 		match doc['logs'][-1][1]:
-			case 'original': title = f'sent a message in {channel.name}'
-			case 'edited': title = f'edited a message in {channel.name}'
-			case 'deleted': title = f'deleted a message in {channel.name}'
+			case 'original': title = f'{author.mention} sent a [message](<{message.jump_url if message is not None else ""}>) in {channel.mention}'
+			case 'edited': title = f'{author.mention} edited a [message](<{message.jump_url if message is not None else ""}>) in {channel.mention}'
+			case 'deleted': title = f'mesage by {author.mention} deleted in {channel.mention} by <@{doc["deleted_by"]}>'
 
 		msg_jmp   = None if message     is None else f'[jump to message](<{message.jump_url}>)\n'
 		reply_jmp = None if replying_to is None else f'[replying to {str(replying_to.author).lower()}](<{replying_to.jump_url}>)\n'
 
-		embed = Embed(title=title,
-		description=f'[jump to channel](<{channel.jump_url}>)\n{msg_jmp or ""}{reply_jmp or ""}[{str(author).lower()}\'s profile](<{author.jump_url}>)\n',
-		color=0xff6969)
+		embed = Embed(
+			description=f'{title}\n[jump to channel](<{channel.jump_url}>)\n{msg_jmp or ""}{reply_jmp or ""}[{str(author).lower()}\'s profile](<{author.jump_url}>)\n',
+			color=0xff6969)
 		embed.set_author(name=author.display_name,icon_url=author.display_avatar.url)
 		embed.set_footer(text=f'message id: {doc["_id"]}\nuser id:    {author.id}')
 		
