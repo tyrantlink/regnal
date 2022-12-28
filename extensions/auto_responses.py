@@ -23,10 +23,7 @@ class auto_response_listeners(Cog):
 	@Cog.listener()
 	async def on_message(self,message:Message,user:MixedUser=None) -> None:
 		# ignore webhooks except pk
-		if message.webhook_id is not None:
-			if user is not None: pass
-			else: return
-		
+		if message.webhook_id is not None and user is None: return
 
 		if message.guild:
 			try: guild = await self.client.db.guilds.read(message.guild.id)
