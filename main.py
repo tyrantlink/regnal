@@ -253,7 +253,7 @@ class message_handler(Cog):
 			if ts_limit:=guild.get('config',{}).get('talking_stick',{}).get('limit',None):
 				if not author.get_role(ts_limit): return
 
-			await self.client.db.guilds.append(guild.id,['data','talking_stick','active'],author.id)
+			await self.client.db.guilds.append(message.guild.id,['data','talking_stick','active'],author.id)
 
 client = client_cls()
 
