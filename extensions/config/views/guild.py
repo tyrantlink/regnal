@@ -162,18 +162,18 @@ class guild_config(EmptyView):
 		label='whitelist',style=1,
 		custom_id='whitelist_button',row=2)
 	async def whitelist_button(self,button:Button,interaction:Interaction) -> None:
-		await self.write_config('whitelist')
-		self.add_item(self.configure_list_button)
+		if self.get_item('configure_list_button') is None: self.add_item(self.configure_list_button)
 		self.get_item('configure_list_button').label = f'configure whitelist'
+		await self.write_config('whitelist')
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
 		label='blacklist',style=1,
 		custom_id='blacklist_button',row=2)
 	async def blacklist_button(self,button:Button,interaction:Interaction) -> None:
-		await self.write_config('blacklist')
-		self.add_item(self.configure_list_button)
+		if self.get_item('configure_list_button') is None: self.add_item(self.configure_list_button)
 		self.get_item('configure_list_button').label = f'configure blacklist'
+		await self.write_config('blacklist')
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -211,11 +211,13 @@ class guild_config(EmptyView):
 		custom_id='configure_list_button')
 	async def configure_list_button(self,button:Button,interaction:Interaction) -> None:
 		mode = self.config.get(self.selected,None)
+		path = self.selected if (self.category,self.selected) == ('general','hide_commands') else self.category
 		embed = Embed(
-			title=f'configure {self.category} {mode}',
-			description=f'currently {mode}ed:\n'+('\n'.join([f'<#{i}>' for i in await self.client.db.guilds.read(interaction.guild.id,['data',self.category,mode])]) or 'None'),
+			title=f'configure {path} {mode}',
+			description=f'currently {mode}ed:\n'+(
+				'\n'.join([f'<#{i}>' for i in await self.client.db.guilds.read(self.guild.id,['data',path,mode])]) or 'None'),
 			color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=configure_list_view((self.category,mode),self,self.client,embed))
+		await interaction.response.edit_message(embed=embed,view=configure_list_view((path,mode),self,self.client,embed))
 
 	@button(
 		label='custom auto responses',style=1,row=2,
@@ -224,6 +226,6 @@ class guild_config(EmptyView):
 		embed = Embed(
 			title=f'custom auto responses',
 			color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.client,embed,await self.client.db.guilds.read(interaction.guild.id,['data','auto_responses','custom'])))
+		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.client,embed,await self.client.db.guilds.read(self.guild.id,['data','auto_responses','custom'])))
 
 		
