@@ -49,7 +49,7 @@ class Member:
 
 		if self.birthday: self.birthday           = self.birthday.replace('0004-','')
 		self.created:datetime|None                = None if self._created is None else datetime.fromisoformat(self._created[:-1] if self._created.endswith('Z') else self._created)
-		self.last_message_timestamp:datetime|None = None if self._last_message_timestamp is None else datetime.fromisoformat(self._last_message_timestamp[:-1] if self._last_message_timestamp.endswith('Z') else self._last_message_timestamp)
+		self.last_message_timestamp:datetime|None = None if self._last_message_timestamp is None else datetime.fromisoformat(self._last_message_timestamp.replace('Z','').ljust(26,'0'))
 
 class Message:
 	def __init__(self,raw:dict) -> None:

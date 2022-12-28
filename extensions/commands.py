@@ -83,7 +83,7 @@ class commands_commands(Cog):
 		output,index,nl = [f'total: {sum([int(v) for k,v in res])}\n'],1,'\n'
 		for id,count in res:
 			line = f'{index}{("th" if 4<=index%100<=20 else {1:"st",2:"nd",3:"rd"}.get(index%10, "th"))} - '
-			line += f'{await self.client.db.users.read(int(id),["username"])}: {count}'
+			line += f'{await self.client.db.users.read(int(id) if id.isnumeric() else id,["username"])}: {count}'
 			index += 1
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
@@ -105,7 +105,7 @@ class commands_commands(Cog):
 		output,index,nl = [f'total: {sum([int(v) for k,v in res])}\n'],1,'\n'
 		for id,count in res:
 			line = f'{index}{("th" if 4<=index%100<=20 else {1:"st",2:"nd",3:"rd"}.get(index%10, "th"))} - '
-			line += f'{await self.client.db.users.read(int(id),["username"])}: {count}'
+			line += f'{await self.client.db.users.read(int(id) if id.isnumeric() else id,["username"])}: {count}'
 			index += 1
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
