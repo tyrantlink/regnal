@@ -20,12 +20,12 @@ class guild_config(EmptyView):
 		if back_view is not None: self.add_item(self.back_button)
 		self.add_items(self.category_select)
 		options = [SelectOption(label='general',description='general options')]
-		if self.user.guild_permissions.view_audit_log:
+		if self.user.guild_permissions.view_audit_log or self.user.id == self.client.owner_id:
 			options.append(SelectOption(label='logging',description='logging config'))
-		if self.user.guild_permissions.manage_channels:
+		if self.user.guild_permissions.manage_channels or self.user.id == self.client.owner_id:
 			options.append(SelectOption(label='qotd',description='qotd config'))
 			options.append(SelectOption(label='talking_stick',description='talking stick config'))
-		if self.user.guild_permissions.manage_messages:
+		if self.user.guild_permissions.manage_messages or self.user.id == self.client.owner_id:
 			options.append(SelectOption(label='auto_responses',description='auto response config'))
 			options.append(SelectOption(label='dad_bot',description='dad bot config'))
 		self.get_item('category_select').options = options
