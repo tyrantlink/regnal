@@ -141,7 +141,7 @@ class auto_response_listeners(Cog):
 		await self.client.log.listener(message,category=check[0],trigger=check[1])
 		return True
 
-	async def listener_dad_bot(self,message:Message) -> None:
+	async def listener_dad_bot(self,message:Message,user:MixedUser) -> None:
 		response = ''
 		input = sub(r"""<(@!|@|@&)\d{10,25}>|@everyone|@here|(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?""",'[REDACTED]',sub(r'\*|\_|\~|\`|\|','',message.content))
 		for p_splitter in ["I'm",'im','I am','I will be',"I've",'ive']:
@@ -163,7 +163,7 @@ class auto_response_listeners(Cog):
 		except Forbidden: return False
 		except HTTPException: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
 		
-		self.cooldowns['db'].update({message.author.id if await self.client.db.guilds.read(message.guild.id,['config','dad_bot','cooldown_per_user']) else message.channel.id:int(time())})
+		self.cooldowns['db'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','dad_bot','cooldown_per_user']) else message.channel.id:int(time())})
 		await self.client.log.listener(message,splitter=splitter)
 		
 		
