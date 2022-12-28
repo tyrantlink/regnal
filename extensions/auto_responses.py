@@ -36,11 +36,11 @@ class auto_response_listeners(Cog):
 
 		if guild.get('config',{}).get('general',{}).get('pluralkit',False) and user is None:
 			if (pk:=await self.client.pk.get_message(message.id)):
-				if pk.original == message.id:
+				if pk is not None and pk.original == message.id:
 					await self.on_message(self.client.get_message(pk.id),MixedUser('pluralkit',message.author,
 						id=pk.member.uuid,
 						bot=False))
-				return
+					return
 		if user is None: user = message.author
 
 		try:

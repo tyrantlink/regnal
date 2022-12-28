@@ -113,8 +113,6 @@ class client_cls(Client):
 			await self.db.ready()
 			await self.sync_commands()
 		if DEV_MODE and 'sync' in argv: await self.sync_commands()
-		await self.pk.delay_benchmark()
-		await self.log.debug(f'pluralkit delay of {self.pk.delay} seconds')
 	
 	async def on_ready(self) -> None:
 		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds',to_db=False)

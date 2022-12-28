@@ -68,13 +68,6 @@ class Message:
 class PluralKit:
 	def __init__(self) -> None:
 		self._recent_requests = []
-		self.delay = 0
-
-	async def delay_benchmark(self) -> None:
-		self.delay = 0
-		st = perf_counter()
-		await self.get_system(250797109022818305)
-		self.delay = (perf_counter()-st)*1.1
 
 	async def _handle_ratelimit(self) -> None:
 		for ts in self._recent_requests.copy():
@@ -84,7 +77,6 @@ class PluralKit:
 			await self._handle_ratelimit()
 
 	async def request(self,endpoint:str):
-		await sleep(self.delay)
 		await self._handle_ratelimit()
 		async with ClientSession() as session:
 			async with session.get(f'{BASEURL}{endpoint}') as res:
@@ -106,7 +98,8 @@ class PluralKit:
 		if req[0]: return Member(req[1])
 		else: return None
 
-	async def get_message(self,message_id:str) -> Message|None:
+	async def get_message(self,message_id:str,delay:float=0.5) -> Message|None:
+		await sleep(delay)
 		req = await self.request(f'/messages/{message_id}')
 		if req[0]: return Message(req[1])
 		else: return None
