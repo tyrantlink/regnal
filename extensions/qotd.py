@@ -98,7 +98,7 @@ class qotd_commands(Cog):
 		description='ask a question immediately | once per day',
 		guild_only=True,default_member_permissions=Permissions(manage_guild=True))
 	async def slash_qotd_now(self,ctx:ApplicationContext) -> None:
-		if time()-(await self.client.db.guilds.read(ctx.guild.id,['data','qotd','last'])[0]) < 86400:
+		if time()-(await self.client.db.guilds.read(ctx.guild.id,['data','qotd','last']))[0] < 86400:
 			await ctx.response.send_message(embed=Embed(title='ERROR',description='it has not been 24 hours since the last question was asked!',color=0xff6969),
 				ephemeral=await self.client.hide(ctx))
 			return
