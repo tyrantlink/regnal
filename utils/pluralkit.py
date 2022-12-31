@@ -1,3 +1,4 @@
+from aiohttp.client_exceptions import ContentTypeError
 from aiohttp import ClientSession
 from datetime import datetime
 from time import perf_counter
@@ -81,7 +82,8 @@ class PluralKit:
 		async with ClientSession() as session:
 			async with session.get(f'{BASEURL}{endpoint}') as res:
 				self._recent_requests.append(perf_counter())
-				return (res.status == 200,await res.json())
+				try: return (res.status == 200,await res.json())
+				except ContentTypeError: return None
 
 	async def get_system(self,discord_id:str|int) -> System|None:
 		req = await self.request(f'/systems/{discord_id}')
