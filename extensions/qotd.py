@@ -1,4 +1,4 @@
-from discord import Embed,ApplicationContext,Permissions,Guild,Message,Thread,ForumChannel,User
+from discord import Embed,ApplicationContext,Permissions,Guild,Message,Thread,User
 from discord.commands import Option as option,SlashCommandGroup
 from datetime import datetime,time as dtime,timedelta
 from utils.tyrantlib import MakeshiftClass
@@ -14,7 +14,7 @@ from time import time
 class qotd_commands(Cog):
 	def __init__(self,client:Client) -> None:
 		self.client = client
-		if 'DEV' in self.client.flags:
+		if 'DEV' in self.client.flags.keys():
 			self.qotd_loop.change_interval(time=(datetime.now()+timedelta(seconds=20)).astimezone(datetime.now().astimezone().tzinfo).timetz())
 		self.qotd_loop.start()
 

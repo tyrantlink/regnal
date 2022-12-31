@@ -30,13 +30,10 @@ class custom_au_view(EmptyView):
 		for item in items: self.add_item(item)
 	
 	def au_reload(self,guild_id:int) -> None:
-		for i in self.client.flags:
-			if i[0] != 'RELOAD_AU': continue
-			if guild_id not in i:
-				self.client.flags.remove(i)
-				self.client.flags.append((*i,guild_id))
+		if (reload:=self.client.flags.get('RELOAD_AU',None)) is not None and guild_id not in reload:
+			self.client.flags['RELOAD_AU'].append(guild_id)
 		else:
-			self.client.flags.append(('RELOAD_AU',guild_id))
+			self.client.flags.update({'RELOAD_AU',[guild_id]})
 
 	def reload(self) -> None:
 		self.selected_au = None

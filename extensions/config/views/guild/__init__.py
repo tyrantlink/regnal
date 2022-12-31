@@ -10,7 +10,6 @@ class guild_config(EmptyView):
 		super().__init__(timeout=0)
 		self.back_view   = back_view
 		self.client      = client
-		self.user        = user
 		self.guild       = guild
 		self.embed       = Embed(title='guild config',color=embed_color or back_view.embed.color)
 		self.config      = {}
@@ -20,12 +19,12 @@ class guild_config(EmptyView):
 		if back_view is not None: self.add_item(self.back_button)
 		self.add_items(self.category_select)
 		options = [SelectOption(label='general',description='general options')]
-		if self.user.guild_permissions.view_audit_log or self.user.id == self.client.owner_id:
+		if user.id == self.client.owner_id or user.guild_permissions.view_audit_log:
 			options.append(SelectOption(label='logging',description='logging config'))
-		if self.user.guild_permissions.manage_channels or self.user.id == self.client.owner_id:
+		if user.id == self.client.owner_id or user.guild_permissions.manage_channels:
 			options.append(SelectOption(label='qotd',description='qotd config'))
 			options.append(SelectOption(label='talking_stick',description='talking stick config'))
-		if self.user.guild_permissions.manage_messages or self.user.id == self.client.owner_id:
+		if user.id == self.client.owner_id or user.guild_permissions.manage_messages:
 			options.append(SelectOption(label='auto_responses',description='auto response config'))
 			options.append(SelectOption(label='dad_bot',description='dad bot config'))
 		self.get_item('category_select').options = options
@@ -133,12 +132,21 @@ class guild_config(EmptyView):
 		placeholder='select a channel',
 		custom_id='channel_select',row=1,min_values=0)
 	async def channel_select(self,select:Select,interaction:Interaction) -> None:
-		await self.write_config(select.values[0].id if select.values else None)
+		if not select.values:
+			await self.write_config(None)
+			await interaction.response.edit_message(embed=self.embed,view=self)
+			return
+		if select.values[0].type.name == 'forum':
+			if self.selected not in ['qotd']: 
+				await interaction.response.edit_message(embed=self.embed,view=self)
+				await interaction.followup.send(ephemeral=True,embed=Embed(title='error!',color=0xff6969,
+					description=f'forum channels are not supported for option type `{self.selected}`'))
+				return
+		elif not select.values[0].can_send():
+			await interaction.followup.send(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+				description=f'i don\'t have permission to send messages in {select.values[0].mention}\nthe channel will still be set, but you should probably fix that.'))
+		await self.write_config(select.values[0].id)
 		await interaction.response.edit_message(embed=self.embed,view=self)
-		if select.values:
-			if not select.values[0].can_send():
-				await interaction.followup.send(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
-					description=f'i don\'t have permission to send messages in {select.values[0].mention}\nthe channel will still be set, but you should probably fix that.'))
 
 	@role_select(
 		placeholder='select a role',

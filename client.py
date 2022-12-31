@@ -15,7 +15,7 @@ class Client(Bot):
 	def __init__(self,*args,**kwargs) -> None:
 		super().__init__(*args,**kwargs)
 		self.db:db
-		self.flags:list
+		self.flags:dict
 		self.au:dict|None
 		self.env:dict
 		self.log:log

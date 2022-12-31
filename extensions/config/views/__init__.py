@@ -3,9 +3,9 @@ from discord.ui import Select,string_select
 from client import Client,EmptyView
 from .guild import guild_config
 from .user import user_config
-from .dev import dev_config
+from .dev import dev_menu
 
-class home_view(EmptyView):
+class config_view(EmptyView):
 	def __init__(self,client:Client,user:Member|User,guild:Guild,dev_bypass:bool,embed_color:int) -> None:
 		super().__init__(timeout=0)
 		self.client = client
@@ -32,9 +32,9 @@ class home_view(EmptyView):
 		custom_id='option_select')
 	async def option_select(self,select:Select,interaction:Interaction) -> None:
 		match select.values[0]:
-			case 'user': view = user_config(self,self.client,self.user)
+			case 'user':  view = user_config(self,self.client,self.user)
 			case 'guild': view = guild_config(self,self.client,self.user,self.guild)
-			case 'user': view = dev_config(self,self.client)
+			case 'dev':   view = dev_menu(self,self.client)
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
 		await view.start()
 		await interaction.response.edit_message(view=view,embed=view.embed)

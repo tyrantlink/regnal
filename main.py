@@ -47,7 +47,7 @@ class client_cls(Client):
 		global extensions
 		super().__init__('i lika, do, da cha cha',None,intents=Intents.all())
 		self.db = db()
-		self.flags = []
+		self.flags = {}
 		self.au:dict = None
 		self.env = env(benv['env_dict'])
 		if 'clear' in argv: return
@@ -56,7 +56,7 @@ class client_cls(Client):
 		self.add_cog(base_commands(self))
 		self.add_cog(message_handler(self))
 		if DEV_MODE:
-			self.flags.append('DEV')
+			self.flags.update({'DEV':None})
 			self.log.debug('LAUNCHED IN DEV MODE',to_db=False)
 		with open('.git/refs/heads/master') as git: self.commit_id = git.read(7)
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
@@ -182,6 +182,12 @@ class base_commands(Cog):
 		embed.add_field(name='lifetime',value='\n'.join(lifetime),inline=True)
 		embed.set_footer(text=f'version {await self.client.db.inf.read("/reg/nal",["version"])} ({self.client.commit_id})')
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
+	
+	@slash_command(
+		name='ping',
+		description='get /reg/nal\'s ping to discord')
+	async def slash_ping(self,ctx:ApplicationContext) -> None:
+		await ctx.response.send_message(f'pong! {round(self.client.latency*100,1)}ms',ephemeral=await self.client.hide(ctx))
 
 	@loop(minutes=5)
 	async def uptime_loop(self) -> None:

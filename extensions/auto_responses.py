@@ -54,12 +54,10 @@ class auto_response_listeners(Cog):
 			return
 		
 		if message.content is None: return
-		for i in self.client.flags:
-			if i[0] != 'RELOAD_AU': continue
-			for guild_id in i[1:]:
+		if (reload:=self.client.flags.pop('RELOAD_AU',None)) is not None:
+			for guild_id in reload:
 				if guild_id == 'base': self.base_responses = None
 				self.guild_responses.pop(guild_id,None)
-			self.client.flags.remove(i)
 		if self.base_responses is None:
 			self.base_responses = await self.client.db.inf.read('/reg/nal',['auto_responses'])
 			self.client.au = self.base_responses
@@ -121,7 +119,7 @@ class auto_response_listeners(Cog):
 		data:dict = responses[check[0]][check[1]]
 		while redir:=data.get('redir',False):
 			data = responses[check[0]][redir]
-		
+
 		if (response:=data.get('response','{none}')).lower() == '{none}': return False
 		if data.get('nsfw',False) and not message.channel.nsfw: return False
 		if (user_id:=data.get('user',None)) is not None and str(message.author.id) != user_id: return False

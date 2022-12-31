@@ -345,6 +345,18 @@ config_info = {
 			"description": "whether or not the bot owner can bypass guild permissions",
 			"default": True,
 			"type": "bool"
+		},
+    "change_log":
+		{
+			"description": "channel where commit messages will be sent",
+			"default": None,
+			"type": "channel"
+		},
+    "support":
+		{
+			"description": "forum channel where /issue and /suggestion messages will be sent",
+			"default": None,
+			"type": "channel"
 		}
 	}
 }
