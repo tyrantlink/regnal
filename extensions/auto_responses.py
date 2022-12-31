@@ -110,6 +110,8 @@ class auto_response_listeners(Cog):
 			return ('contains',i)
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
+		if delete_original:=message.content.endswith(' --delete'):
+			message.content = message.content[:-9]
 		for responses in [self.guild_responses[message.guild.id],self.base_responses]:
 			try: check = self.au_check(responses,message.content[:-1] if message.content[-1] in ['.','?','!'] else message.content)
 			except Exception: continue
@@ -127,6 +129,7 @@ class auto_response_listeners(Cog):
 
 		try: await message.channel.send(response)
 		except Forbidden: return False
+		if delete_original and message.content == check[1]: await message.delete(reason='auto response deletion')
 		for delay,followup in data.get('followup',[]):
 			async with message.channel.typing():
 				await sleep(delay)
