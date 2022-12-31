@@ -129,7 +129,7 @@ class auto_response_listeners(Cog):
 
 		try: await message.channel.send(response)
 		except Forbidden: return False
-		if delete_original and message.content == check[1]: await message.delete(reason='auto response deletion')
+		if delete_original and message.content.lower() == check[1]: await message.delete(reason='auto response deletion')
 		for delay,followup in data.get('followup',[]):
 			async with message.channel.typing():
 				await sleep(delay)
