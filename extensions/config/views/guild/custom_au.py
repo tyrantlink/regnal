@@ -59,7 +59,7 @@ class custom_au_view(EmptyView):
 	def update_select(self):
 		for child in self.children:
 			if child.custom_id != 'custom_au_select': continue
-			if (options:=[SelectOption(label=k) for k in [i for i in self.custom_au.get(self.page,{}).keys()]]):
+			if (options:=[SelectOption(label=k,description=v.get('response','').split('\n')[0][:100]) for k,v in self.custom_au.get(self.page,{}).items()]):
 				child.options = options
 				child.placeholder = 'select an auto response'
 				child.disabled = False
