@@ -69,6 +69,8 @@ class Message:
 class PluralKit:
 	def __init__(self) -> None:
 		self._recent_requests = []
+		self.cache = {
+			'message':{}}
 
 	async def _handle_ratelimit(self) -> None:
 		for ts in self._recent_requests.copy():
@@ -101,7 +103,12 @@ class PluralKit:
 		else: return None
 
 	async def get_message(self,message_id:str,delay:float=0.2) -> Message|None:
-		await sleep(delay)
-		req = await self.request(f'/messages/{message_id}')
+		if message_id not in self.cache['message'].keys():
+			self.cache['message'].update({message_id:'TEMP'})
+			await sleep(delay)
+			req = await self.request(f'/messages/{message_id}')
+			self.cache['message'].update({message_id:req})
+		else:
+			while (req:=self.cache['message'].get(message_id,(None,None))) in ['TEMP',(None,None)]: await sleep(0.01)
 		if req[0]: return Message(req[1])
 		else: return None
