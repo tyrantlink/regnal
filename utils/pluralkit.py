@@ -109,6 +109,6 @@ class PluralKit:
 			req = await self.request(f'/messages/{message_id}')
 			self.cache['message'].update({message_id:req})
 		else:
-			while (req:=self.cache['message'].get(message_id,(None,None))) in ['TEMP',(None,None)]: await sleep(0.01)
+			while (req:=self.cache['message'].get(message_id,(None,None))) == 'TEMP': await sleep(0.01)
 		if req[0]: return Message(req[1])
 		else: return None
