@@ -1,5 +1,5 @@
 from discord.commands import SlashCommandGroup,Option as option,slash_command,user_command
-from discord import Embed,User,ApplicationContext
+from discord import Embed,User,ApplicationContext,SlashCommand
 from ._shared_vars import generate_options
 from discord.ext.commands import Cog
 from client import Client
@@ -121,8 +121,9 @@ class commands_commands(Cog):
 		name='command_stats',
 		description='command usage stats')
 	async def slash_command_stats(self,ctx:ApplicationContext) -> None:
-		usage = {key: value for key, value in sorted((await self.client.db.inf.read('/reg/nal',['command_usage'])).items(),key=lambda item: item[1],reverse=True)}
-		
+		stats = (await self.client.db.inf.read('/reg/nal',['command_usage']))
+		usage = {f'</{cmd.qualified_name}:{cmd.qualified_id}>' if isinstance(cmd,SlashCommand) else cmd.qualified_name:count for cmd in self.client.walk_application_commands() if (count:=stats.get(cmd.qualified_name,None)) is not None}
+		usage = {key: value for key, value in sorted(usage.items(),key=lambda item: item[1],reverse=True)}
 		await ctx.response.send_message(embed=Embed(
 			title='command usage:',
 			description='\n'.join([f'{command}: {usage[command]}' for command in usage]),
