@@ -1,9 +1,9 @@
 from regex import sub,search,IGNORECASE,split,fullmatch
 from discord.errors import Forbidden,HTTPException
 from discord.ext.commands import Cog
+from client import Client,MixedUser
 from discord import Message,Thread
 from urllib.parse import quote
-from client import Client,MixedUser
 from asyncio import sleep
 from time import time
 
@@ -110,8 +110,7 @@ class auto_response_listeners(Cog):
 			return ('contains',i)
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
-		if delete_original:=message.content.endswith(' --delete'):
-			content = message.content[:-9]
+		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
 		for responses in [self.guild_responses[message.guild.id],self.base_responses]:
 			try: check = self.au_check(responses,content[:-1] if content[-1] in ['.','?','!'] else content)
 			except Exception: continue
