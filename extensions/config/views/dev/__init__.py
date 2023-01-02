@@ -79,6 +79,7 @@ class dev_menu(EmptyView):
 		custom_id='category_select',row=0,options=[
 			SelectOption(label='general'),
 			# SelectOption(label='extensions'),
+			# SelectOption(label='auto responses'),
 			SelectOption(label='user config'),
 			SelectOption(label='guild config')])
 	async def category_select(self,select:Select,interaction:Interaction) -> None:
@@ -90,7 +91,8 @@ class dev_menu(EmptyView):
 				await self.reload_config()
 				self.reload_embed()
 				view = self
-			case 'extensions': view = None
+			# case 'extensions': view = None
+			# case 'auto responses': view = None
 			case 'user config'|'guild config': view,interaction = await self.impersonate(select.values[0].split()[0],interaction)
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
 		await view.start()
