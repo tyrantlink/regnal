@@ -30,6 +30,7 @@ class configure_list_view(EmptyView):
 		custom_id='back_button')
 	async def back_button(self,button:Button,interaction:Interaction) -> None:
 		await interaction.response.edit_message(embed=self.original_view.embed,view=self.original_view)
+		self.stop()
 
 	@button(
 		label='add',style=3,row=1,

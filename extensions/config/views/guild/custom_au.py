@@ -112,6 +112,7 @@ class custom_au_view(EmptyView):
 	async def back_button(self,button:Button,interaction:Interaction) -> None:
 		if self.page == 'main':
 			await interaction.response.edit_message(embed=self.original_view.embed,view=self.original_view)
+			self.stop()
 			return
 		self.page = 'main'
 		self.reload()

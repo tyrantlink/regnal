@@ -88,6 +88,7 @@ class user_config(EmptyView):
 			await interaction.response.edit_message(view=self,embed=self.embed)
 		else:
 			await interaction.response.edit_message(view=self.back_view,embed=self.back_view.embed)
+			self.stop()
 
 	@string_select(
 		placeholder='select an option',

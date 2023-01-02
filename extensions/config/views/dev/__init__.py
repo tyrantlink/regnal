@@ -63,6 +63,7 @@ class dev_menu(EmptyView):
 	async def back_button(self,button:Button,interaction:Interaction) -> None:
 		if self.category is None:
 			await interaction.response.edit_message(view=self.back_view,embed=self.back_view.embed)
+			self.stop()
 			return
 		self.category = None
 		self.selected = None
