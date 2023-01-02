@@ -64,7 +64,7 @@ class user_config(EmptyView):
 			case 'no_track':
 				if value:
 					await self.client.db.users.write(self.user.id,['messages'],None)
-					for guild in self.user.mutual_guilds:
+					for guild in self.discord_user.mutual_guilds:
 						await self.client.db.guilds.unset(guild.id,['data','leaderboards','messages',str(self.user.id)])
 						await self.client.db.guilds.unset(guild.id,['data','leaderboards','sticks',str(self.user.id)])
 				else    : await self.client.db.users.write(self.user.id,['messages'],0)
