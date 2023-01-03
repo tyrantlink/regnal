@@ -10,7 +10,7 @@ class home_view(EmptyView):
 		self.client      = client
 		self.embed       = Embed(title='dev menu',color=embed_color)
 		self.embed.set_author(name=self.client.user.name,icon_url=self.client.user.avatar.url)
-		self.add_items(self.option_select,self.reboot_button,self.sync_commands_button,self.echo_button)
+		self.add_items(self.option_select,self.reboot_button,self.sync_commands_button,self.echo_button,self.reload_au_button)
 		self.reboot_confirmation = False
 
 	@property
@@ -78,3 +78,13 @@ class home_view(EmptyView):
 		await modal.interaction.response.defer(invisible=True)
 		await sleep(int(modal.children[1].value))
 		await interaction.channel.send(modal.children[0].value)
+
+	@button(
+		label='reload au',style=1,
+		custom_id='reload_au_button')
+	async def reload_au_button(self,button:Button,interaction:Interaction) -> None:
+		if (reload:=self.client.flags.get('RELOAD_AU',None)) is not None and 'base' not in reload:
+			self.client.flags['RELOAD_AU'].append('base')
+		else:
+			self.client.flags.update({'RELOAD_AU':['base']})
+		await interaction.response.defer(invisible=True)
