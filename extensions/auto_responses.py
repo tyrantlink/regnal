@@ -1,10 +1,10 @@
 from regex import sub,search,IGNORECASE,split,fullmatch
 from discord.errors import Forbidden,HTTPException
+from asyncio import sleep,create_task
 from discord.ext.commands import Cog
 from client import Client,MixedUser
 from discord import Message,Thread
 from urllib.parse import quote
-from asyncio import sleep
 from time import time
 
 
@@ -14,16 +14,24 @@ class auto_response_listeners(Cog):
 		self.base_responses = None
 		self.guild_responses = {}
 		self.cooldowns = {'au':{},'db':{}}
+		self.timeouts = []
 
 	@Cog.listener()
 	async def on_connect(self) -> None:
 		self.base_responses = await self.client.db.inf.read('/reg/nal',['auto_responses'])
 		self.client.au = self.base_responses
 
+	async def timeout(self,message_id:int) -> None:
+		self.timeouts.append(message_id)
+		await sleep(5)
+		try: self.timeouts.remove(message_id)
+		except ValueError: pass
+
 	@Cog.listener()
 	async def on_message(self,message:Message,user:MixedUser=None) -> None:
 		# ignore webhooks except pk
 		if message.webhook_id is not None and user is None: return
+		create_task(self.timeout(message.id))
 
 		if message.guild:
 			try: guild = await self.client.db.guilds.read(message.guild.id)
@@ -47,7 +55,6 @@ class auto_response_listeners(Cog):
 				await self.client.db.users.read(user.id,['config','ignored'])):
 					return
 		except: return
-
 
 		if message.guild is None:
 			await message.channel.send('https://regn.al/dm.png')
@@ -126,6 +133,7 @@ class auto_response_listeners(Cog):
 		if (user_id:=data.get('user',None)) is not None and str(message.author.id) != user_id: return False
 		if data.get('file',False): response = f'https://regn.al/au/{quote(response)}'
 
+		if message.id not in self.timeouts: return False
 		try: await message.channel.send(response)
 		except Forbidden: return False
 		if delete_original and content.lower() == check[1] and data.get('file',False): await message.delete(reason='auto response deletion')
@@ -156,6 +164,7 @@ class auto_response_listeners(Cog):
 
 		if response == '': return
 
+		if message.id not in self.timeouts: return False
 		try: await message.channel.send(f'hi{response}, {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
 		except Forbidden: return False
 		except HTTPException: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
