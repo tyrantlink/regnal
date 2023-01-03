@@ -146,7 +146,7 @@ class guild_config(EmptyView):
 			await interaction.response.edit_message(embed=self.embed,view=self)
 			return
 		if select.values[0].type.name == 'forum':
-			if self.selected not in ['qotd']: 
+			if self.category not in ['qotd']:
 				await interaction.response.edit_message(embed=self.embed,view=self)
 				await interaction.followup.send(ephemeral=True,embed=Embed(title='error!',color=0xff6969,
 					description=f'forum channels are not supported for option type `{self.selected}`'))
