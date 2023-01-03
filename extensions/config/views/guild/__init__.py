@@ -1,5 +1,5 @@
 from discord.ui import Button,button,Select,string_select,channel_select,role_select,InputText
-from discord import Interaction,Embed,SelectOption,Guild,Member
+from discord import Interaction,Embed,SelectOption,Guild,Member,CategoryChannel
 from extensions._shared_vars import config_info
 from client import Client,EmptyView,CustomModal
 from .configure_list import configure_list_view
@@ -15,6 +15,7 @@ class guild_config(EmptyView):
 		self.config      = {}
 		self.category    = None
 		self.selected    = None
+		self.tasks       = []
 		self.embed.set_author(name=self.guild.name,icon_url=self.guild.icon.url if self.guild.icon else 'https://regn.al/discord.png')
 		if back_view is not None: self.add_item(self.back_button)
 		self.add_items(self.category_select)
@@ -54,7 +55,7 @@ class guild_config(EmptyView):
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
 		
-	async def write_config(self,value) -> None:
+	async def write_config(self,value,interaction:Interaction=None) -> None:
 		match self.selected:
 			case 'embed_color': 
 				value = value.replace('#','')
@@ -62,8 +63,15 @@ class guild_config(EmptyView):
 			case 'max_roll':
 				value = int(value)
 				if not (16384 > value > 2): raise
-			case 'cooldown':
-				value = int(value)
+			case 'cooldown': value = int(value)
+			case 'enabled' if self.category == 'logging' and value and interaction is not None:
+				if channels:=[channel.mention for channel in self.guild.channels if not (channel.permissions_for(self.guild.me).view_channel or isinstance(channel,CategoryChannel))]:
+					if len(channels) > 40: channels = channels[:40].append('...')
+					self.tasks.append(interaction.followup.send(embed=Embed(
+						title='WARNING: i can\'t see into the following channels,\nthey will not be logged',
+						description='\n'.join(channels),color=0xffff69),
+						ephemeral=True))
+
 		await self.client.db.guilds.write(self.guild.id,['config',self.category,self.selected],value)
 		await self.reload_config()
 		self.reload_embed()
@@ -162,10 +170,12 @@ class guild_config(EmptyView):
 	async def enable_button(self,button:Button,interaction:Interaction) -> None:
 		match self.config_type:
 			case 'ewbd': await self.write_config('enabled')
-			case 'bool': await self.write_config(True)
+			case 'bool': await self.write_config(True,interaction)
 			case _     : raise
 		self.remove_item(self.configure_list_button)
 		await interaction.response.edit_message(embed=self.embed,view=self)
+		for task in self.tasks: await task
+		self.tasks = []
 
 	@button(
 		label='whitelist',style=1,
