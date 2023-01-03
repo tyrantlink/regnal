@@ -1,8 +1,8 @@
 from aiohttp.client_exceptions import ContentTypeError
+from asyncio import sleep,create_task
 from aiohttp import ClientSession
 from datetime import datetime
 from time import perf_counter
-from asyncio import sleep
 
 
 BASEURL = 'https://api.pluralkit.me/v2'
@@ -69,8 +69,21 @@ class Message:
 class PluralKit:
 	def __init__(self) -> None:
 		self._recent_requests = []
-		self.cache = {
-			'message':{}}
+		self._cache = {}
+	
+	async def cache_timeout(self,key) -> None:
+		await sleep(30)
+		self._cache.pop(key,None)
+
+	def cache(self,key,value) -> None:
+		self._cache.update({key:value})
+		create_task(self.cache_timeout(key))
+
+	async def from_cache(self,endpoint:str) -> tuple[str|None,dict|None]:
+		if (cache:=self._cache.get(endpoint,(None,None))) == 'PENDING':
+			while (cache:=self._cache.get(endpoint,(None,None))) == 'PENDING':
+				await sleep(0.001)
+		return cache
 
 	async def _handle_ratelimit(self) -> None:
 		for ts in self._recent_requests.copy():
@@ -80,12 +93,16 @@ class PluralKit:
 			await self._handle_ratelimit()
 
 	async def request(self,endpoint:str):
+		if (cache:=await self.from_cache(endpoint))[0] is not None:
+			return cache
+		self._cache.update({endpoint:'PENDING'})
 		await self._handle_ratelimit()
 		async with ClientSession() as session:
 			async with session.get(f'{BASEURL}{endpoint}') as res:
 				self._recent_requests.append(perf_counter())
-				try: return (res.status == 200,await res.json())
-				except ContentTypeError: return (None,None)
+				try: self.cache(endpoint,(res.status == 200,await res.json()))
+				except ContentTypeError: pass
+				return await self.from_cache(endpoint)
 
 	async def get_system(self,discord_id:str|int) -> System|None:
 		req = await self.request(f'/systems/{discord_id}')
@@ -102,13 +119,8 @@ class PluralKit:
 		if req[0]: return Member(req[1])
 		else: return None
 
-	async def get_message(self,message_id:str,delay:float=0.2) -> Message|None:
-		if message_id not in self.cache['message'].keys():
-			self.cache['message'].update({message_id:'TEMP'})
-			await sleep(delay)
-			req = await self.request(f'/messages/{message_id}')
-			self.cache['message'].update({message_id:req})
-		else:
-			while (req:=self.cache['message'].get(message_id,(None,None))) == 'TEMP': await sleep(0.01)
+	async def get_message(self,message_id:str,delay:float=0.15) -> Message|None:
+		await sleep(delay)
+		req = await self.request(f'/messages/{message_id}')
 		if req[0]: return Message(req[1])
 		else: return None
