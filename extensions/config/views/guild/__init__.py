@@ -66,7 +66,9 @@ class guild_config(EmptyView):
 			case 'cooldown': value = int(value)
 			case 'enabled' if self.category == 'logging' and value and interaction is not None:
 				if channels:=[channel.mention for channel in self.guild.channels if not (channel.permissions_for(self.guild.me).view_channel or isinstance(channel,CategoryChannel))]:
-					if len(channels) > 40: channels = channels[:40].append('...')
+					if len(channels) > 100:
+						channels = channels[:100]
+						channels.append('...')
 					create_task(interaction.followup.send(embed=Embed(
 						title='WARNING: i can\'t see into the following channels,\nthey will not be logged',
 						description='\n'.join(channels),color=0xffff69),ephemeral=True))
