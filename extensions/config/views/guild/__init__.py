@@ -4,6 +4,7 @@ from extensions._shared_vars import config_info
 from client import Client,EmptyView,CustomModal
 from .configure_list import configure_list_view
 from .custom_au import custom_au_view
+from asyncio import create_task
 
 class guild_config(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,user:Member,guild:Guild,embed_color:int=None) -> None:
@@ -15,7 +16,6 @@ class guild_config(EmptyView):
 		self.config      = {}
 		self.category    = None
 		self.selected    = None
-		self.tasks       = []
 		self.embed.set_author(name=self.guild.name,icon_url=self.guild.icon.url if self.guild.icon else 'https://regn.al/discord.png')
 		if back_view is not None: self.add_item(self.back_button)
 		self.add_items(self.category_select)
@@ -67,11 +67,9 @@ class guild_config(EmptyView):
 			case 'enabled' if self.category == 'logging' and value and interaction is not None:
 				if channels:=[channel.mention for channel in self.guild.channels if not (channel.permissions_for(self.guild.me).view_channel or isinstance(channel,CategoryChannel))]:
 					if len(channels) > 40: channels = channels[:40].append('...')
-					self.tasks.append(interaction.followup.send(embed=Embed(
+					create_task(interaction.followup.send(embed=Embed(
 						title='WARNING: i can\'t see into the following channels,\nthey will not be logged',
-						description='\n'.join(channels),color=0xffff69),
-						ephemeral=True))
-
+						description='\n'.join(channels),color=0xffff69),ephemeral=True))
 		await self.client.db.guilds.write(self.guild.id,['config',self.category,self.selected],value)
 		await self.reload_config()
 		self.reload_embed()
@@ -174,8 +172,6 @@ class guild_config(EmptyView):
 			case _     : raise
 		self.remove_item(self.configure_list_button)
 		await interaction.response.edit_message(embed=self.embed,view=self)
-		for task in self.tasks: await task
-		self.tasks = []
 
 	@button(
 		label='whitelist',style=1,
