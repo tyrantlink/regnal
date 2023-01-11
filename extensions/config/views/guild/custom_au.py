@@ -30,10 +30,9 @@ class custom_au_view(EmptyView):
 		for item in items: self.add_item(item)
 	
 	def au_reload(self,guild_id:int) -> None:
-		if (reload:=self.client.flags.get('RELOAD_AU',None)) is not None and guild_id not in reload:
+		if self.client.flags.get('RELOAD_AU',None) is None: self.client.flags.update({'RELOAD_AU':[]})
+		if guild_id not in self.client.flags.get('RELOAD_AU'):
 			self.client.flags['RELOAD_AU'].append(guild_id)
-		else:
-			self.client.flags.update({'RELOAD_AU',[guild_id]})
 
 	def reload(self) -> None:
 		self.selected_au = None
@@ -47,10 +46,7 @@ class custom_au_view(EmptyView):
 			case 'contains'|'exact'|'exact-cs':
 				self.embed.add_field(name='method',value=self.page)
 				self.add_items(self.custom_au_select,self.back_button,self.new_button)
-				for child in self.children:
-					if child.custom_id != 'new_button': continue
-					if len(self.custom_au.get(self.page,{}).keys()) >= 25: child.disabled = True
-					else: child.disabled = False
+				self.get_item('new_button').disabled = len(self.custom_au.get(self.page,{}).keys()) >= 25
 				self.update_select()
 			case 'new':
 				self.add_items(self.limit_user_select,self.back_button,self.set_button,self.regex_button,self.nsfw_button,self.save_button)
@@ -127,6 +123,7 @@ class custom_au_view(EmptyView):
 		self.page = 'new'
 		self.reload()
 		self.embed_au(self.new_au)
+		self.get_item('save_button').disabled = True
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -138,6 +135,7 @@ class custom_au_view(EmptyView):
 		self.page = 'new'
 		self.reload()
 		self.embed_au(self.new_au)
+		self.get_item('save_button').disabled = False
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -183,10 +181,7 @@ class custom_au_view(EmptyView):
 			'trigger':modal.children[0].value,	
 			'response':modal.children[1].value})
 		self.embed_au(self.new_au)
-		for child in self.children:
-			if child.custom_id != 'save_button': continue
-			child.disabled = False
-			break
+		self.get_item('save_button').disabled = False
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
