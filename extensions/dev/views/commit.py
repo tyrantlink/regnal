@@ -25,7 +25,7 @@ class publish_view(EmptyView):
 		channel = await self.client.db.inf.read('/reg/nal',['config','change_log'])
 		channel = self.client.get_channel(channel) or await self.client.fetch_channel(channel)
 		await (await channel.send(embed=self.embed)).publish()
-		await self.client.db.inf.write('/reg/nal',['version'],self.version)
+		if 'hide' not in self.version: await self.client.db.inf.write('/reg/nal',['version'],self.version)
 		await interaction.response.edit_message(view=None,embed=Embed(title='successfully announced commit',color=self.embed.color))
 		self.stop()
 	
@@ -52,8 +52,8 @@ class commit_view(EmptyView):
 	def reload(self) -> None:
 		self.embed.clear_fields()
 		self.clear_items()
-		self.embed.title = f'v{self.version} | {self.title}'
-		self.embed.set_footer(text=f'version {self.version} ({self.client.commit_id})')
+		self.embed.title = self.title if 'hide' in self.version else f'v{self.version} | {self.title}'
+		self.embed.set_footer(text=f'version {self.version.replace("hide","")} ({self.client.commit_id})')
 		fields = list(self.fields.items())+list(self.donator_fields.items())
 		for n,v in fields: self.embed.add_field(name=n,value=v,inline=False)
 		self.add_items(self.field_select,self.back_button,self.add_button,self.title_button,self.publish_button)
@@ -137,6 +137,9 @@ class commit_view(EmptyView):
 				button.label = 'vbump major'
 				self.version = '.'.join([str(i) for i in [ma+1,0,0]])
 			case 'major':
+				button.label = 'vbump hide'
+				self.version = 'hide'+'.'.join([str(i) for i in [ma,mi,p]])
+			case 'hide':
 				button.label = 'vbump none'
 				self.version = '.'.join([str(i) for i in [ma,mi,p]])
 		self.reload()
