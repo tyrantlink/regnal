@@ -29,6 +29,7 @@ class auto_response_listeners(Cog):
 
 	@Cog.listener()
 	async def on_message(self,message:Message,user:MixedUser=None) -> None:
+		if message.author.id == self.client.user.id: return
 		# ignore webhooks except pk
 		if message.webhook_id is not None and user is None: return
 		create_task(self.timeout(message.id))
@@ -51,7 +52,6 @@ class auto_response_listeners(Cog):
 		try:
 			if (
 				user.bot or
-				user.id == self.client.user.id or 
 				await self.client.db.users.read(user.id,['config','ignored'])):
 					return
 		except: return
