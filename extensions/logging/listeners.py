@@ -50,7 +50,7 @@ class logging_listeners(Cog):
 		if not config.get('enabled'): return (0,None)
 		if (config.get('log_bots') and member.bot): return (0,None)
 		try: channel = member.guild.get_channel(config.get('channel')) or await member.guild.fetch_channel(config.get('channel'))
-		except NotFound|Forbidden: channel = None
+		except (NotFound|Forbidden): channel = None
 		if not (channel or config.get(mode)): return (1,None)
 		return (2,channel)
 
