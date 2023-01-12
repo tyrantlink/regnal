@@ -35,7 +35,7 @@ class user_config(EmptyView):
 	@user.setter
 	def user(self,user:(User|DiscordMember)|PKMember) -> None:
 		if isinstance(user,User|DiscordMember): # discord user
-			self._user = MixedUser('discord',user,id=user.id,name=user.name,icon=user.avatar.url)
+			self._user = MixedUser('discord',user,id=user.id,name=user.name,icon=user.avatar.url if user.avatar else None)
 		elif isinstance(user,PKMember): # pluralkit system
 			self._user = MixedUser('pluralkit',user,id=user.uuid,name=user.name,icon=user.avatar_url)
 		else: raise ValueError('user type must be discord User or PluralKit Member')
