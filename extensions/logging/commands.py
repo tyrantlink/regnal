@@ -73,8 +73,7 @@ class logging_commands(Cog):
 		guild_only=True,default_member_permissions=Permissions(view_audit_log=True))
 	async def message_message_logs(self,ctx:ApplicationContext,message:Message) -> None:
 		log:dict = await self.client.db.messages.read(int(message.id))
-		if log is None: log = await self.client.db.messages.raw.find_one({'log_messages':message.id})
-		if log.get('author',None) == self.client.user.id:
+		if log is None or log.get('author',None) == self.client.user.id:
 			log = await self.client.db.messages.raw.find_one({'log_messages':message.id}) or log
 		if log is None or log.get('guild',None) != ctx.guild.id:
 			await ctx.response.send_message(embed=Embed(title='no logs found.',color=0xffff69),ephemeral=await self.client.hide(ctx))
