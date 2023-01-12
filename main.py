@@ -1,7 +1,7 @@
 #!./venv/bin/python3.10
 from time import perf_counter,time
 st = perf_counter()
-from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents
+from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents,File
 from utils.tyrantlib import convert_time,format_bytes,get_line_count
 from discord.ext.commands import Cog,slash_command
 from traceback import format_exc,format_tb
@@ -15,6 +15,7 @@ from os.path import exists
 from inspect import stack
 from utils.log import log
 from asyncio import sleep
+from io import StringIO
 from json import loads
 from os import _exit
 from sys import argv
@@ -138,12 +139,16 @@ class client_cls(Client):
 			else: await ctx.followup.send(embed=embed,ephemeral=True)
 		else: await ctx.respond(embed=embed,ephemeral=True)
 		await self.log.error(error)
-		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
-		await channel.send(f'```\n{"".join(format_tb(error.original.__traceback__))[:1992]}\n```')
-	
+		channel = self.get_channel(1026593781669167135) or await self.fetch_channel(1026593781669167135)
+		err = "".join(format_tb(error.original.__traceback__))
+		if len(err)+8 > 2000: await channel.send(file=File(StringIO(err),'error.txt'))
+		else: await channel.send(f'```\n{err}\n```')
+
 	async def on_error(self,event:str,*args,**kwargs) -> None:
-		if (channel:=self.get_channel(1026593781669167135)) is None: channel = await self.fetch_channel(1026593781669167135)
-		await channel.send(f'```\n{format_exc()[:1992]}\n```')
+		channel = self.get_channel(1026593781669167135) or await self.fetch_channel(1026593781669167135)
+		error = format_exc()
+		if len(error)+8 > 2000: await channel.send(file=File(StringIO(error),'error.txt'))
+		else: await channel.send(f'```\n{error}\n```')
 
 class base_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
