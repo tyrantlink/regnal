@@ -48,6 +48,7 @@ class auto_response_listeners(Cog):
 		return {k:AutoResponse(k,
 			response = v.get('response',None),
 			redir    = v.get('redir',None),
+			regex    = v.get('regex',None),
 			nsfw     = v.get('nsfw',False),
 			file     = v.get('file',False),
 			user     = v.get('user',None),
@@ -123,6 +124,7 @@ class auto_response_listeners(Cog):
 	def au_check(self,responses:dict,message:str) -> tuple[str,str]|None:
 		for trigger,au in responses['exact'].items():
 			if au.regex:
+				print(au.regex)
 				if fullmatch(trigger,message.lower()):
 					return ('exact',trigger)
 				continue
