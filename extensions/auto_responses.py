@@ -1,4 +1,4 @@
-from regex import sub,search,IGNORECASE,split,fullmatch
+from regex import sub,search,split,fullmatch,IGNORECASE
 from discord.errors import Forbidden,HTTPException
 from asyncio import sleep,create_task
 from discord.ext.commands import Cog
@@ -7,6 +7,20 @@ from discord import Message,Thread
 from urllib.parse import quote
 from time import time
 
+
+class AutoResponse:
+	def __init__(self,trigger:str,**kwargs) -> None:
+		self.trigger:str  = trigger
+		self.response:str = kwargs.get('response',None)
+		self.redir:str    = kwargs.get('redir',None)
+		self.regex:bool   = kwargs.get('regex',False)
+		self.nsfw:bool    = kwargs.get('nsfw',False)
+		self.file:bool    = kwargs.get('file',False)
+		self.user:int     = kwargs.get('user',None)
+		self.guild:int    = kwargs.get('guild',None)
+		if self.user  is not None: self.user  = int(self.user)
+		if self.guild is not None: self.guild = int(self.guild)
+		self.followups:list[tuple[float,str]] = kwargs.get('followups',[])
 
 class auto_response_listeners(Cog):
 	def __init__(self,client:Client) -> None:
@@ -18,14 +32,27 @@ class auto_response_listeners(Cog):
 
 	@Cog.listener()
 	async def on_connect(self) -> None:
-		self.base_responses = await self.client.db.inf.read('/reg/nal',['auto_responses'])
-		self.client.au = self.base_responses
+		self.client.au = await self.client.db.inf.read('/reg/nal',['auto_responses'])
+		self.base_responses = {
+			'contains':self.load_au(self.client.au.get('contains',{})),
+			'exact':self.load_au(self.client.au.get('exact',{})),
+			'exact-cs':self.load_au(self.client.au.get('exact-cs',{}))}
 
 	async def timeout(self,message_id:int) -> None:
 		self.timeouts.append(message_id)
 		await sleep(5)
 		try: self.timeouts.remove(message_id)
 		except ValueError: pass
+
+	def load_au(self,au_dict:dict) -> dict[str,AutoResponse]:
+		return {k:AutoResponse(k,
+			response = v.get('response',None),
+			redir    = v.get('redir',None),
+			nsfw     = v.get('nsfw',False),
+			file     = v.get('file',False),
+			user     = v.get('user',None),
+			guild    = v.get('guild',None)
+		) for k,v in au_dict.items()}
 
 	@Cog.listener()
 	async def on_message(self,message:Message,user:MixedUser=None) -> None:
@@ -65,11 +92,13 @@ class auto_response_listeners(Cog):
 			for guild_id in reload:
 				if guild_id == 'base': self.base_responses = None
 				self.guild_responses.pop(guild_id,None)
-		if self.base_responses is None:
-			self.base_responses = await self.client.db.inf.read('/reg/nal',['auto_responses'])
-			self.client.au = self.base_responses
+		if self.base_responses is None: await self.on_connect()
 		if self.guild_responses.get(message.guild.id,None) is None:
-			self.guild_responses[message.guild.id] = await self.client.db.guilds.read(message.guild.id,['data','auto_responses','custom'])
+			guild_au = await self.client.db.guilds.read(message.guild.id,['data','auto_responses','custom'])
+			self.guild_responses[message.guild.id] = {
+				'contains':self.load_au(guild_au.get('contains',{})),
+				'exact':self.load_au(guild_au.get('exact',{})),
+				'exact-cs':self.load_au(guild_au.get('exact-cs',{}))}
 
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
 		if time()-self.cooldowns['au'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
@@ -91,30 +120,30 @@ class auto_response_listeners(Cog):
 					if await self.listener_dad_bot(message,user): return
 				case 'disabled': pass
 
-	def au_check(self,responses,message:str) -> tuple[str,str]|None:
-		for key,data in responses['exact'].items():
-			if data.get('regex',False):
-				if fullmatch(key,message.lower()):
-					return ('exact',key)
+	def au_check(self,responses:dict,message:str) -> tuple[str,str]|None:
+		for trigger,au in responses['exact'].items():
+			if au.regex:
+				if fullmatch(trigger,message.lower()):
+					return ('exact',trigger)
 				continue
-			if message.lower() == key:
-				return ('exact',message.lower())
-		for key,data in responses['exact-cs'].items():
-			if data.get('regex',False):
-				if fullmatch(key,message):
-					return ('exact-cs',key)
+			if message.lower() == trigger:
+				return ('exact',trigger)
+		for trigger,au in responses['exact-cs'].items():
+			if au.regex:
+				if fullmatch(trigger,message):
+					return ('exact-cs',trigger)
 				continue
-			if message == key:
-				return ('exact-cs',message)
-		for i in responses['contains']:
-			s = search(i,message.lower(),IGNORECASE)
+			if message == trigger:
+				return ('exact-cs',trigger)
+		for au in responses['contains']:
+			s = search(au,message.lower(),IGNORECASE)
 			if s is None: continue
 			try:
 				if s.span()[0] != 0:
 					if message.lower()[s.span()[0]-1] != ' ': continue
-				if message.lower()[s.span()[0]+(len(i))] != ' ': continue
+				if message.lower()[s.span()[0]+(len(au))] != ' ': continue
 			except IndexError: pass
-			return ('contains',i)
+			return ('contains',au)
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
@@ -124,20 +153,24 @@ class auto_response_listeners(Cog):
 			if check is not None: break
 		else: return False
 
-		data:dict = responses[check[0]][check[1]]
-		while redir:=data.get('redir',False):
-			data = responses[check[0]][redir]
+		au:AutoResponse = responses[check[0]][check[1]]
+		for i in range(10):
+			if redir:=au.redir:
+				au = responses[check[0]][redir]
+			else: break
+		else: return False
 
-		if (response:=data.get('response','{none}')).lower() == '{none}': return False
-		if data.get('nsfw',False) and not message.channel.nsfw: return False
-		if (user_id:=data.get('user',None)) is not None and str(message.author.id) != user_id: return False
-		if data.get('file',False): response = f'https://regn.al/au/{quote(response)}'
+		if (response:=au.response) is None or response.lower() == '{none}': return False
+		if au.nsfw and not message.channel.nsfw: return False
+		if au.user is not None and str(message.author.id) != au.user: return False
+		if au.guild is not None and str(message.guild.id) != au.guild: return False
+		if au.file: response = f'https://regn.al/au/{quote(response)}'
 
 		if message.id not in self.timeouts: return False
 		try: await message.channel.send(response)
 		except Forbidden: return False
-		if delete_original and content.lower() == check[1] and data.get('file',False): await message.delete(reason='auto response deletion')
-		for delay,followup in data.get('followup',[]):
+		if delete_original and content.lower() == check[1] and au.file: await message.delete(reason='auto response deletion')
+		for delay,followup in au.followups:
 			async with message.channel.typing():
 				await sleep(delay)
 			await message.channel.send(followup)
