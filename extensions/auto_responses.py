@@ -16,10 +16,8 @@ class AutoResponse:
 		self.regex:bool   = kwargs.get('regex',False)
 		self.nsfw:bool    = kwargs.get('nsfw',False)
 		self.file:bool    = kwargs.get('file',False)
-		self.user:int     = kwargs.get('user',None)
-		self.guild:int    = kwargs.get('guild',None)
-		if self.user  is not None: self.user  = int(self.user)
-		if self.guild is not None: self.guild = int(self.guild)
+		self.user:str     = kwargs.get('user',None)
+		self.guild:str    = kwargs.get('guild',None)
 		self.followups:list[tuple[float,str]] = kwargs.get('followups',[])
 
 class auto_response_listeners(Cog):
