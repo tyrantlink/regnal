@@ -46,7 +46,7 @@ if DEV_MODE:
 class client_cls(Client):
 	def __init__(self) -> None:
 		global extensions
-		super().__init__('i lika, do, da cha cha',None,intents=Intents.all())
+		super().__init__('i lika, do, da cha cha',None,intents=Intents.all(),max_messages=100000)
 		self.db = db()
 		self.flags = {}
 		self.au:dict = None
