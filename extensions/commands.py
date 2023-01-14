@@ -1,9 +1,10 @@
 from discord.commands import SlashCommandGroup,Option as option,slash_command,user_command
-from discord import Embed,User,ApplicationContext,SlashCommand
+from discord import Embed,User,ApplicationContext,SlashCommand,File
 from ._shared_vars import generate_options
 from discord.ext.commands import Cog
 from client import Client
 from random import choice
+from io import StringIO
 from json import dumps
 
 
@@ -65,7 +66,9 @@ class commands_commands(Cog):
 		name='get_data',
 		description='get all data that /reg/nal has on you')
 	async def slash_get_data(self,ctx:ApplicationContext) -> None:
-		await ctx.response.send_message(f'```\n{dumps(await self.client.db.users.read(ctx.author.id),indent=2)}\n```',ephemeral=True)
+		data = dumps(await self.client.db.users.read(ctx.author.id),indent=2)
+		if len(data)+8 > 2000: await ctx.response.send_message(file=File(StringIO(data),f'user{ctx.author.id}.json'))
+		else: await ctx.response.send_message(f'```\n{data}\n```')
 
 	@slash_command(
 		name='generate',
