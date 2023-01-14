@@ -67,8 +67,8 @@ class commands_commands(Cog):
 		description='get all data that /reg/nal has on you')
 	async def slash_get_data(self,ctx:ApplicationContext) -> None:
 		data = dumps(await self.client.db.users.read(ctx.author.id),indent=2)
-		if len(data)+8 > 2000: await ctx.response.send_message(file=File(StringIO(data),f'user{ctx.author.id}.json'))
-		else: await ctx.response.send_message(f'```\n{data}\n```')
+		if len(data)+8 > 2000: await ctx.response.send_message(file=File(StringIO(data),f'user{ctx.author.id}.json'),ephemeral=True)
+		else: await ctx.response.send_message(f'```\n{data}\n```',ephemeral=True)
 
 	@slash_command(
 		name='generate',
