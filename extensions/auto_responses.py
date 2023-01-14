@@ -144,19 +144,20 @@ class auto_response_listeners(Cog):
 				if message.lower()[s.span()[0]+(len(au))] != ' ': continue
 			except IndexError: pass
 			return ('contains',au)
+		return (None,None)
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
 		for responses in [self.guild_responses[message.guild.id],self.base_responses]:
-			try: check = self.au_check(responses,content[:-1] if content[-1] in ['.','?','!'] else content)
+			try: mode,raw_au = self.au_check(responses,content[:-1] if content[-1] in ['.','?','!'] else content)
 			except Exception: continue
-			if check is not None: break
+			if mode is not None: break
 		else: return False
 
-		au:AutoResponse = responses[check[0]][check[1]]
+		au:AutoResponse = responses[mode][raw_au]
 		for i in range(10):
 			if redir:=au.redir:
-				au = responses[check[0]][redir]
+				au = responses[mode][redir]
 			else: break
 		else: return False
 
@@ -169,14 +170,19 @@ class auto_response_listeners(Cog):
 		if message.id not in self.timeouts: return False
 		try: await message.channel.send(response)
 		except Forbidden: return False
-		if delete_original and content.lower() == check[1] and au.file: await message.delete(reason='auto response deletion')
+		if delete_original and content.lower() == raw_au and au.file: await message.delete(reason='auto response deletion')
 		for delay,followup in au.followups:
 			async with message.channel.typing():
 				await sleep(delay)
 			await message.channel.send(followup)
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','auto_responses','cooldown_per_user']) else message.channel.id:int(time())})
-		await self.client.log.listener(message,category=check[0],trigger=check[1])
+		
+		user_au = await self.client.db.users.read(user.id,['data','au'])
+		if raw_au not in user_au.get(mode,[raw_au]):
+			await self.client.db.users.append(user.id,['data','au',mode],raw_au)
+
+		await self.client.log.listener(message,category=mode,trigger=raw_au)
 		return True
 
 	async def listener_dad_bot(self,message:Message,user:MixedUser) -> None:

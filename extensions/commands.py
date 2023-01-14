@@ -22,11 +22,13 @@ class commands_commands(Cog):
 			discriminator: {user.discriminator}""",
 			color=await self.client.embed_color(ctx))
 		embed.set_thumbnail(url=user.display_avatar.with_size(512).with_format('png').url)
+		user_doc = await self.client.db.users.read(user.id,[])
 		embed.add_field(
 			name='information:',
 			value=f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			display name: {user.display_name}
-			seen messages: {await self.client.db.users.read(user.id,['messages'])}""")
+			seen messages: {user_doc.get('messages')}
+			auto responses found: {len([i for v in user_doc.get('data',{}).get('au',{}).values() for i in v])}""")
 		return embed
 
 	@profile.command(
