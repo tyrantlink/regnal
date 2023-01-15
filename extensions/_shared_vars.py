@@ -385,7 +385,8 @@ eightball = [
   "Outlook not so good",
   "My sources say no",
   "Very doubtful",
-  "My reply is no"]
+  "My reply is no",
+  "8"]
 """fun extension"""
 bees = [
   "According to all known laws",
