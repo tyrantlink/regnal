@@ -123,7 +123,6 @@ class auto_response_listeners(Cog):
 	def au_check(self,responses:dict,message:str) -> tuple[str,str]|None:
 		for trigger,au in responses['exact'].items():
 			if au.regex:
-				print(au.regex)
 				if fullmatch(trigger,message.lower()):
 					return ('exact',trigger)
 				continue
@@ -154,7 +153,6 @@ class auto_response_listeners(Cog):
 			except Exception: continue
 			if mode is not None: break
 		else: return False
-
 		au:AutoResponse = responses[mode][raw_au]
 		for i in range(10):
 			if redir:=au.redir:
