@@ -5,6 +5,7 @@ from discord.ext.commands import Cog
 from client import Client,MixedUser
 from discord import Message,Thread
 from urllib.parse import quote
+from random import choices
 from time import time
 
 
@@ -185,6 +186,14 @@ class auto_response_listeners(Cog):
 		await self.client.log.listener(message,category=mode,trigger=raw_au)
 		return True
 
+	def rand_name(self,message:Message,splitter:str) -> str:
+		options,weights = [message.guild.me.display_name if message.guild else self.client.user.name],[]
+		if splitter in ["i'm"]:
+			options += ['proud of you','not mad, just disappointed']
+			weights += [0.005,0.01]
+		weights.insert(0,1-sum(weights))
+		return choices(options,weights)[0]
+
 	async def listener_dad_bot(self,message:Message,user:MixedUser) -> None:
 		response = ''
 		input = sub(r"""<(@!|@|@&)\d{10,25}>|@everyone|@here|(https?:\/\/[^\s]+.)""",'[REDACTED]',sub(r'\*|\_|\~|\`|\|','',message.content))
@@ -202,14 +211,15 @@ class auto_response_listeners(Cog):
 			if len(response) < len(''.join(p_response)): response,splitter = ''.join(p_response),p_splitter
 
 		if response == '': return
+		name = self.rand_name(message,splitter)
 
 		if message.id not in self.timeouts: return False
-		try: await message.channel.send(f'hi{response.split(".")[0]}, {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
+		try: await message.channel.send(f'hi{response.split(".")[0]}, {splitter} {name}')
 		except Forbidden: return False
-		except HTTPException: await message.channel.send(f'hi{response.split(".")[0][:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
+		except HTTPException: await message.channel.send(f'hi{response.split(".")[0][:1936]} (character limit), {splitter} {name}')
 		
 		self.cooldowns['db'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','dad_bot','cooldown_per_user']) else message.channel.id:int(time())})
-		await self.client.log.listener(message,splitter=splitter)
+		await self.client.log.listener(message,splitter=splitter,name=name)
 		
 		
 def setup(client:Client) -> None:
