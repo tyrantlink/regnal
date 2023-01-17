@@ -204,9 +204,9 @@ class auto_response_listeners(Cog):
 		if response == '': return
 
 		if message.id not in self.timeouts: return False
-		try: await message.channel.send(f'hi{response}, {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
+		try: await message.channel.send(f'hi{response.split(".")[0]}, {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
 		except Forbidden: return False
-		except HTTPException: await message.channel.send(f'hi{response[:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
+		except HTTPException: await message.channel.send(f'hi{response.split(".")[0][:1936]} (character limit), {splitter} {message.guild.me.display_name if message.guild else self.client.user.name}')
 		
 		self.cooldowns['db'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','dad_bot','cooldown_per_user']) else message.channel.id:int(time())})
 		await self.client.log.listener(message,splitter=splitter)
