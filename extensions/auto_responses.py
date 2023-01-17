@@ -188,7 +188,7 @@ class auto_response_listeners(Cog):
 	async def listener_dad_bot(self,message:Message,user:MixedUser) -> None:
 		response = ''
 		input = sub(r"""<(@!|@|@&)\d{10,25}>|@everyone|@here|(https?:\/\/[^\s]+.)""",'[REDACTED]',sub(r'\*|\_|\~|\`|\|','',message.content))
-		for p_splitter in ["I'm",'im','I am','I will be',"I've",'ive']:
+		for p_splitter in ["i'm",'im','i am','i will be',"i've",'ive']:
 			s = search(p_splitter,input,IGNORECASE)
 
 			if s == None: continue
