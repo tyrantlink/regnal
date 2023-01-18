@@ -135,7 +135,7 @@ class commands_commands(Cog):
 			color=await self.client.embed_color(ctx)),
 			ephemeral=await self.client.hide(ctx))
 
-	@user_command(name='get profile')
+	@user_command(name='view profile')
 	async def user_profile_user(self,ctx:ApplicationContext,user:User) -> None:
 		await ctx.response.send_message(embed=await self.base_profile_user(user,ctx),ephemeral=await self.client.hide(ctx))
 
