@@ -82,7 +82,10 @@ class custom_au_view(EmptyView):
 	@string_select(
 		custom_id='page_select',row=0,
 		placeholder='select a category',
-		options=[SelectOption(label=i) for i in ['contains','exact','exact-cs']])
+		options=[SelectOption(label=l,description=d) for l,d in [
+			('contains','trigger anywhere within the message'),
+			('exact','trigger is exactly the message'),
+			('exact-cs','trigger is exactly the message (case sensitive)')]])
 	async def page_select(self,select:Select,interaction:Interaction) -> None:
 		self.page = select.values[0]
 		self.reload()
