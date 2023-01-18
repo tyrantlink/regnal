@@ -61,13 +61,14 @@ class user_config(EmptyView):
 	
 	async def write_config(self,value:bool) -> None:
 		match self.selected:
-			case 'no_track':
-				if value:
-					await self.client.db.users.write(self.user.id,['messages'],None)
-					for guild in self.discord_user.mutual_guilds:
-						await self.client.db.guilds.unset(guild.id,['data','leaderboards','messages',str(self.user.id)])
-						await self.client.db.guilds.unset(guild.id,['data','leaderboards','sticks',str(self.user.id)])
-				else    : await self.client.db.users.write(self.user.id,['messages'],0)
+			case 'no_track' if value:
+				await self.client.db.users.write(self.user.id,['messages'],None)
+				await self.client.db.users.write(self.user.id,['data','au'],{'contains':[],'exact':[],'exact-cs':[]})
+				for guild in self.discord_user.mutual_guilds:
+					await self.client.db.guilds.unset(guild.id,['data','leaderboards','messages',str(self.user.id)])
+					await self.client.db.guilds.unset(guild.id,['data','leaderboards','sticks',str(self.user.id)])
+				
+				else: await self.client.db.users.write(self.user.id,['messages'],0)
 
 		await self.client.db.users.write(self.user.id,['config',self.selected],value)
 		await self.reload_config()
