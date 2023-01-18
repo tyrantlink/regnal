@@ -78,6 +78,7 @@ class logging_listeners(Cog):
 
 	@Cog.listener()
 	async def on_message_edit(self,before:Message,after:Message) -> None:
+		if before.content == after.content: return
 		check,channel = await self.log_check(before,'edited_messages')
 		if not check: return
 		if await self.client.db.messages.read(before.id) is None:
