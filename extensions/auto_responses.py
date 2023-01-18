@@ -87,7 +87,7 @@ class auto_response_listeners(Cog):
 		if message.guild is None:
 			await message.channel.send('https://regn.al/dm.png')
 			return
-		
+
 		if message.content is None: return
 		if (reload:=self.client.flags.pop('RELOAD_AU',None)) is not None:
 			for guild_id in reload:
@@ -177,10 +177,11 @@ class auto_response_listeners(Cog):
 			await message.channel.send(followup)
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','auto_responses','cooldown_per_user']) else message.channel.id:int(time())})
-		
+
+
 		if responses == self.base_responses:
-			user_au = await self.client.db.users.read(user.id,['data','au'])
-			if raw_au not in user_au.get(mode,[raw_au]):
+			user_data = await self.client.db.users.read(user.id)
+			if raw_au not in user_data.get('data',{}).get('au').get(mode,[raw_au]) and not user_data.get('config',{}).get('no_track',True):
 				await self.client.db.users.append(user.id,['data','au',mode],raw_au)
 
 		await self.client.log.listener(message,category=mode,trigger=raw_au)
@@ -217,11 +218,11 @@ class auto_response_listeners(Cog):
 		try: await message.channel.send(f'hi{response.split(".")[0]}, {splitter} {name}')
 		except Forbidden: return False
 		except HTTPException: await message.channel.send(f'hi{response.split(".")[0][:1936]} (character limit), {splitter} {name}')
-		
+
 		self.cooldowns['db'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','dad_bot','cooldown_per_user']) else message.channel.id:int(time())})
 		await self.client.log.listener(message,splitter=splitter,name=name)
-		
-		
+
+
 def setup(client:Client) -> None:
 	client._extloaded()
 	client.add_cog(auto_response_listeners(client))
