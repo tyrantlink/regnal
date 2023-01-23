@@ -3204,5 +3204,7 @@ questions = [
   "What dumb pickup lines do you know?",
   "What isn't real but you desperately wish it was?",
   "What's the silliest thing you are passionate about?",
-  "Why do they call it oven when you of in the cold food of out hot eat the food?"]
+  "Why do they call it oven when you of in the cold food of out hot eat the food?",
+  "forget questions, what's your favorite answer?",
+  "the shovel was a groundbreaking invention."]
 """qotd extension"""
