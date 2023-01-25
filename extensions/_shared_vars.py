@@ -3178,7 +3178,6 @@ questions = [
   "What ridiculous and untrue, yet slightly plausible, theories can you come up with for the cause of common ailments like headaches or cavities?",
   "If you were transported 400 years into the past with no clothes or anything else, how would you prove that you were from the future?",
   "If you were wrongfully put into an insane asylum, how would you convince them that you're actually sane and not just pretending to be sane?",
-  "We'll that's all the funny questions to ask that we have. But there are a ton of other questions on the site that you might enjoy!",
   "What fictional character is amazing in their book / show / movie, but would be insufferable if you had to deal with them in mundane everyday situations?",
   "If you were held at gun point and told that if you didn't impress them with your dance moves you would be killed, what dance moves would you bust out?",
   "What would be the hat to end all hats? What could you wear on your head that would make people stop what they are doing and stare in awe and amazement?",
