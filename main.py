@@ -128,7 +128,7 @@ class client_cls(Client):
 
 	async def on_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return
-		await self.log.error(error)
+		await self.log.error(error,ctx=ctx)
 
 	async def on_application_command_error(self,ctx:ApplicationContext|Interaction,error:ApplicationCommandInvokeError) -> None:
 		if isinstance(error,CheckFailure): return
@@ -138,7 +138,7 @@ class client_cls(Client):
 			if not ctx.response.is_done(): await ctx.response.send_message(embed=embed,ephemeral=True)
 			else: await ctx.followup.send(embed=embed,ephemeral=True)
 		else: await ctx.respond(embed=embed,ephemeral=True)
-		await self.log.error(error)
+		await self.log.error(error,ctx=ctx)
 		channel = self.get_channel(1026593781669167135) or await self.fetch_channel(1026593781669167135)
 		err = "".join(format_tb(error.original.__traceback__))
 		if len(err)+8 > 2000: await channel.send(file=File(StringIO(err),'error.txt'))
