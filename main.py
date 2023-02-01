@@ -39,7 +39,6 @@ with open('mongo') as mongo:
 	doc = mongo.find_one({'_id':'/reg/nal'})
 	extensions = doc['extensions']
 	benv = doc['env']
-	activity_options = benv['activities']
 
 if DEV_MODE:
 	with open('dev') as dev:
