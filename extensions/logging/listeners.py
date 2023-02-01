@@ -4,6 +4,7 @@ from datetime import datetime,timedelta
 from utils.tyrantlib import split_list
 from discord.ext.commands import Cog
 from client import Client
+from asyncio import sleep
 from .utils import utils
 
 
@@ -65,8 +66,8 @@ class logging_listeners(Cog):
 					log.extra.count <= self.cached_counts.get(f'{message.channel.id}{log.target.id}',log.extra.count-1)+1
 				):
 				self.cached_counts.update({f'{message.channel.id}{log.target.id}':log.extra.count})
-				return log.user.id
-		return message.author.id
+				return log.user
+		return message.author
 
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
@@ -97,9 +98,10 @@ class logging_listeners(Cog):
 	async def on_message_delete(self,message:Message) -> None:
 		check,channel = await self.log_check(message,'deleted_messages')
 		if not check: return
+		if await self.client.db.guilds.read(message.guild.id,['config','general','pluralkit']):
+			if await self.client.pk.get_message(message.id) is not None: check = 1
 		await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
-			message.reference.message_id if message.reference else None,
-			await self.find_deleter(message),
+			message.reference.message_id if message.reference else None,(await self.find_deleter(message)).id,
 			[int(datetime.now().timestamp()),'deleted',message.content],
 			[att.filename for att in message.attachments])
 		if check <= 1: return
@@ -113,7 +115,7 @@ class logging_listeners(Cog):
 		deleter    = await self.find_deleter(messages[0])
 		for message in messages:
 			await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
-				message.reference.message_id if message.reference else None,deleter,
+				message.reference.message_id if message.reference else None,deleter.id,
 				[deleted_at,'deleted',message.content],
 				[att.filename for att in message.attachments])
 		if check <= 1: return
