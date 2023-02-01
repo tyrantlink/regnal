@@ -111,45 +111,77 @@ generate_options = {
 config_info = {
 	"user":
 	{
-		"ignored":
-		{
-			"description": "/reg/nal will ignore you.\ndadbot and auto responses will not respond to your messages.\nyou also cannot receive the talking stick.",
-			"default": False,
-			"type": "bool"
-		},
-		"hide_commands":
-		{
-			"description": "hide your command usage\nall commands used will be sent as hidden messages\nif set to False, some private commands will still be hidden like /get_data",
-			"default": True,
-			"type": "bool"
-		},
-		"no_track":
-		{
-			"description": "no data other than your discord id and your config options will be stored by /reg/nal\nyou will not show up on message or talking stick leaderboards\nfor the most part, all this does is stop counting the messages you send",
-			"default": False,
-			"type": "bool"
-		},
-		"talking_stick":
-		{
-			"description": "allows you to recieve the talking stick.\ndisable if you're getting unwanted pings.",
-			"default": True,
-			"type": "bool"
-		}
+		"general":
+    {
+      "ignored":
+      {
+        "description": "/reg/nal will ignore you.\ndadbot and auto responses will not respond to your messages.\nyou also cannot receive the talking stick.",
+        "default": False,
+        "type": "bool"
+      },
+      "hide_commands":
+      {
+        "description": "hide your command usage\nall commands used will be sent as hidden messages\nif set to False, some private commands will still be hidden like /get_data",
+        "default": True,
+        "type": "bool"
+      },
+      "no_track":
+      {
+        "description": "no data other than your discord id and your config options will be stored by /reg/nal\nyou will not show up on message or talking stick leaderboards\nfor the most part, all this does is stop counting the messages you send",
+        "default": False,
+        "type": "bool"
+      },
+      "talking_stick":
+      {
+        "description": "allows you to recieve the talking stick.\ndisable if you're getting unwanted pings.",
+        "default": True,
+        "type": "bool"
+      }
+    },
+    "tts":
+    {
+      "mode":
+      {
+        "description": "whether or not tts will read your messages in vc",
+        "default": "only when muted",
+        "type": "select",
+        "options":
+        [
+          ('every message','tts will read all messages'),
+          ('only when muted','tts will only read messages when you\'re muted'),
+          ('never','tts will never read your messages')]
+      },
+      "name":
+      {
+        "description": "name read by tts, otherwise, display name is used",
+        "default": None,
+        "type": "modal"
+      },
+      "voice":
+      {
+        "description": "voice used by the tts\nfind a list of voices [here](<>)",
+        "default": 'en-US-Neural2-H',
+        "type": "modal"
+      }
+    }
 	},
   "pk_user":
   {
-		"ignored":
-		{
-			"description": "/reg/nal will ignore you.\ndadbot and auto responses will not respond to your messages.\n\nNOTE: this setting requires pluralkit support to be enabled in guild config",
-			"default": False,
-			"type": "bool"
-		},
-		"no_track":
-		{
-			"description": "no data other than your pluralkit member uuid and your config options will be stored by /reg/nal\nyou will not show up on message or talking stick leaderboards\nfor the most part, all this does is stop counting the messages you send\nyou will still be logged if a guild has logging enabled",
-			"default": False,
-			"type": "bool"
-		}
+		"general":
+    {
+      "ignored":
+      {
+        "description": "/reg/nal will ignore you.\ndadbot and auto responses will not respond to your messages.\n\nNOTE: this setting requires pluralkit support to be enabled in guild config",
+        "default": False,
+        "type": "bool"
+      },
+      "no_track":
+      {
+        "description": "no data other than your pluralkit member uuid and your config options will be stored by /reg/nal\nyou will not show up on message or talking stick leaderboards\nfor the most part, all this does is stop counting the messages you send\nyou will still be logged if a guild has logging enabled",
+        "default": False,
+        "type": "bool"
+      }
+    }
 	},
 	"guild":
 	{

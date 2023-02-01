@@ -4,7 +4,6 @@ from extensions._shared_vars import config_info
 from client import Client,EmptyView,CustomModal
 from .configure_list import configure_list_view
 from .custom_au import custom_au_view
-from discord.errors import Forbidden
 from asyncio import create_task
 
 class guild_config(EmptyView):
