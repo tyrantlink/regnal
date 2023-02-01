@@ -199,14 +199,14 @@ config_info = {
 				"description": "the color of all embeds\nformat: #69ff69 or ff69ff",
 				"default": "69FF69",
 				"type": "modal",
-				"max_length": 7
+				"kwargs":{"max_length":7}
 			},
 			"max_roll":
 			{
-				"description": "the max number you can roll with /roll\nnumber of both dice and sides\nmax is 16384",
+				"description": "the max number you can roll with /roll\nnumber of both dice and sides",
 				"default": 8192,
 				"type": "modal",
-				"max_length": 5
+				"kwargs":{"max_length":5,"placeholder":"min 2; max 16384"}
 			},
       "pluralkit":
       {
@@ -272,6 +272,28 @@ config_info = {
 				"type": "bool"
 			}
 		},
+    "tts":
+    {
+      "channel":
+      {
+        "description": "text channel where messages will be read aloud\ntts will always read messages sent in the active voice channel",
+				"default": None,
+				"type": "channel"
+      },
+      "auto_join":
+			{
+				"description": "automatically join when a message is sent in the voice channel or set text channel",
+				"default": False,
+				"type": "bool"
+			},
+      "max_message_length":
+      {
+        "description": "max time to read a message (in seconds)",
+				"default": 30,
+				"type": "modal",
+				"kwargs":{"max_length":2,"placeholder":"min 1; max 59"}
+      }
+    },
 		"qotd":
 		{
 			"enabled":

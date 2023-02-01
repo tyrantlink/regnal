@@ -1,9 +1,9 @@
-from discord.ui import Button,button,Select,string_select,channel_select,role_select,InputText
-from discord import Interaction,Embed,SelectOption,Guild,CategoryChannel,User,Member as DiscordMember
+from discord import Interaction,Embed,SelectOption,User,Member as DiscordMember
+from discord.ui import Button,button,Select,string_select,InputText
 from extensions._shared_vars import config_info,valid_voices
 from client import Client,EmptyView,CustomModal,MixedUser
-from asyncio import create_task
 from utils.pluralkit import Member as PKMember
+from asyncio import create_task
 
 class user_config(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,user:User,embed_color:int=None) -> None:
@@ -59,7 +59,7 @@ class user_config(EmptyView):
 		options = [SelectOption(label=k,description=v.get('description','').split('\n')[0][:100]) for k,v in config_info.get('user' if self.user.type == 'discord' else 'pk_user',{}).get(self.category,{}).items()]
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
-		
+
 	async def write_config(self,value:bool|str,interaction:Interaction=None) -> None:
 		match self.selected:
 			case 'no_track' if value:

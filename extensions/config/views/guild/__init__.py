@@ -22,6 +22,7 @@ class guild_config(EmptyView):
 		options = [SelectOption(label='general',description='general options')]
 		if user.id == self.client.owner_id or user.guild_permissions.view_audit_log:
 			options.append(SelectOption(label='logging',description='logging config'))
+		options.append(SelectOption(label='tts',description='text-to-speech config'))
 		if user.id == self.client.owner_id or user.guild_permissions.manage_channels:
 			options.append(SelectOption(label='qotd',description='qotd config'))
 			options.append(SelectOption(label='talking_stick',description='talking stick config'))
@@ -218,8 +219,7 @@ class guild_config(EmptyView):
 		custom_id='modal_button',row=2)
 	async def modal_button(self,button:Button,interaction:Interaction) -> None:
 		modal = CustomModal(self,f'set {self.selected}',
-			[InputText(label=self.selected,
-				max_length=config_info.get('guild',{}).get(self.category,{}).get(self.selected,{}).get('max_length',None))])
+			[InputText(label=self.selected,**config_info.get('guild',{}).get(self.category,{}).get(self.selected,{}).get('kwargs',{}))])
 		await interaction.response.send_modal(modal)
 		await modal.wait()
 		await self.write_config(modal.children[0].value)
