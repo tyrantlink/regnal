@@ -36,8 +36,9 @@ with open('.git/refs/heads/master') as git:
 
 with open('mongo') as mongo:
 	mongo = MongoClient(mongo.read())['reg-nal']['INF']
-	extensions = mongo.find_one({'_id':'/reg/nal'})['extensions']
-	benv = mongo.find_one({'_id':'env'})
+	doc = mongo.find_one({'_id':'/reg/nal'})
+	extensions = doc['extensions']
+	benv = doc['env']
 	activity_options = benv['activities']
 
 if DEV_MODE:
