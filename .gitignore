@@ -18,3 +18,4 @@ test.py
 /tmp/nsfw_filter/*
 /nsfw_model
 change-log.yml
+google_auth.json
