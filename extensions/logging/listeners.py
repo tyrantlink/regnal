@@ -4,7 +4,6 @@ from datetime import datetime,timedelta
 from utils.tyrantlib import split_list
 from discord.ext.commands import Cog
 from client import Client
-from asyncio import sleep
 from .utils import utils
 
 
