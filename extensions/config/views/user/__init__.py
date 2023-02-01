@@ -42,18 +42,20 @@ class user_config(EmptyView):
 
 	def reload_embed(self) -> None:
 		self.embed.clear_fields()
+		self.embed.set_author(name=self.user.name,icon_url=self.user.icon or 'https://regn.al/discord.png')
 		category_data = config_info.get('user' if self.user.type == 'discord' else 'pk_user',{}).get(self.category,{})
-		for k,v in self.config.items():
-			if v is not None:
-				match category_data.get(k,{}).get('type'):
-					case 'channel': v = f'<#{v}>'
-					case 'role'   : v = f'<@&{v}>'
+		for k,v in self.config.get(self.category,{}).items():
+			if self.user.type == 'pluralkit' and k not in config_info.get('pk_user',{}).get(self.category,{}).keys(): continue
 			self.embed.add_field(name=k,value=v)
 		if self.selected is None: self.embed.description = None
 		else: self.embed.description = category_data.get(self.selected,{}).get('description',None)
 
 	async def reload_config(self) -> None:
-		self.config = await self.client.db.users.read(self.user.id,['config',self.category])
+		try: self.config = await self.client.db.users.read(self.user.id,['config'])
+		except TypeError: await self.create_pk_doc()
+		else:
+			if self.config is None: await self.create_pk_doc()
+		finally: self.config = await self.client.db.users.read(self.user.id,['config'])
 		options = [SelectOption(label=k,description=v.get('description','').split('\n')[0][:100]) for k,v in config_info.get('user' if self.user.type == 'discord' else 'pk_user',{}).get(self.category,{}).items()]
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
@@ -75,7 +77,7 @@ class user_config(EmptyView):
 		label='<',style=2,
 		custom_id='back_button',row=2)
 	async def back_button(self,button:Button,interaction:Interaction) -> None:
-		if self.category is None:
+		if self.category is None and self.selected != 'pk':
 			await interaction.response.edit_message(view=self.back_view,embed=self.back_view.embed)
 			self.stop()
 			return
@@ -86,7 +88,7 @@ class user_config(EmptyView):
 		self.embed.clear_fields()
 		self.clear_items()
 		if self.back_view is not None: self.add_item(self.back_button)
-		if self.pk_members: self.add_item(self.pluralkit_button)
+		if self.pk_members != []: self.add_item(self.pluralkit_button)
 		self.add_item(self.category_select)
 		await interaction.response.edit_message(view=self,embed=self.embed)
 
@@ -199,7 +201,12 @@ class user_config(EmptyView):
 		self.clear_items()
 		if self.back_view is not None: self.add_item(self.back_button)
 		if self.pk_members: self.add_item(self.pluralkit_button)
-		self.add_item(self.option_select)
+		match self.user.type:
+			case 'pluralkit':
+				self.add_item(self.option_select)
+				self.category = 'general'
+			case 'discord':
+				self.add_item(self.category_select)
 		await self.reload_config()
 		self.reload_embed()
 		await interaction.response.edit_message(view=self,embed=self.embed)
