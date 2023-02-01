@@ -1,6 +1,6 @@
 from discord.ui import Button,button,Select,string_select,channel_select,role_select,InputText
 from discord import Interaction,Embed,SelectOption,Guild,CategoryChannel,User,Member as DiscordMember
-from extensions._shared_vars import config_info
+from extensions._shared_vars import config_info,valid_voices
 from client import Client,EmptyView,CustomModal,MixedUser
 from asyncio import create_task
 from utils.pluralkit import Member as PKMember
@@ -60,7 +60,7 @@ class user_config(EmptyView):
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
 		
-	async def write_config(self,value:bool) -> None:
+	async def write_config(self,value:bool|str,interaction:Interaction=None) -> None:
 		match self.selected:
 			case 'no_track' if value:
 				await self.client.db.users.write(self.user.id,['messages'],None)
@@ -69,6 +69,12 @@ class user_config(EmptyView):
 					await self.client.db.guilds.unset(guild.id,['data','leaderboards','messages',str(self.user.id)])
 					await self.client.db.guilds.unset(guild.id,['data','leaderboards','sticks',str(self.user.id)])
 				else: await self.client.db.users.write(self.user.id,['messages'],0)
+			case 'voice' if self.category == 'tts':
+				if (value:=value.strip()) not in valid_voices:
+					create_task(interaction.followup.send(embed=Embed(
+						title='ERROR: invalid voice selected',
+						description=f'find and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"',color=0xff6969),ephemeral=True))
+					return
 		await self.client.db.users.write(self.user.id,['config',self.category,self.selected],value)
 		await self.reload_config()
 		self.reload_embed()
@@ -123,6 +129,11 @@ class user_config(EmptyView):
 						self.add_item(self.configure_list_button)
 						self.get_item('configure_list_button').label = f'configure {mode}'
 				case 'modal': self.add_item(self.modal_button)
+				case 'select':
+					data = config_info.get('user' if self.user.type == 'discord' else 'pk_user',{}).get(self.category,{}).get(self.selected,{})
+					self.add_item(self.select_select)
+					self.get_item('select_select').placeholder = data.get('label','select an option')
+					self.get_item('select_select').options = [SelectOption(label=k,description=v) for k,v in data.get('options')]
 				case _: raise
 			options = select.options.copy()
 			for option in options: option.default = option.label == self.selected
@@ -132,6 +143,11 @@ class user_config(EmptyView):
 			self.reload_embed()
 			self.add_items(self.back_button,self.option_select)
 			for option in select.options: option.default = False
+		await interaction.response.edit_message(view=self,embed=self.embed)
+
+	@string_select(custom_id='select_select',row=1)
+	async def select_select(self,select:Select,interaction:Interaction) -> None:
+		await self.write_config(select.values[0])
 		await interaction.response.edit_message(view=self,embed=self.embed)
 
 	@button(
@@ -181,7 +197,7 @@ class user_config(EmptyView):
 				max_length=config_info.get('user' if self.user.type == 'discord' else 'pk_user',{}).get(self.category,{}).get(self.selected,{}).get('max_length',None))])
 		await interaction.response.send_modal(modal)
 		await modal.wait()
-		await self.write_config(modal.children[0].value)
+		await self.write_config(modal.children[0].value,interaction)
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
