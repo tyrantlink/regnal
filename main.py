@@ -20,7 +20,8 @@ from json import loads
 from os import _exit
 from sys import argv
 
-DEV_MODE = exists('dev')
+DEV_MODE  = exists('dev')
+BETA_MODE = '--beta' in argv
 
 with open('.git/refs/heads/master') as git:
 	git = git.read()
@@ -54,8 +55,9 @@ class client_cls(Client):
 		if 'clear' in argv: return
 		self.log = log(self.db,DEV_MODE)
 		self.pk = PluralKit()
-		self.add_cog(base_commands(self))
-		self.add_cog(message_handler(self))
+		if not BETA_MODE:
+			self.add_cog(base_commands(self))
+			self.add_cog(message_handler(self))
 		if DEV_MODE:
 			self.flags.update({'DEV':None})
 			self.log.debug('LAUNCHED IN DEV MODE',to_db=False)
@@ -99,8 +101,8 @@ class client_cls(Client):
 				case 'blacklist' if ctx.channel.id not in guild['data']['hide_commands']['blacklist']: return True
 				case 'disabled': pass
 		try:
-			if isinstance(ctx,ApplicationContext): return await self.db.users.read(ctx.author.id,['config','hide_commands'])
-			if isinstance(ctx,Interaction): return await self.db.users.read(ctx.user.id,['config','hide_commands'])
+			if isinstance(ctx,ApplicationContext): return await self.db.users.read(ctx.author.id,['config','general','hide_commands'])
+			if isinstance(ctx,Interaction): return await self.db.users.read(ctx.user.id,['config','general','hide_commands'])
 		except Exception: pass
 		return True
 		
@@ -238,12 +240,12 @@ class message_handler(Cog):
 			await self.client.db.users.new(author.id)
 			if author.type == 'pluralkit':
 				await self.client.db.users.write(author.id,['pluralkit'],True)
-				await self.client.db.users.write(author.id,['config','talking_stick'],False)
+				await self.client.db.users.write(author.id,['config','general','talking_stick'],False)
 			else: await self.client.db.users.write(author.id,['bot'],author.bot)
 			user = await self.client.db.users.read(author.id)
 			
 		# check user no_track
-		if user.get('config',{}).get('no_track',False): return
+		if user.get('config',{}).get('general',{}).get('no_track',False): return
 		# updates username and discriminator every 50 messages
 		if user.get('messages',0)%50 == 0:
 			await self.client.db.users.write(author.id,['username'],author.name)
@@ -269,5 +271,5 @@ class message_handler(Cog):
 client = client_cls()
 
 if __name__ == '__main__':
-	try: client.run(client.env.dev_token if DEV_MODE else client.env.token)
+	try: client.run(client.env.beta_token if BETA_MODE else client.env.dev_token if DEV_MODE else client.env.token)
 	except SystemExit: pass

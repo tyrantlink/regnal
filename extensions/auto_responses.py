@@ -80,7 +80,7 @@ class auto_response_listeners(Cog):
 		try:
 			if (
 				user.bot or
-				await self.client.db.users.read(user.id,['config','ignored'])):
+				await self.client.db.users.read(user.id,['config','general','ignored'])):
 					return
 		except: return
 
@@ -178,10 +178,9 @@ class auto_response_listeners(Cog):
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','auto_responses','cooldown_per_user']) else message.channel.id:int(time())})
 
-
 		if responses == self.base_responses:
 			user_data = await self.client.db.users.read(user.id)
-			if raw_au not in user_data.get('data',{}).get('au').get(mode,[raw_au]) and not user_data.get('config',{}).get('no_track',True):
+			if raw_au not in user_data.get('data',{}).get('au').get(mode,[raw_au]) and not user_data.get('config',{}).get('general',{}).get('no_track',True):
 				await self.client.db.users.append(user.id,['data','au',mode],raw_au)
 
 		await self.client.log.listener(message,category=mode,trigger=raw_au)
