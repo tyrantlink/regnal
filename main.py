@@ -52,7 +52,7 @@ class client_cls(Client):
 		self.db = db()
 		self.flags = {}
 		self.au:dict = None
-		self.env = env(benv['env_dict'])
+		self.env = env(benv)
 		if 'clear' in argv: return
 		self.log = log(self.db,DEV_MODE)
 		self.pk = PluralKit()
