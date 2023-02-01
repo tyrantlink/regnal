@@ -12,6 +12,8 @@ class env:
 	def __init__(self,env_dict:dict) -> None:
 		self.token:str = None
 		self.dev_token:str = None
+		self.beta_token:str = None
+		self.tet_token:str = None
 		self.shlink:str = None
 		self.mongo_pub:str = None
 		self.mongo_prv:str = None

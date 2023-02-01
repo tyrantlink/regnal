@@ -22,6 +22,7 @@ from sys import argv
 
 DEV_MODE  = exists('dev')
 BETA_MODE = '--beta' in argv
+TET_MODE  = '--tet'  in argv
 
 with open('.git/refs/heads/master') as git:
 	git = git.read()
@@ -271,5 +272,5 @@ class message_handler(Cog):
 client = client_cls()
 
 if __name__ == '__main__':
-	try: client.run(client.env.beta_token if BETA_MODE else client.env.dev_token if DEV_MODE else client.env.token)
+	try: client.run(client.env.beta_token if BETA_MODE else client.env.dev_token if DEV_MODE else client.env.tet_token if TET_MODE else client.env.token)
 	except SystemExit: pass
