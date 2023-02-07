@@ -4,6 +4,7 @@ from extensions._shared_vars import config_info
 from client import Client,EmptyView,CustomModal
 from .configure_list import configure_list_view
 from .custom_au import custom_au_view
+from discord.abc import GuildChannel
 from asyncio import create_task
 
 class guild_config(EmptyView):
@@ -55,6 +56,36 @@ class guild_config(EmptyView):
 		options = [SelectOption(label=k,description=v.get('description','').split('\n')[0][:100]) for k,v in config_info.get('guild',{}).get(self.category,{}).items()]
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
+
+	async def validate_channel(self,channel:GuildChannel,interaction:Interaction) -> bool:
+		if channel.permissions_for(self.guild.me).view_channel:
+			await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+				description=f'i don\'t have permission to view {channel.mention}\nplease correct this and try again\nthis requires the `View Channel` permission'))
+			return False
+		match self.category:
+			case 'qotd':
+				if channel.type.name not in ['text','forum']:
+					await interaction.response.send_message(ephemeral=True,embed=Embed(title='error!',color=0xff6969,
+					description=f'channel type `{channel.type.name}` not supported for channel.type.name `{self.category}`'))
+					return False
+				if not channel.permissions_for(self.guild.me).send_messages:
+					await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+						description=f'i don\'t have permission to send messages in {channel.mention}\nplease correct this and try again\nthis requires the `Send Messages` permission'))
+					return False
+				if not channel.permissions_for(self.guild.me).create_public_threads:
+					await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+						description=f'i do not have permission to create threads in {channel.mention}\nplease correct this and try again\nthis requires the `Create Posts` permission'))
+					return False
+				if not channel.permissions_for(self.guild.me).manage_messages:
+					await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+						description=f'i do not have permission to pin threads in {channel.mention}\nplease correct this and try again\nthis requires the `Manage Messages` permission'))
+					return False
+			case 'tts'|'logging'|'talking_stick':
+				if channel.type.name not in ['text']:
+					await interaction.response.send_message(ephemeral=True,embed=Embed(title='error!',color=0xff6969,
+					description=f'channel type `{channel.type.name}` not supported for channel.type.name `{self.category}`'))
+					return False
+		return True
 		
 	async def write_config(self,value,interaction:Interaction=None) -> None:
 		match self.selected:
@@ -147,23 +178,7 @@ class guild_config(EmptyView):
 			await interaction.response.edit_message(embed=self.embed,view=self)
 			return
 		channel = select.values[0]
-		if channel.type.name == 'forum':
-			if self.category not in ['qotd']:
-				await interaction.response.send_message(ephemeral=True,embed=Embed(title='error!',color=0xff6969,
-					description=f'forum channels are not supported for option type `{self.selected}`'))
-				return
-			if not channel.permissions_for(self.guild.me).create_public_threads:
-				await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
-					description=f'i do not have permission to create threads in {channel.mention}\nplease correct this and try again\nthis requires the `Create Posts` permission'))
-				return
-			if not channel.permissions_for(self.guild.me).manage_messages:
-				await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
-					description=f'i do not have permission to pin threads in {channel.mention}\nplease correct this and try again\nthis requires the `Manage Messages` permission'))
-				return
-		elif not channel.can_send():
-			await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
-				description=f'i don\'t have permission to send messages in {channel.mention}\nplease correct this and try again\nthis requires the `Send Messages` permission'))
-			return
+		if not await self.validate_channel(channel,interaction): return None
 		await self.write_config(channel.id)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
