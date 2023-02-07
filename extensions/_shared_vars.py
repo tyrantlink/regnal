@@ -160,8 +160,8 @@ config_info = {
       },
       "voice":
       {
-        "description": "voice used by the tts\nfind and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"",
-        "default": 'en-US-Neural2-H',
+        "description": "voice used by the tts\nfind and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"\n\nif left empty, default server voice will be used",
+        "default": None,
         "type": "modal"
       }
     }
@@ -276,7 +276,7 @@ config_info = {
     {
       "channel":
       {
-        "description": "text channel where messages will be read aloud\ntts will always read messages sent in the active voice channel",
+        "description": "text channel where messages will be read aloud\ntts will always read messages sent in the active voice-text channel",
 				"default": None,
 				"type": "channel"
       },
@@ -292,6 +292,12 @@ config_info = {
 				"default": 30,
 				"type": "modal",
 				"kwargs":{"max_length":2,"placeholder":"min 1; max 59"}
+      },
+      "voice":
+      {
+        "description": "voice used by the tts\nfind and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"",
+				"default": 'en-US-Neural2-H',
+				"type": "modal"
       }
     },
 		"qotd":
@@ -3697,5 +3703,18 @@ valid_voices = [
   "ja-JP-Neural2-D",
   "pt-BR-Neural2-A",
   "pt-BR-Neural2-B",
-  "pt-BR-Neural2-C"
-]
+  "pt-BR-Neural2-C"]
+"""tts extension"""
+transcription = {
+  "uwu":"oowoo",
+  "<3":"heart",
+  "wdym":"what do you mean?",
+  "stfu":"shut the fuck up",
+  "ic":"internecion cube",
+  "imo":"in my opinion",
+  "idk":"i don't know",
+  "istg":"i swear to god",
+  "brb":"be right back",
+  "ffs":"for fuck's sake"
+}
+"""tts extension"""
