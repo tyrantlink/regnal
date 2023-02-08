@@ -102,7 +102,7 @@ class tts_cog(Cog):
 	async def on_message(self,message:Message) -> None:
 		if message.guild is None: return
 		if (
-			not message.author.voice or
+			not getattr(message.author,'voice',None) or
 			message.content.startswith('-') or
 			message.content == '' or
 			message.author.bot): return
