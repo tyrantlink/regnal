@@ -69,7 +69,7 @@ class user_config(EmptyView):
 					await self.client.db.guilds.unset(guild.id,['data','leaderboards','messages',str(self.user.id)])
 					await self.client.db.guilds.unset(guild.id,['data','leaderboards','sticks',str(self.user.id)])
 				else: await self.client.db.users.write(self.user.id,['messages'],0)
-			case 'voice' if self.category == 'tts':
+			case 'voice' if self.category == 'tts' and value is not None:
 				if (value:=value.strip()) not in valid_voices:
 					create_task(interaction.followup.send(embed=Embed(
 						title='ERROR: invalid voice selected',
