@@ -158,6 +158,12 @@ config_info = {
         "default": None,
         "type": "modal"
       },
+      "transcription":
+      {
+        "description": "transcribe acronyms into their meaning\ne.g. `wdym` will be read as `what do you mean?` and `imo` will be read as `in my opinion`",
+        "default": True,
+        "type": "bool"
+      },
       "voice":
       {
         "description": "voice used by the tts\nfind and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"\n\nif left empty, default server voice will be used",
