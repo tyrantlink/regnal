@@ -62,7 +62,7 @@ class user_config(EmptyView):
 
 	async def write_config(self,value:bool|str,interaction:Interaction=None) -> None:
 		match self.selected:
-			case 'no_track' if value:
+			case 'no_track' if self.category == 'general' and value:
 				await self.client.db.users.write(self.user.id,['messages'],None)
 				await self.client.db.users.write(self.user.id,['data','au'],{'contains':[],'exact':[],'exact-cs':[]})
 				for guild in self.discord_user.mutual_guilds:
@@ -75,6 +75,13 @@ class user_config(EmptyView):
 						title='ERROR: invalid voice selected',
 						description=f'find and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"',color=0xff6969),ephemeral=True))
 					return
+			case 'speaking_rate' if self.category == 'tts':
+				if not 0.25 < (value:=float(value)) <= 4:
+					create_task(interaction.followup.send(embed=Embed(
+						title='ERROR: invalid speaking_rate selected',
+						description=f'please pick a number between 0.25 and 4.00',color=0xff6969),ephemeral=True))
+					return
+
 		await self.client.db.users.write(self.user.id,['config',self.category,self.selected],value)
 		await self.reload_config()
 		self.reload_embed()

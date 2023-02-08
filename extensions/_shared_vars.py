@@ -169,7 +169,14 @@ config_info = {
         "description": "voice used by the tts\nfind and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"\n\nif left empty, default server voice will be used",
         "default": None,
         "type": "modal"
-      }
+      },
+      "voice":
+      {
+        "description": "voice used by the tts\nfind and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"\n\nif left empty, default server voice will be used",
+        "default": None,
+        "type": "modal",
+        "kwargs":{"max_length":4,"placeholder":"min 0.25; max 4.00"}
+      },
     }
 	},
   "pk_user":
@@ -298,6 +305,12 @@ config_info = {
 				"default": 30,
 				"type": "modal",
 				"kwargs":{"max_length":2,"placeholder":"min 1; max 59"}
+      },
+      "read_name":
+      {
+        "description": "read a username before reading their message\ne.g. `/reg/nal said: {message text}`",
+				"default": True,
+				"type": "bool"
       },
       "voice":
       {

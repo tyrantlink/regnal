@@ -14,7 +14,6 @@ from re import sub
 
 
 environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google_auth.json'
-audio_config = AudioConfig(audio_encoding=3,speaking_rate=0.8)
 
 class guild_data:
 	def __init__(self,id:int,client:Client,config:dict,vc:VoiceClient,tts:TextToSpeechAsyncClient) -> None:
@@ -33,16 +32,19 @@ class guild_data:
 		while exists(filename): filename = f'tmp/tts/{token_hex(6)}.ogg'
 		return filename
 
-	async def get_user_data(self,member:Member) -> tuple[bool,str,VoiceSelectionParams]:
-		config = await self.client.db.users.read(member.id,['config','tts'])
-		voice  = config.get('voice',None) or await self.client.db.guilds.read(member.guild.id,['config','tts','voice'])
+	async def get_user_data(self,member:Member) -> tuple[bool,str,bool,VoiceSelectionParams,AudioConfig]:
+		u_config = await self.client.db.users.read(member.id,['config','tts'])
+		g_config = await self.client.db.guilds.read(member.guild.id,['config','tts'])
+		voice    = u_config.get('voice',None) or g_config.get('voice','en-US-Neural2-H')
 		return (
-			config.get('transcription',True), # transcribe messages
-			config.get('name',None) or member.display_name, # stated name
-			VoiceSelectionParams(name=voice,language_code='-'.join(voice.split('-')[:2]))
+			u_config.get('transcription',True), # transcribe messages
+			u_config.get('name',None) or member.display_name, # stated name
+			g_config.get('read_name',False), # read usernames before reading message
+			VoiceSelectionParams(name=voice,language_code='-'.join(voice.split('-')[:2])), # voice
+			AudioConfig(audio_encoding=3,speaking_rate=u_config.get('speaking_rate',0.8)) # audio config
 		)
 
-	async def generate_audio(self,message:str,voice:VoiceSelectionParams,_last_member:Member) -> str|None:
+	async def generate_audio(self,message:str,voice:VoiceSelectionParams,audio_config:AudioConfig,_last_member:Member) -> str|None:
 		filename = self.gen_filename()
 		with open(filename,'wb+') as file:
 			req = await self.tts.synthesize_speech(input=SynthesisInput(text=message),voice=voice,audio_config=audio_config)
@@ -56,14 +58,14 @@ class guild_data:
 
 	async def play_message(self,member:Member,message:str) -> None:
 		with open('/dev/null','w') as devnull:
-			transcribe,username,voice = await self.get_user_data(member)
+			transcribe,username,read_name,voice,a_config = await self.get_user_data(member)
 			if transcribe: message = ' '.join([sub(no_punc,transcription.get(no_punc,no_punc),word) for word in message.split(' ') if (no_punc:=sub(r'\,|\.','',word)) is not None])
 			_last_member = self.last_user
-			if member != self.last_user:
+			if read_name and member != self.last_user:
 				message = f'{username} said: {message}'
 				self.last_user = member
 			for i in range(5):
-				filename = await self.generate_audio(message,voice,_last_member)
+				filename = await self.generate_audio(message,voice,a_config,_last_member)
 				await self.client.db.guilds.inc(member.guild.id,['data','tts','usage'],len(message))
 				if filename is not None: break
 			else:
