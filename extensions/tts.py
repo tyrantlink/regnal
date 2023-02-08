@@ -35,7 +35,7 @@ class guild_data:
 
 	async def get_user_data(self,member:Member) -> tuple[bool,str,VoiceSelectionParams]:
 		config = await self.client.db.users.read(member.id,['config','tts'])
-		voice  = config.get('voice',await self.client.db.guilds.read(member.guild.id,['config','tts','voice']))
+		voice  = config.get('voice',None) or await self.client.db.guilds.read(member.guild.id,['config','tts','voice'])
 		return (
 			config.get('transcription',True), # transcribe messages
 			config.get('name',None) or member.display_name, # stated name
