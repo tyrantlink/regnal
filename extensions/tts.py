@@ -2,7 +2,6 @@ from discord import Message,Member,FFmpegPCMAudio,VoiceClient,VoiceState,SlashCo
 from google.cloud.texttospeech import TextToSpeechAsyncClient,AudioConfig,VoiceSelectionParams,SynthesisInput
 from asyncio import Queue,create_task,CancelledError
 from discord.utils import remove_markdown
-from ._shared_vars import transcription
 from discord.ext.commands import Cog
 from os import remove as rm,scandir
 from pydub import AudioSegment
@@ -16,15 +15,17 @@ from re import sub
 environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google_auth.json'
 
 class guild_data:
-	def __init__(self,id:int,client:Client,config:dict,vc:VoiceClient,tts:TextToSpeechAsyncClient) -> None:
+	def __init__(self,id:int,client:Client,config:dict,vc:VoiceClient,tts:TextToSpeechAsyncClient,transcription:dict) -> None:
 		self.id  = id
 		self.client = client
 		self.config = config
 		self.tts = tts
 		self.vc  = vc
+		self.transcription = transcription
 		self.active = None
 		self.queue = Queue()
 		self.last_user:Member = None
+		self.transcription:dict = None
 		self.queue_task = create_task(self.handle_queue())
 
 	def gen_filename(self) -> None:
@@ -59,7 +60,7 @@ class guild_data:
 	async def play_message(self,member:Member,message:str) -> None:
 		with open('/dev/null','w') as devnull:
 			transcribe,username,read_name,voice,a_config = await self.get_user_data(member)
-			if transcribe: message = ' '.join([sub(no_punc,transcription.get(no_punc,no_punc),word) for word in message.split(' ') if (no_punc:=sub(r'\,|\.','',word)) is not None])
+			if transcribe: message = ' '.join([sub(no_punc,self.transcription.get(no_punc,no_punc),word) for word in message.split(' ') if (no_punc:=sub(r'\,|\.','',word)) is not None])
 			_last_member = self.last_user
 			if read_name and member != self.last_user:
 				message = f'{username} said: {message}'
@@ -116,7 +117,11 @@ class tts_cog(Cog):
 		if message.channel.id not in [message.author.voice.channel.id,guild_config.get('channel')]: return
 		if message.guild.id not in self.guilds.keys():
 			if not message.author.voice or not guild_config.get('auto_join',False): return
-			self.guilds.update({message.guild.id:guild_data(message.guild.id,self.client,guild_config,message.guild.voice_client or await message.author.voice.channel.connect(),self.tts)})
+			self.guilds.update({message.guild.id:guild_data(
+				message.guild.id,
+				self.client,guild_config,
+				message.guild.voice_client or await message.author.voice.channel.connect(),
+				self.tts,await self.client.db.inf.read('/reg/nal',['transcription']))})
 		if len(processed:=self.process_message(message.clean_content)+(', along with an attachment' if message.attachments else '')) <= 800:
 			self.guilds[message.guild.id].queue.put_nowait((message.author,processed))
 

@@ -3724,18 +3724,3 @@ valid_voices = [
   "pt-BR-Neural2-B",
   "pt-BR-Neural2-C"]
 """tts extension"""
-transcription = {
-  "uwu":"oowoo",
-  "<3":"heart",
-  "wdym":"what do you mean?",
-  "stfu":"shut the fuck up",
-  "ic":"internecion cube",
-  "imo":"in my opinion",
-  "idk":"i don't know",
-  "istg":"i swear to god",
-  "brb":"be right back",
-  "ffs":"for fuck's sake",
-  "fr":"for real",
-  "ttyl":"talk to you later"
-}
-"""tts extension"""
