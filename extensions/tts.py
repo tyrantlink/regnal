@@ -146,7 +146,11 @@ class tts_cog(Cog):
 			if ctx.guild.voice_client.channel.id == ctx.author.voice.channel.id:
 				await ctx.response.send_message(embed=Embed(title='ERROR!',description='i am already in that channel!',color=0xff6969))
 				return
-		self.guilds.update({ctx.guild.id:guild_data(ctx.guild.id,self.client,await self.client.db.guilds.read(ctx.guild.id,['config','tts']),ctx.guild.voice_client or await ctx.author.voice.channel.connect(),self.tts)})
+		self.guilds.update({ctx.guild.id:guild_data(
+				ctx.guild.id,
+				self.client,await self.client.db.guilds.read(ctx.guild.id,['config','tts']),
+				ctx.guild.voice_client or await ctx.author.voice.channel.connect(),
+				self.tts,await self.client.db.inf.read('/reg/nal',['transcription']))})
 		await ctx.response.send_message(embed=Embed(
 			title='joined!',
 			description=f'joined {ctx.author.voice.channel.mention}\nby default, i\'ll only read your messages if you\'re muted\nyou can change this with {[f"</{cmd.qualified_name}:{cmd.qualified_id}>" for cmd in self.client.walk_application_commands() if cmd.qualified_name == "config"][0]}\nprepend messages with "-" and i won\'t read them, regardless of config',
