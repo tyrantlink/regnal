@@ -25,7 +25,6 @@ class guild_data:
 		self.active = None
 		self.queue = Queue()
 		self.last_user:Member = None
-		self.transcription:dict = None
 		self.queue_task = create_task(self.handle_queue())
 
 	def gen_filename(self) -> None:
@@ -83,7 +82,6 @@ class guild_data:
 			if self.vc._player:
 				self.vc._player._end.wait()
 			await self.play_message(*await self.queue.get())
-			print('asdfasd')
 
 class tts_cog(Cog):
 	def __init__(self,client:Client) -> None:
