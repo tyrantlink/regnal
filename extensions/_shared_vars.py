@@ -170,10 +170,10 @@ config_info = {
         "default": None,
         "type": "modal"
       },
-      "voice":
+      "speaking_rate":
       {
-        "description": "voice used by the tts\nfind and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"\n\nif left empty, default server voice will be used",
-        "default": None,
+        "description": "the rate your voice is read",
+        "default": 0.8,
         "type": "modal",
         "kwargs":{"max_length":4,"placeholder":"min 0.25; max 4.00"}
       },
