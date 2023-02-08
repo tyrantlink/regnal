@@ -3721,6 +3721,8 @@ transcription = {
   "idk":"i don't know",
   "istg":"i swear to god",
   "brb":"be right back",
-  "ffs":"for fuck's sake"
+  "ffs":"for fuck's sake",
+  "fr":"for real",
+  "ttyl":"talk to you later"
 }
 """tts extension"""
