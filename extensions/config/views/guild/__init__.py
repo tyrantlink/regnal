@@ -58,7 +58,7 @@ class guild_config(EmptyView):
 		self.get_item('option_select').options = options
 
 	async def validate_channel(self,channel:GuildChannel,interaction:Interaction) -> bool:
-		if channel.permissions_for(self.guild.me).view_channel:
+		if not channel.permissions_for(self.guild.me).view_channel:
 			await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xff6969,
 				description=f'i don\'t have permission to view {channel.mention}\nplease correct this and try again\nthis requires the `View Channel` permission'))
 			return False
