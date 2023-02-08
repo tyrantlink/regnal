@@ -59,7 +59,7 @@ class guild_config(EmptyView):
 
 	async def validate_channel(self,channel:GuildChannel,interaction:Interaction) -> bool:
 		if channel.permissions_for(self.guild.me).view_channel:
-			await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+			await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xff6969,
 				description=f'i don\'t have permission to view {channel.mention}\nplease correct this and try again\nthis requires the `View Channel` permission'))
 			return False
 		match self.category:
@@ -69,15 +69,15 @@ class guild_config(EmptyView):
 					description=f'channel type `{channel.type.name}` not supported for channel.type.name `{self.category}`'))
 					return False
 				if not channel.permissions_for(self.guild.me).send_messages:
-					await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+					await interaction.response.send_message(ephemeral=True,embed=Embed(title='error!',color=0xff6969,
 						description=f'i don\'t have permission to send messages in {channel.mention}\nplease correct this and try again\nthis requires the `Send Messages` permission'))
 					return False
 				if not channel.permissions_for(self.guild.me).create_public_threads:
-					await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+					await interaction.response.send_message(ephemeral=True,embed=Embed(title='error!',color=0xff6969,
 						description=f'i do not have permission to create threads in {channel.mention}\nplease correct this and try again\nthis requires the `Create Posts` permission'))
 					return False
 				if not channel.permissions_for(self.guild.me).manage_messages:
-					await interaction.response.send_message(ephemeral=True,embed=Embed(title='warning!',color=0xffff69,
+					await interaction.response.send_message(ephemeral=True,embed=Embed(title='error!',color=0xff6969,
 						description=f'i do not have permission to pin threads in {channel.mention}\nplease correct this and try again\nthis requires the `Manage Messages` permission'))
 					return False
 			case 'tts'|'logging'|'talking_stick':
