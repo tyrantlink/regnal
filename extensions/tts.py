@@ -81,7 +81,7 @@ class guild_data:
 		while True:
 			try:
 				if self.vc._player: self.vc._player._end.wait()
-			except: pass
+			except Exception: pass
 			await self.play_message(*await self.queue.get())
 			
 
