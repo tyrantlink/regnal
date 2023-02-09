@@ -79,9 +79,11 @@ class guild_data:
 
 	async def handle_queue(self) -> None:
 		while True:
-			if self.vc._player:
-				self.vc._player._end.wait()
+			try:
+				if self.vc._player: self.vc._player._end.wait()
+			except: pass
 			await self.play_message(*await self.queue.get())
+			
 
 class tts_cog(Cog):
 	def __init__(self,client:Client) -> None:
