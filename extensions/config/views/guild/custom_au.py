@@ -43,7 +43,7 @@ class custom_au_view(EmptyView):
 		match self.page:
 			case 'main':
 				self.add_items(self.page_select,self.back_button)
-			case 'contains'|'exact'|'exact-cs':
+			case 'contains'|'exact'|'exact_cs':
 				self.embed.add_field(name='method',value=self.page)
 				self.add_items(self.custom_au_select,self.back_button,self.new_button)
 				self.get_item('new_button').disabled = len(self.custom_au.get(self.page,{}).keys()) >= 25
@@ -84,7 +84,7 @@ class custom_au_view(EmptyView):
 		placeholder='select a category',
 		options=[SelectOption(label=l,description=d) for l,d in [
 			('exact','trigger is exactly the message'),
-			('exact-cs','trigger is exactly the message (case sensitive)'),
+			('exact_cs','trigger is exactly the message (case sensitive)'),
 			('contains','trigger anywhere within the message')]])
 	async def page_select(self,select:Select,interaction:Interaction) -> None:
 		self.page = select.values[0]

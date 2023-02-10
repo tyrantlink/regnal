@@ -35,7 +35,7 @@ class auto_response_listeners(Cog):
 		self.base_responses = {
 			'contains':self.load_au(self.client.au.get('contains',{})),
 			'exact':self.load_au(self.client.au.get('exact',{})),
-			'exact-cs':self.load_au(self.client.au.get('exact-cs',{}))}
+			'exact_cs':self.load_au(self.client.au.get('exact_cs',{}))}
 
 	async def timeout(self,message_id:int) -> None:
 		self.timeouts.append(message_id)
@@ -99,7 +99,7 @@ class auto_response_listeners(Cog):
 			self.guild_responses[message.guild.id] = {
 				'contains':self.load_au(guild_au.get('contains',{})),
 				'exact':self.load_au(guild_au.get('exact',{})),
-				'exact-cs':self.load_au(guild_au.get('exact-cs',{}))}
+				'exact_cs':self.load_au(guild_au.get('exact_cs',{}))}
 
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
 		if time()-self.cooldowns['au'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
@@ -129,13 +129,13 @@ class auto_response_listeners(Cog):
 				continue
 			if message.lower() == trigger:
 				return ('exact',trigger)
-		for trigger,au in responses['exact-cs'].items():
+		for trigger,au in responses['exact_cs'].items():
 			if au.regex:
 				if fullmatch(trigger,message):
-					return ('exact-cs',trigger)
+					return ('exact_cs',trigger)
 				continue
 			if message == trigger:
-				return ('exact-cs',trigger)
+				return ('exact_cs',trigger)
 		for au in responses['contains']:
 			s = search(au,message.lower(),IGNORECASE)
 			if s is None: continue
