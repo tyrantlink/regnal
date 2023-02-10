@@ -47,12 +47,12 @@ class logging_listeners(Cog):
 	async def log_check(self,member:Member,mode:str) -> tuple[int,TextChannel|None]:
 		if member.guild is None: return (0,None)
 		config:dict = await self.client.db.guilds.read(member.guild.id,['config','logging'])
-		if not config.get('enabled'): return (0,None)
+		if not config.get('enabled') or not config.get(mode,False): return (0,None)
 		if (config.get('log_bots') and member.bot): return (0,None)
 		if (channel:=config.get('channel',None)) is not None:
 			try: channel = member.guild.get_channel(channel) or await member.guild.fetch_channel(channel)
 			except (NotFound,Forbidden): channel = None
-		if (channel is None or not config.get(mode,False)): return (1,None)
+		if channel is None: return (1,None)
 		return (2,channel)
 
 	async def find_deleter(self,message:Message) -> Member|None:
