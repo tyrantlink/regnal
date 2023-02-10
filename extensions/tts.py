@@ -1,6 +1,6 @@
-from discord import Message,Member,FFmpegPCMAudio,VoiceClient,VoiceState,SlashCommandGroup,ApplicationContext,Embed
+from discord import Message,Member,FFmpegOpusAudio,VoiceClient,VoiceState,SlashCommandGroup,ApplicationContext,Embed
 from google.cloud.texttospeech import TextToSpeechAsyncClient,AudioConfig,VoiceSelectionParams,SynthesisInput
-from asyncio import Queue,create_task,CancelledError
+from asyncio import Queue,create_task,CancelledError,Event
 from discord.utils import remove_markdown
 from re import sub,error as RegexError
 from discord.ext.commands import Cog
@@ -10,7 +10,6 @@ from secrets import token_hex
 from os.path import exists
 from client import Client
 from os import environ
-
 
 environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google_auth.json'
 
@@ -24,8 +23,13 @@ class guild_data:
 		self.transcription = transcription
 		self.active = None
 		self.queue = Queue()
+		self.playing = Event()
 		self.last_user:Member = None
 		self.queue_task = create_task(self.handle_queue())
+
+	def finished_playing(self,error):
+		self.playing.set()
+		self.playing.clear()
 
 	def gen_filename(self) -> None:
 		filename = f'tmp/tts/{token_hex(6)}.ogg'
@@ -50,7 +54,7 @@ class guild_data:
 			req = await self.tts.synthesize_speech(input=SynthesisInput(text=message),voice=voice,audio_config=audio_config)
 			file.write(req.audio_content)
 			file.seek(0)
-			if len(AudioSegment.from_file(file,format='ogg'))/1000 > self.config.get('max_message_length',59):
+			if (length:=len(AudioSegment.from_file(file,format='ogg'))/1000) > self.config.get('max_message_length',59):
 				rm(filename)
 				self.last_user = _last_member
 				return None
@@ -73,9 +77,9 @@ class guild_data:
 			else:
 				await self.client.log.debug('tts error',member=member.id,guild=member.guild.id,message_text=message)
 				return
-			self.vc.play(FFmpegPCMAudio(filename,stderr=devnull))
+			self.vc.play(FFmpegOpusAudio(filename,stderr=devnull),after=self.finished_playing)
 			try:
-				if self.vc._player: self.vc._player._end.wait()
+				if self.vc._player: await self.playing.wait()
 			except CancelledError: pass
 			rm(filename)
 
@@ -125,6 +129,8 @@ class tts_cog(Cog):
 				message.guild.voice_client or await message.author.voice.channel.connect(),
 				self.tts,await self.client.db.inf.read('/reg/nal',['transcription']))})
 		if len(processed:=self.process_message(message.clean_content)+(', along with an attachment' if message.attachments else '')) <= 800:
+			for word in processed.split(' '):
+				if len(word) > 50: return
 			self.guilds[message.guild.id].queue.put_nowait((message.author,processed))
 
 	@Cog.listener()
