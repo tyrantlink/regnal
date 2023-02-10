@@ -2,6 +2,7 @@ from discord import Message,Member,FFmpegPCMAudio,VoiceClient,VoiceState,SlashCo
 from google.cloud.texttospeech import TextToSpeechAsyncClient,AudioConfig,VoiceSelectionParams,SynthesisInput
 from asyncio import Queue,create_task,CancelledError
 from discord.utils import remove_markdown
+from re import sub,error as RegexError
 from discord.ext.commands import Cog
 from os import remove as rm,scandir
 from pydub import AudioSegment
@@ -9,7 +10,6 @@ from secrets import token_hex
 from os.path import exists
 from client import Client
 from os import environ
-from re import sub
 
 
 environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google_auth.json'
@@ -59,7 +59,9 @@ class guild_data:
 	async def play_message(self,member:Member,message:str) -> None:
 		with open('/dev/null','w') as devnull:
 			transcribe,username,read_name,voice,a_config = await self.get_user_data(member)
-			if transcribe: message = ' '.join([sub(no_punc,self.transcription.get(no_punc,no_punc),word) for word in message.split(' ') if (no_punc:=sub(r'\,|\.','',word)) is not None])
+			if transcribe:
+				try: message = ' '.join([sub(no_punc,self.transcription.get(no_punc,no_punc),word) for word in message.split(' ') if (no_punc:=sub(r'\,|\.','',word)) is not None])
+				except RegexError: pass
 			_last_member = self.last_user
 			if read_name and member != self.last_user:
 				message = f'{username} said: {message}'
