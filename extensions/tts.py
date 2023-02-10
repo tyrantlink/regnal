@@ -131,10 +131,11 @@ class tts_cog(Cog):
 			try: self.guilds.pop(member.guild.id)
 			except KeyError: pass
 		if member.guild.id not in self.guilds.keys(): return
-		if len(before.channel.voice_states) == 1:
-			await self.guilds[member.guild.id].vc.disconnect()
-			try: self.guilds.pop(member.guild.id)
-			except KeyError: pass
+		if before.channel is not None:
+			if len(before.channel.voice_states) == 1:
+				await self.guilds[member.guild.id].vc.disconnect()
+				try: self.guilds.pop(member.guild.id)
+				except KeyError: pass
 
 	@tts.command(
 		name='join',
