@@ -104,7 +104,7 @@ class tts_cog(Cog):
 	tts = SlashCommandGroup('tts','text-to-speech commands')
 
 	def process_message(self,message:str) -> str:
-		message = sub(r'<\/.*:\d*>','command',remove_markdown(message))
+		message = sub(r'<\/((?:\w|\s)+):\d+>',r'slash \g<1> ',remove_markdown(message))
 		message = sub(r'<:(\w+):\d+>',r'\g<1>',message)
 		message = sub(r'(?:^|\ )https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.',r'a \g<1> link',message)
 		return message
