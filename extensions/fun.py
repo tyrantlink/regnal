@@ -76,7 +76,7 @@ class fun_commands(Cog):
 			option(str,name='question',description='question to ask',max_length=256)])
 	async def slash_eightball(self,ctx:ApplicationContext,question:str) -> None:
 		embed = Embed(title=question,description=f'**{choice(eightball)}**',color=await self.client.embed_color(ctx))
-		embed.set_author(name='/reg/nal\'s eighth ball',icon_url='https://regn.al/8ball.png')
+		embed.set_author(name=f'{self.client.user.name}\'s eighth ball',icon_url='https://regn.al/8ball.png')
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
