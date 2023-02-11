@@ -129,8 +129,7 @@ class tts_cog(Cog):
 				message.guild.voice_client or await message.author.voice.channel.connect(),
 				self.tts,await self.client.db.inf.read('/reg/nal',['transcription']))})
 		if len(processed:=self.process_message(message.clean_content)+(', along with an attachment' if message.attachments else '')) <= 800:
-			for word in processed.split(' '):
-				if len(word) > 50: return
+			if max([len(w) for w in processed.split(' ')]) > 50: return
 			self.guilds[message.guild.id].queue.put_nowait((message.author,processed))
 
 	@Cog.listener()
