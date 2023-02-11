@@ -1,6 +1,7 @@
 from discord import Message,Member,FFmpegOpusAudio,VoiceClient,VoiceState,SlashCommandGroup,ApplicationContext,Embed
 from google.cloud.texttospeech import TextToSpeechAsyncClient,AudioConfig,VoiceSelectionParams,SynthesisInput
 from asyncio import Queue,create_task,CancelledError,Event
+from google.api_core.exceptions import InvalidArgument
 from discord.utils import remove_markdown
 from re import sub,error as RegexError
 from discord.ext.commands import Cog
@@ -51,7 +52,8 @@ class guild_data:
 	async def generate_audio(self,message:str,voice:VoiceSelectionParams,audio_config:AudioConfig,_last_member:Member) -> str|None:
 		filename = self.gen_filename()
 		with open(filename,'wb+') as file:
-			req = await self.tts.synthesize_speech(input=SynthesisInput(text=message),voice=voice,audio_config=audio_config)
+			try: req = await self.tts.synthesize_speech(input=SynthesisInput(text=message),voice=voice,audio_config=audio_config)
+			except InvalidArgument: return False
 			file.write(req.audio_content)
 			file.seek(0)
 			if (length:=len(AudioSegment.from_file(file,format='ogg'))/1000) > self.config.get('max_message_length',59):
@@ -73,6 +75,7 @@ class guild_data:
 			for i in range(5):
 				filename = await self.generate_audio(message,voice,a_config,_last_member)
 				await self.client.db.guilds.inc(member.guild.id,['data','tts','usage'],len(message))
+				if filename is False: return
 				if filename is not None: break
 			else:
 				await self.client.log.debug('tts error',member=member.id,guild=member.guild.id,message_text=message)
