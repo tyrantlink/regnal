@@ -2,8 +2,7 @@ from discord import Message,Member,FFmpegOpusAudio,VoiceClient,VoiceState,SlashC
 from google.cloud.texttospeech import TextToSpeechAsyncClient,AudioConfig,VoiceSelectionParams,SynthesisInput
 from asyncio import Queue,create_task,CancelledError,Event
 from google.api_core.exceptions import InvalidArgument
-from discord.utils import remove_markdown
-from re import sub,error as RegexError,search
+from re import sub,error as RegexError
 from discord.ext.commands import Cog
 from os import remove as rm,scandir
 from pydub import AudioSegment
@@ -104,7 +103,8 @@ class tts_cog(Cog):
 	tts = SlashCommandGroup('tts','text-to-speech commands')
 
 	def process_message(self,message:str) -> str:
-		message = sub(r'<\/((?:\w|\s)+):\d+>',r'slash \g<1> ',remove_markdown(message))
+		message = sub(r'(?:\~\~|\_\_\*\*\*|\_\_\*\*|\_\_\*|\_\_|\_|\*\*\*|\*\*|\*)(.*?)(?:\~\~|\*\*\*\_\_|\*\*\_\_|\*\_\_|\_\_|\_|\*\*\*|\*\*|\*)',r'\g<1>',message)
+		message = sub(r'<\/((?:\w|\s)+):\d+>',r'slash \g<1> ',message)
 		message = sub(r'<:(\w+):\d+>',r'\g<1>',message)
 		message = sub(r'(?:^|\ )https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.',r'a \g<1> link',message)
 		return message
