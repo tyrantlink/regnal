@@ -59,7 +59,8 @@ class commands_commands(Cog):
 			value=f"""creation date: {ctx.guild.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			member count: {ctx.guild.member_count}
 			channels: {len(ctx.guild.channels)}
-			roles: {len(ctx.guild.roles)}""")
+			roles: {len(ctx.guild.roles)}
+			tts usage: {await self.client.db.guilds.read(ctx.guild.id,['data','tts','usage'])}""")
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
