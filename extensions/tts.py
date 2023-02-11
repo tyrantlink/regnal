@@ -105,7 +105,7 @@ class tts_cog(Cog):
 
 	def process_message(self,message:str) -> str:
 		message = sub(r'<\/.*:\d*>','command',remove_markdown(message))
-		message = sub(r'(<:)(.*)(:\d*>)',r'\g<2>',message)
+		message = sub(r'<:(\w+):\d+>',r'\g<2>',message)
 		message = sub(r'(?:^|\ )https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.',r'a \g<1> link',message)
 		return message
 
