@@ -6,8 +6,8 @@ from utils.tyrantlib import convert_time,format_bytes,get_line_count
 from discord.ext.commands import Cog,slash_command
 from traceback import format_exc,format_tb
 from discord.errors import CheckFailure
+from client import Client,MixedUser,Env
 from utils.pluralkit import PluralKit
-from client import Client,MixedUser
 from discord.ext.tasks import loop
 from utils.db import MongoDatabase
 from asyncio import sleep,run
@@ -32,10 +32,11 @@ with open('.git/refs/heads/master') as git:
 	else: lu = float(last_update[1])
 
 class client_cls(Client):
-	def __init__(self,db:MongoDatabase,extensions:dict[str,bool]) -> None:
+	def __init__(self,db:MongoDatabase,extensions:dict[str,bool],env:Env) -> None:
 		super().__init__('i lika, do, da cha cha',None,intents=Intents.all(),max_messages=100000)
 		self.db = db
 		self.flags = {}
+		self.env = env
 		self.au:dict = None
 		if 'clear' in argv: return
 		self.log = log(self.db,MODE == 'dev')
@@ -262,13 +263,13 @@ async def main():
 		with open('dev') as dev:
 			dev = loads(dev.read())
 			extensions = dev['extensions']
-	client = client_cls(db,extensions)
+	client = client_cls(db,extensions,doc['env'])
 	try:
 		match MODE:
-			case '/reg/nal': await client.start(doc['env']['token'])
-			case 'tet': await client.start(doc['env']['tet_token'])
-			case 'dev': await client.start(doc['env']['dev_token'])
-			case 'beta': await client.start(doc['env']['beta_token'])
+			case '/reg/nal': await client.start(client.env.token)
+			case 'tet': await client.start(client.env.tet_token)
+			case 'dev': await client.start(client.env.dev_token)
+			case 'beta': await client.start(client.env.beta_token)
 	except Exception as e:
 		lifetime,session = await db.status_log('lifetime').stats.read(),db.session_stats
 		for i in ['db_reads','db_writes','messages_seen','commands_used']: lifetime[i] += session[i]

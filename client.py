@@ -10,6 +10,21 @@ from utils.log import log
 i had to make this it's own file or it would initialize the client twice (once on startup, again on first extension load)
 it's dumb and stupid and dumb and dumb and stupid but it fixes the bug and i don't care
 """
+class Env:
+	def __init__(self,env_dict:dict) -> None:
+		self.token:str = None
+		self.dev_token:str = None
+		self.beta_token:str = None
+		self.tet_token:str = None
+		self.mongo_pub:str = None
+		self.mongo_prv:str = None
+		self.config:dict = None
+		self.activities:dict = None
+		self.help:dict = None
+		self.statcord_key:str = None
+		self.saucenao_key:str = None
+		for k,v in env_dict.items():
+			setattr(self,k,v)
 
 class Client(Bot):
 	def __init__(self,*args,**kwargs) -> None:
@@ -17,6 +32,7 @@ class Client(Bot):
 		self.db:MongoDatabase
 		self.flags:dict
 		self.au:dict|None
+		self.env:Env
 		self.log:log
 		self.pk:PluralKit
 		self.loaded_extensions:list
