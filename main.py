@@ -260,7 +260,7 @@ async def main():
 	doc = await db.inf('/reg/nal').read()
 	extensions = doc['extensions']
 
-	if MODE == 'dev':
+	if MODE in ['dev','beta']:
 		with open('dev') as dev:
 			dev = loads(dev.read())
 			extensions = dev['extensions']
