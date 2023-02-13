@@ -17,7 +17,7 @@ class utils:
 		logs = doc.get('logs')[limit*-1:]
 		mode = logs[-1][1]
 		embed = Embed()
-		embed.set_author(name=author.display_name,icon_url=author.display_avatar.url,url=author._user.jump_url)
+		embed.set_author(name=f'{author.display_name}#{author.discriminator}',icon_url=author.display_avatar.url,url=author._user.jump_url)
 		footer = [('message',f'id: {doc.get("_id")}'),('author',f'id: {author.id}')]
 		match mode:
 			case 'original':
