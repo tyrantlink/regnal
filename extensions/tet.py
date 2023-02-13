@@ -1,4 +1,4 @@
-from discord import slash_command,Role,ApplicationContext,Embed
+from discord import slash_command,ApplicationContext,Embed
 from discord.ext.commands import Cog
 from client import Client
 
