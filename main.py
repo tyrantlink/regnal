@@ -53,6 +53,7 @@ class client_cls(Client):
 			if enabled:
 				self.load_extension(f'extensions.{extension}')
 				self.loaded_extensions.append(extension)
+		if MODE == 'tet': self.load_extension(f'extensions.tet')
 		self.generate_line_count(extensions)
 
 	def generate_line_count(self,extensions:dict[str,bool]):
