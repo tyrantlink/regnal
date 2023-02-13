@@ -55,7 +55,7 @@ class guild_data:
 			except InvalidArgument: return False
 			file.write(req.audio_content)
 			file.seek(0)
-			if (length:=len(AudioSegment.from_file(file,format='ogg'))/1000) > self.config.get('max_message_length',59):
+			if len(AudioSegment.from_file(file,format='ogg'))/1000 > self.config.get('max_message_length',59):
 				rm(filename)
 				self.last_user = _last_member
 				return None
