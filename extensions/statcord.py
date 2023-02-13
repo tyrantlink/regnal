@@ -6,10 +6,7 @@ from client import Client
 
 class statcord_listeners(Cog):
 	def __init__(self,client:Client) -> None:
-		self.client = client
-		self.key = self.client.env.statcord_key
-		self.api = Statcord(self.client,self.key)
-		self.api.start_loop()
+		self.api = Statcord(client,self.client.env.statcord_key).start_loop()
 	
 	@Cog.listener()
 	async def on_application_command(self,ctx:ApplicationContext) -> None:
