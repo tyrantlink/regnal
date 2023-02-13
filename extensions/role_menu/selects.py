@@ -14,7 +14,7 @@ class role_menu_select(Select):
 	async def callback(self,interaction:Interaction) -> None:
 		if self.preview: return
 		current_roles = [role.id for role in interaction.user.roles]
-		option_data = await self.client.db.role_menu.read(interaction.message.id,['options'])
+		option_data = await self.client.db.role_menu(interaction.message.id).options.read()
 		possible_options = [option_data[i]['role'] for i in option_data]
 		added_roles,removed_roles = [],[]
 		for role in possible_options:

@@ -21,7 +21,7 @@ class config_commands(Cog):
 			client=self.client,
 			user=ctx.author,
 			guild=ctx.guild,
-			dev_bypass=await self.client.db.inf.read('/reg/nal',['config','bypass_permissions']),
+			dev_bypass=await self.client.db.inf('/reg/nal').config.bypass_permissions.read(),
 			embed_color=embed_color)
 		if len(view.options) == 1:
 			match view.options[0].label:

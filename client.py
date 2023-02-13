@@ -2,8 +2,8 @@ from discord import ApplicationContext,Interaction,ApplicationCommandInvokeError
 from utils.pluralkit import PluralKit,Member as PKMember
 from discord.ui import View,Item,Modal,InputText
 from discord.ext.commands import Bot
+from utils.db import MongoDatabase
 from functools import partial
-from utils.data import db
 from utils.log import log
 
 """
@@ -14,10 +14,9 @@ it's dumb and stupid and dumb and dumb and stupid but it fixes the bug and i don
 class Client(Bot):
 	def __init__(self,*args,**kwargs) -> None:
 		super().__init__(*args,**kwargs)
-		self.db:db
+		self.db:MongoDatabase
 		self.flags:dict
 		self.au:dict|None
-		self.env:dict
 		self.log:log
 		self.pk:PluralKit
 		self.loaded_extensions:list

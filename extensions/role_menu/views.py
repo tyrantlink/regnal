@@ -1,4 +1,4 @@
-from discord.ui import View,Button,button,InputText,Item,role_select
+from discord.ui import View,Button,button,InputText,Item
 from discord import Interaction,Embed,SelectOption
 from .selects import role_menu_select
 from .shared import role_inputs
@@ -43,8 +43,6 @@ class role_menu_view(View):
 		self.clear_items()
 		self.add_item(self.button_back)
 		await interaction.response.edit_message(embed=self.embed,view=self)
-
-	@role_select()
 
 	async def base_back(self,button:Button,interaction:Interaction):
 		self.embed.title = 'create a role menu'
@@ -120,9 +118,9 @@ class role_menu_view(View):
 			self.previewed = True
 		else:
 			msg = await interaction.channel.send(view=role_menu_published_view(self.client,[SelectOption(value=r,label=l,description=d,emoji=e) for r,l,d,e in [list(i.values()) for i in self.data['options'].values()]],self.data['placeholder']))
-			await self.client.db.role_menu.new(msg.id)
-			await self.client.db.role_menu.write(msg.id,['placeholder'],self.data['placeholder'])
-			await self.client.db.role_menu.write(msg.id,['options'],self.data['options'])
+			await self.client.db.role_menu(0).new(msg.id)
+			await self.client.db.role_menu(msg.id).placeholder.write(self.data['placeholder'])
+			await self.client.db.role_menu(msg.id).options.write(self.data['options'])
 			if self.edit:
 				await (await interaction.channel.fetch_message(self.edit)).delete()
 				await self.client.db.role_menu.delete(self.edit)

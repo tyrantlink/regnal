@@ -19,7 +19,7 @@ class dev_commands(Cog):
 				title = 'report an issue'
 				response = 'thank you for reporting this issue'
 			case _: raise
-		channel = await self.client.db.inf.read('/reg/nal',['config','support'])
+		channel = await self.client.db.inf('/reg/nal').config.support.read()
 		channel:ForumChannel = self.client.get_channel(channel) or await self.client.fetch_channel(channel)
 		modal = CustomModal(None,title,[
 			InputText(label='title',placeholder=f'title of {mode}'),

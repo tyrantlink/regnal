@@ -37,8 +37,8 @@ class guild_data:
 		return filename
 
 	async def get_user_data(self,member:Member) -> tuple[bool,str,bool,VoiceSelectionParams,AudioConfig]:
-		u_config = await self.client.db.users.read(member.id,['config','tts'])
-		g_config = await self.client.db.guilds.read(member.guild.id,['config','tts'])
+		u_config = await self.client.db.user(member.id).config.tts.read()
+		g_config = await self.client.db.guild(member.guild.id).config.tts.read()
 		voice    = u_config.get('voice',None) or g_config.get('voice','en-US-Neural2-H')
 		return (
 			u_config.get('transcription',True), # transcribe messages
@@ -73,7 +73,7 @@ class guild_data:
 				self.last_user = member
 			for i in range(5):
 				filename = await self.generate_audio(message,voice,a_config,_last_member)
-				await self.client.db.guilds.inc(member.guild.id,['data','tts','usage'],len(message))
+				await self.client.db.guild(member.guild.id).data.tts.usage.inc(len(message))
 				if filename is False: return
 				if filename is not None: break
 			else:
@@ -117,11 +117,11 @@ class tts_cog(Cog):
 			message.content.startswith('-') or
 			message.content == '' or
 			message.author.bot): return
-		match await self.client.db.users.read(message.author.id,['config','tts','mode']):
+		match await self.client.db.user(message.author.id).config.tts.mode.read():
 			case 'every message': pass
 			case 'only when muted' if message.author.voice.self_mute or message.author.voice.mute: pass
 			case 'never'|_: return
-		guild_config = await self.client.db.guilds.read(message.guild.id,['config','tts'])
+		guild_config = await self.client.db.guild(message.guild.id).config.tts.read()
 		if message.channel.id not in [message.author.voice.channel.id,guild_config.get('channel')]: return
 		if message.guild.id not in self.guilds.keys():
 			if not message.author.voice or not guild_config.get('auto_join',False): return
@@ -129,7 +129,7 @@ class tts_cog(Cog):
 				message.guild.id,
 				self.client,guild_config,
 				message.guild.voice_client or await message.author.voice.channel.connect(),
-				self.tts,await self.client.db.inf.read('/reg/nal',['transcription']))})
+				self.tts,await self.client.db.inf('/reg/nal').transcription.read())})
 		if len(processed:=self.process_message(message.clean_content)+(', along with an attachment' if message.attachments else '')) <= 800:
 			if max([len(w) for w in processed.split(' ')]) > 50: return
 			self.guilds[message.guild.id].queue.put_nowait((message.author,processed))
@@ -159,9 +159,9 @@ class tts_cog(Cog):
 				return
 		self.guilds.update({ctx.guild.id:guild_data(
 				ctx.guild.id,
-				self.client,await self.client.db.guilds.read(ctx.guild.id,['config','tts']),
+				self.client,await self.client.db.guild(ctx.guild.id).config.tts.read(),
 				ctx.guild.voice_client or await ctx.author.voice.channel.connect(),
-				self.tts,await self.client.db.inf.read('/reg/nal',['transcription']))})
+				self.tts,await self.client.db.inf('/reg/nal').transcription.read())})
 		await ctx.response.send_message(embed=Embed(
 			title='joined!',
 			description=f'joined {ctx.author.voice.channel.mention}\nby default, i\'ll only read your messages if you\'re muted\nyou can change this with {[f"</{cmd.qualified_name}:{cmd.qualified_id}>" for cmd in self.client.walk_application_commands() if cmd.qualified_name == "config"][0]}\nprepend messages with "-" and i won\'t read them, regardless of config',

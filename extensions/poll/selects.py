@@ -15,13 +15,13 @@ class poll_published_select(Select):
 			custom_id='test2')
 
 	async def callback(self,interaction:Interaction) -> None:
-		data:dict = await self.client.db.polls.read(interaction.message.id)
+		data:dict = await self.client.db.poll(interaction.message.id).read()
 		if str(interaction.user.id) in data['voters'].keys():
-			await self.client.db.polls.dec(interaction.message.id,['options',data['voters'][str(interaction.user.id)],'votes'])
+			await self.client.db.poll(interaction.message.id).options.dec(1,[data['voters'][str(interaction.user.id)],'votes'])
 			data['options'][data['voters'][str(interaction.user.id)]]['votes'] -= 1
-		await self.client.db.polls.inc(interaction.message.id,['options',self.values[0],'votes'])
+		await self.client.db.poll(interaction.message.id).options.inc(1,[self.values[0],'votes'])
 		data['options'][self.values[0]]['votes'] += 1
-		await self.client.db.polls.write(interaction.message.id,['voters',str(interaction.user.id)],self.values[0])
+		await self.client.db.poll(interaction.message.id).voters.write(self.values[0],[str(interaction.user.id)])
 		options = data['options']
 		embed = Embed(title=data['embed']['title'],description=data['embed']['description'],color=data['embed']['color'])
 		for k,v in options.items(): embed.add_field(name=f'{v["votes"]} | {k}',value=v['description'],inline=False)

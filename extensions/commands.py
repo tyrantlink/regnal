@@ -23,7 +23,7 @@ class commands_commands(Cog):
 			discriminator: {user.discriminator}""",
 			color=await self.client.embed_color(ctx))
 		embed.set_thumbnail(url=user.display_avatar.with_size(512).with_format('png').url)
-		user_doc = await self.client.db.users.read(user.id,[])
+		user_doc = await self.client.db.user(user.id).read()
 		embed.add_field(
 			name='information:',
 			value=f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
@@ -60,14 +60,14 @@ class commands_commands(Cog):
 			member count: {ctx.guild.member_count}
 			channels: {len(ctx.guild.channels)}
 			roles: {len(ctx.guild.roles)}
-			tts usage: {await self.client.db.guilds.read(ctx.guild.id,['data','tts','usage'])}""")
+			tts usage: {await self.client.db.guild(ctx.guild.id).data.tts.usage.read()}""")
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
 		name='get_data',
 		description='get all data that /reg/nal has on you')
 	async def slash_get_data(self,ctx:ApplicationContext) -> None:
-		data = dumps(await self.client.db.users.read(ctx.author.id),indent=2)
+		data = dumps(await self.client.db.user(ctx.author.id).read(),indent=2)
 		if len(data)+8 > 2000: await ctx.response.send_message(file=File(StringIO(data),f'user{ctx.author.id}.json'),ephemeral=True)
 		else: await ctx.response.send_message(f'```\n{data}\n```',ephemeral=True)
 
@@ -85,11 +85,11 @@ class commands_commands(Cog):
 		guild_only=True)
 	async def slash_leaderboard_messages(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['data','leaderboards','messages'])).items(),key=lambda item: item[1],reverse=True)}.items()
+		res = {key: value for key, value in sorted((await self.client.db.guild(ctx.guild.id).data.leaderboards.messages.read()).items(),key=lambda item: item[1],reverse=True)}.items()
 		output,index,nl = [f'total: {sum([int(v) for k,v in res])}\n'],1,'\n'
 		for id,count in res:
 			line = f'{index}{("th" if 4<=index%100<=20 else {1:"st",2:"nd",3:"rd"}.get(index%10, "th"))} - '
-			line += f'{await self.client.db.users.read(int(id) if id.isnumeric() else id,["username"])}: {count}'
+			line += f'{await self.client.db.user(int(id) if id.isnumeric() else id,).username.read()}: {count}'
 			index += 1
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
@@ -107,11 +107,11 @@ class commands_commands(Cog):
 		guild_only=True)
 	async def slash_leaderboard_sticks(self,ctx:ApplicationContext) -> None:
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		res = {key: value for key, value in sorted((await self.client.db.guilds.read(ctx.guild.id,['data','leaderboards','sticks'])).items(),key=lambda item: item[1],reverse=True)}.items()
+		res = {key: value for key, value in sorted((await self.client.db.guild(ctx.guild.id).data.leaderboards.sticks.read()).items(),key=lambda item: item[1],reverse=True)}.items()
 		output,index,nl = [f'total: {sum([int(v) for k,v in res])}\n'],1,'\n'
 		for id,count in res:
 			line = f'{index}{("th" if 4<=index%100<=20 else {1:"st",2:"nd",3:"rd"}.get(index%10, "th"))} - '
-			line += f'{await self.client.db.users.read(int(id) if id.isnumeric() else id,["username"])}: {count}'
+			line += f'{await self.client.db.user(int(id) if id.isnumeric() else id).username.read()}: {count}'
 			index += 1
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
@@ -127,7 +127,7 @@ class commands_commands(Cog):
 		name='command_stats',
 		description='command usage stats')
 	async def slash_command_stats(self,ctx:ApplicationContext) -> None:
-		stats = (await self.client.db.inf.read('/reg/nal',['command_usage']))
+		stats = (await self.client.db.inf('/reg/nal').command_usage.read())
 		usage = {f'</{cmd.qualified_name}:{cmd.qualified_id}>' if isinstance(cmd,SlashCommand) else cmd.qualified_name:count for cmd in self.client.walk_application_commands() if (count:=stats.get(cmd.qualified_name,None)) is not None}
 		usage = {key: value for key, value in sorted(usage.items(),key=lambda item: item[1],reverse=True)}
 		await ctx.response.send_message(embed=Embed(

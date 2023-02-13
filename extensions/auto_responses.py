@@ -31,7 +31,7 @@ class auto_response_listeners(Cog):
 
 	@Cog.listener()
 	async def on_connect(self) -> None:
-		self.client.au = await self.client.db.inf.read('/reg/nal',['auto_responses'])
+		self.client.au = await self.client.db.inf('/reg/nal').auto_responses.read()
 		self.base_responses = {
 			'contains':self.load_au(self.client.au.get('contains',{})),
 			'exact':self.load_au(self.client.au.get('exact',{})),
@@ -63,9 +63,9 @@ class auto_response_listeners(Cog):
 		create_task(self.timeout(message.id))
 
 		if message.guild:
-			try: guild = await self.client.db.guilds.read(message.guild.id)
-			except: guild = await self.client.db.guilds.read(0)
-		else: guild = await self.client.db.guilds.read(0)
+			try: guild = await self.client.db.guild(message.guild.id).read()
+			except: guild = await self.client.db.guild(0).read()
+		else: guild = await self.client.db.guild(0).read()
 		if guild is None: return
 
 		if guild.get('config',{}).get('general',{}).get('pluralkit',False) and user is None:
@@ -80,7 +80,7 @@ class auto_response_listeners(Cog):
 		try:
 			if (
 				user.bot or
-				await self.client.db.users.read(user.id,['config','general','ignored'])):
+				await self.client.db.user(user.id).config.general.ignored.read()):
 					return
 		except: return
 
@@ -95,7 +95,7 @@ class auto_response_listeners(Cog):
 				self.guild_responses.pop(guild_id,None)
 		if self.base_responses is None: await self.on_connect()
 		if self.guild_responses.get(message.guild.id,None) is None:
-			guild_au = await self.client.db.guilds.read(message.guild.id,['data','auto_responses','custom'])
+			guild_au = await self.client.db.guild(message.guild.id).data.auto_responses.custom.read()
 			self.guild_responses[message.guild.id] = {
 				'contains':self.load_au(guild_au.get('contains',{})),
 				'exact':self.load_au(guild_au.get('exact',{})),
@@ -176,12 +176,12 @@ class auto_response_listeners(Cog):
 				await sleep(delay)
 			await message.channel.send(followup)
 
-		self.cooldowns['au'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','auto_responses','cooldown_per_user']) else message.channel.id:int(time())})
+		self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
 
 		if responses == self.base_responses:
-			user_data = await self.client.db.users.read(user.id)
+			user_data = await self.client.db.user(user.id).read()
 			if raw_au not in user_data.get('data',{}).get('au').get(mode,[raw_au]) and not user_data.get('config',{}).get('general',{}).get('no_track',True):
-				await self.client.db.users.append(user.id,['data','au',mode],raw_au)
+				await self.client.db.user(user.id).data.au.append(raw_au,[mode])
 
 		await self.client.log.listener(message,category=mode,trigger=raw_au)
 		return True
@@ -218,7 +218,7 @@ class auto_response_listeners(Cog):
 		except Forbidden: return False
 		except HTTPException: await message.channel.send(f'hi{response.split(".")[0][:1936]} (character limit), {splitter} {name}')
 
-		self.cooldowns['db'].update({user.id if await self.client.db.guilds.read(message.guild.id,['config','dad_bot','cooldown_per_user']) else message.channel.id:int(time())})
+		self.cooldowns['db'].update({user.id if await self.client.db.guild(message.guild.id).config.dad_bot.cooldown_per_user.read() else message.channel.id:int(time())})
 		await self.client.log.listener(message,splitter=splitter,name=name)
 
 

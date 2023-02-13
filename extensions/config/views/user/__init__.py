@@ -51,24 +51,25 @@ class user_config(EmptyView):
 		else: self.embed.description = category_data.get(self.selected,{}).get('description',None)
 
 	async def reload_config(self) -> None:
-		try: self.config = await self.client.db.users.read(self.user.id,['config'])
+		try: self.config = await self.client.db.user(self.user.id).config.read()
 		except TypeError: await self.create_pk_doc()
 		else:
 			if self.config is None: await self.create_pk_doc()
-		finally: self.config = await self.client.db.users.read(self.user.id,['config'])
+		finally: self.config = await self.client.db.user(self.user.id).config.read()
 		options = [SelectOption(label=k,description=v.get('description','').split('\n')[0][:100]) for k,v in config_info.get('user' if self.user.type == 'discord' else 'pk_user',{}).get(self.category,{}).items()]
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
 
 	async def write_config(self,value:bool|str,interaction:Interaction=None) -> None:
 		match self.selected:
-			case 'no_track' if self.category == 'general' and value:
-				await self.client.db.users.write(self.user.id,['messages'],None)
-				await self.client.db.users.write(self.user.id,['data','au'],{'contains':[],'exact':[],'exact_cs':[]})
-				for guild in self.discord_user.mutual_guilds:
-					await self.client.db.guilds.unset(guild.id,['data','leaderboards','messages',str(self.user.id)])
-					await self.client.db.guilds.unset(guild.id,['data','leaderboards','sticks',str(self.user.id)])
-				else: await self.client.db.users.write(self.user.id,['messages'],0)
+			case 'no_track' if self.category == 'general':
+				if value:
+					await self.client.db.user(self.user.id).messages.write(None)
+					await self.client.db.user(self.user.id).data.au.write({'contains':[],'exact':[],'exact_cs':[]})
+					for guild in self.discord_user.mutual_guilds:
+						await self.client.db.guild(guild.id).data.leaderboards.messages.unset([str(self.user.id)])
+						await self.client.db.guild(guild.id).data.leaderboards.sticks.unset([str(self.user.id)])
+				else: await self.client.db.user(self.user.id).messages.write(0)
 			case 'voice' if self.category == 'tts' and value is not None:
 				if (value:=value.strip()) not in valid_voices:
 					create_task(interaction.followup.send(embed=Embed(
@@ -82,10 +83,10 @@ class user_config(EmptyView):
 						description=f'please pick a number between 0.25 and 4.00',color=0xff6969),ephemeral=True))
 					return
 
-		await self.client.db.users.write(self.user.id,['config',self.category,self.selected],value)
+		await self.client.db.user(self.user.id).config.write(value,[self.category,self.selected])
 		await self.reload_config()
 		self.reload_embed()
-	
+
 	@button(
 		label='<',style=2,
 		custom_id='back_button',row=2)

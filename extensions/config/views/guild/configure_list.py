@@ -16,7 +16,7 @@ class configure_list_view(EmptyView):
 		await self.client.on_error(interaction,error)
 
 	async def reload(self,guild_id) -> None:
-		self.embed.description = f'currently {self.option_type[1]}ed:\n'+('\n'.join([f'<#{i}>' for i in await self.client.db.guilds.read(guild_id,['data',self.option_type[0],self.option_type[1]])]) or 'None')
+		self.embed.description = f'currently {self.option_type[1]}ed:\n'+('\n'.join([f'<#{i}>' for i in await self.client.db.guild(guild_id).data.read([self.option_type[0],self.option_type[1]])]) or 'None')
 
 	@channel_select(
 		custom_id='channel_select',row=0,
@@ -36,10 +36,10 @@ class configure_list_view(EmptyView):
 		label='add',style=3,row=1,
 		custom_id='add_button')
 	async def add_button(self,button:Button,interaction:Interaction) -> None:
-		current:list = await self.client.db.guilds.read(interaction.guild.id,['data',self.option_type[0],self.option_type[1]])
+		current:list = await self.client.db.guild(interaction.guild.id).data.read([self.option_type[0],self.option_type[1]])
 		for i in self.channels_selected:
 			if i.id not in current: current.append(i.id)
-		await self.client.db.guilds.write(interaction.guild.id,['data',self.option_type[0],self.option_type[1]],current)
+		await self.client.db.guild(interaction.guild.id).data.write(current,[self.option_type[0],self.option_type[1]])
 		await self.reload(interaction.guild.id)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
@@ -47,9 +47,9 @@ class configure_list_view(EmptyView):
 		label='remove',style=4,row=1,
 		custom_id='remove_button')
 	async def remove_button(self,button:Button,interaction:Interaction) -> None:
-		current:list = await self.client.db.guilds.read(interaction.guild.id,['data',self.option_type[0],self.option_type[1]])
+		current:list = await self.client.db.guild(interaction.guild.id).data.read([self.option_type[0],self.option_type[1]])
 		for i in self.channels_selected:
 			if i.id in current: current.remove(i.id)
-		await self.client.db.guilds.write(interaction.guild.id,['data',self.option_type[0],self.option_type[1]],current)
+		await self.client.db.guild(interaction.guild.id).data.write(current,[self.option_type[0],self.option_type[1]])
 		await self.reload(interaction.guild.id)
 		await interaction.response.edit_message(embed=self.embed,view=self)

@@ -65,5 +65,5 @@ class poll_view(View):
 		for i in self.options: embed.add_field(name=f'0 | {i[0]}',value=i[1],inline=False)
 		options = {i[0]:{'description':i[1],'votes':0} for i in self.options}
 		msg = await interaction.channel.send(embed=embed,view=poll_published_view(client=self.client,options=options))
-		await self.client.db.polls.new(msg.id,{'_id':msg.id,'options':options,'embed':{'title':embed.title,'description':embed.description,'color':embed.color.value},'voters':{}})
+		await self.client.db.poll(0).new(msg.id,{'_id':msg.id,'options':options,'embed':{'title':embed.title,'description':embed.description,'color':embed.color.value},'voters':{}})
 

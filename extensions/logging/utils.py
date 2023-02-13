@@ -8,7 +8,7 @@ class utils:
 		self.client = client
 
 	async def gen_embed(self,guild:Guild,message_id:int,limit:int=25,doc:dict=None) -> Embed:
-		if doc is None: doc:dict = await self.client.db.messages.read(message_id)
+		if doc is None: doc:dict = await self.client.db.message(message_id).read()
 		if doc is None: return False
 		try: channel = guild.get_channel_or_thread(doc.get('channel')) or await guild.fetch_channel(doc.get('channel'))
 		except (NotFound,Forbidden): raise ValueError(f'channel not found\nplease use </logging get:{[cmd.id for cmd in self.client.walk_application_commands() if cmd.qualified_name == "logging get"][0]}> with the message_id `{doc.get("_id")}` and the raw option set to `True`')

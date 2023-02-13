@@ -24,20 +24,20 @@ class qotd_commands(Cog):
 		await user.send(embed=Embed(title=title,description=description,color=0xff6969))
 
 	async def _send_qotd(self,guild:Guild) -> tuple[Message|None,Thread|None]:
-		doc = await self.client.db.guilds.read(guild.id,[])
+		doc = await self.client.db.guild(guild.id).read()
 		if doc is None: return
 		data:dict   = doc.get('data',{}).get('qotd',None)
 		config:dict = doc.get('config',{}).get('qotd',None)
 		if not config.get('enabled',False) or not config.get('channel',None): return None
 		if next:=data.get('nextup',[]):
 			question = next[0]
-			await self.client.db.guilds.pop(guild.id,['data','qotd','nextup'],1)
+			await self.client.db.guild(guild.id).data.qotd.nextup.pop(1)
 		else:
 			asked = data.get('asked',[])
 			pool = [q for q in questions+data.get('pool',[]) if q not in asked]
 			if pool == []:
 				pool = questions+data.get('pool',[])
-				await self.client.db.guilds.write(guild.id,['data','qotd','asked'],[])
+				await self.client.db.guild(guild.id).data.qotd.asked.write([])
 			question = choice(pool)
 
 		embed = Embed(
@@ -89,8 +89,8 @@ class qotd_commands(Cog):
 			case _:
 				await self._dm_error(guild.owner,'channel error!',f'the QOTD channel must be set to either a text channel or a forum channel,\nit is a currently set to a {channel.type} channel')
 				return
-		await self.client.db.guilds.write(guild.id,['data','qotd','last'],save)
-		await self.client.db.guilds.append(guild.id,['data','qotd','asked'],question)
+		await self.client.db.guild(guild.id).data.qotd.last.write(save)
+		await self.client.db.guild(guild.id).data.qotd.asked.append(question)
 		return thread
 
 	@qotd.command(
@@ -98,7 +98,7 @@ class qotd_commands(Cog):
 		description='ask a question immediately | once per day',
 		guild_only=True,default_member_permissions=Permissions(manage_guild=True))
 	async def slash_qotd_now(self,ctx:ApplicationContext) -> None:
-		if time()-(await self.client.db.guilds.read(ctx.guild.id,['data','qotd','last']))[0] < 86400:
+		if time()-(await self.client.db.guild(ctx.guild.id).data.qotd.last.read())[0] < 86400:
 			await ctx.response.send_message(embed=Embed(title='ERROR',description='it has not been 24 hours since the last question was asked!',color=0xff6969),
 				ephemeral=await self.client.hide(ctx))
 			return
@@ -123,14 +123,14 @@ class qotd_commands(Cog):
 		embed = Embed(title='successfully added a qotd question',color=await self.client.embed_color(ctx))
 		match type:
 			case 'add as next question':
-				await self.client.db.guilds.append(ctx.guild.id,['data','qotd','nextup'],question)
+				await self.client.db.guild(ctx.guild.id).data.qotd.nextup.append(question)
 				embed.add_field(name='added as next question, then discarded',value=question)
 			case 'add as next question, then add to pool':
-				await self.client.db.guilds.append(ctx.guild.id,['data','qotd','nextup'],question)
-				await self.client.db.guilds.append(ctx.guild.id,['data','qotd','pool'],question)
+				await self.client.db.guild(ctx.guild.id).data.qotd.nextup.append(question)
+				await self.client.db.guild(ctx.guild.id).data.qotd.pool.append(question)
 				embed.add_field(name='added as next question, then added to pool',value=question)
 			case 'add to question pool':
-				await self.client.db.guilds.append(ctx.guild.id,['data','qotd','pool'],question)
+				await self.client.db.guild(ctx.guild.id).data.qotd.pool.append(question)
 				embed.add_field(name='added to question pool',value=question)
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 

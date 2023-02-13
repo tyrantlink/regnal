@@ -52,7 +52,7 @@ class guild_config(EmptyView):
 		else: self.embed.description = category_data.get(self.selected,{}).get('description',None)
 
 	async def reload_config(self) -> None:
-		self.config = await self.client.db.guilds.read(self.guild.id,['config',self.category])
+		self.config = await self.client.db.guild(self.guild.id).config.read([self.category])
 		options = [SelectOption(label=k,description=v.get('description','').split('\n')[0][:100]) for k,v in config_info.get('guild',{}).get(self.category,{}).items()]
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
@@ -104,7 +104,7 @@ class guild_config(EmptyView):
 					create_task(interaction.followup.send(embed=Embed(
 						title='WARNING: i can\'t see into the following channels,\nthey will not be logged',
 						description='\n'.join(channels),color=0xffff69),ephemeral=True))
-		await self.client.db.guilds.write(self.guild.id,['config',self.category,self.selected],value)
+		await self.client.db.guild(self.guild.id).config.write(value,[self.category,self.selected])
 		await self.reload_config()
 		self.reload_embed()
 	
@@ -256,7 +256,7 @@ class guild_config(EmptyView):
 		embed = Embed(
 			title=f'configure {path} {mode}',
 			description=f'currently {mode}ed:\n'+(
-				'\n'.join([f'<#{i}>' for i in await self.client.db.guilds.read(self.guild.id,['data',path,mode])]) or 'None'),
+				'\n'.join([f'<#{i}>' for i in await self.client.db.guild(self.guild.id).data.read([path,mode])]) or 'None'),
 			color=self.embed.color)
 		await interaction.response.edit_message(embed=embed,view=configure_list_view((path,mode),self,self.client,embed))
 
@@ -267,6 +267,6 @@ class guild_config(EmptyView):
 		embed = Embed(
 			title=f'custom auto responses',
 			color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.client,embed,await self.client.db.guilds.read(self.guild.id,['data','auto_responses','custom'])))
+		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read()))
 
 		

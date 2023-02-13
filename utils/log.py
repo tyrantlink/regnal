@@ -1,13 +1,13 @@
 from discord import ApplicationContext,Message
 from traceback import format_exception
 from utils.tyrantlib import MakeshiftClass
+from utils.db import MongoDatabase
 from datetime import datetime
 from inspect import stack
-from utils.data import db
 from time import time
 
 class log:
-	def __init__(self,db:db,DEV_MODE:bool) -> None:
+	def __init__(self,db:MongoDatabase,DEV_MODE:bool) -> None:
 		self.db = db
 		self.DEV_MODE = DEV_MODE
 	
@@ -21,7 +21,7 @@ class log:
 			author = ctx.author.id if ctx.author else None
 		else: guild,channel,author = None,None,None
 		if do_print: self.print(message,type,kwargs.get('format_print',True))
-		log = {
+		await self.db.log(0).new('+1',{
 			'ts':time(),
 			'dt':datetime.now().strftime("%m/%d/%Y %H:%M:%S"),
 			'dev':self.DEV_MODE,
@@ -30,12 +30,11 @@ class log:
 			'guild':guild,
 			'channel':channel,
 			'author':author,
-			'data':kwargs}
-		await self.db.logs.new('+0',log)
+			'data':kwargs})
 
 	async def command(self,ctx:ApplicationContext,**kwargs) -> None:
-		await self.db.inf.inc('command_usage',['usage',ctx.command.qualified_name])
-		await self.db.stats.inc(2,['stats','commands_used'])
+		await self.db.inf('/reg/nal').inc(1,['command_usage',ctx.command.qualified_name])
+		self.db.session_stats['commands_used'] += 1
 		await self._submit('command',f'{ctx.command.qualified_name} was used by {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
 
 	async def listener(self,ctx:ApplicationContext|Message,**kwargs) -> None:

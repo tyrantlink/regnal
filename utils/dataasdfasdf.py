@@ -14,7 +14,6 @@ class env:
 		self.dev_token:str = None
 		self.beta_token:str = None
 		self.tet_token:str = None
-		self.shlink:str = None
 		self.mongo_pub:str = None
 		self.mongo_prv:str = None
 		self.config:dict = None
@@ -53,15 +52,13 @@ class DataCollection():
 		"""returns the value given at the specified path"""
 		res = await self.collection.find_one({'_id':id})
 		for key in path: res = res[key]
-		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True)})
-		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],2,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True),'$inc':self._form_path(['stats','db_writes'],2,True)})
 		return res
 
 	async def write(self,id:int|str,path:list=[],value:Any=None) -> bool:
 		"""write the given object to the given path"""
 		await self.collection.replace_one({'_id':id},merge_dicts((await self.collection.find_one({'_id':id})),self._form_path(path,value)))
-		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True)})
-		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],3,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True),'$inc':self._form_path(['stats','db_writes'],3,True)})
 		return True
 	
 	async def append(self,id:int|str,path:list=[],value:Any=None) -> bool:
@@ -117,8 +114,7 @@ class DataCollection():
 			except KeyError: res['_id'] = id
 		try: await self.collection.insert_one(res)
 		except DuplicateKeyError: return False
-		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True)})
-		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_writes'],3,True)})
+		await self.stats.update_one({'_id':2},{'$inc':self._form_path(['stats','db_reads'],1,True),'$inc':self._form_path(['stats','db_writes'],3,True)})
 		return True
 
 class db:

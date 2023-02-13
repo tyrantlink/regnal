@@ -22,10 +22,10 @@ class publish_view(EmptyView):
 		label='submit',style=3,
 		custom_id='submit_button',row=0)
 	async def submit_button(self,button:Button,interaction:Interaction) -> None:
-		channel = await self.client.db.inf.read('/reg/nal',['config','change_log'])
+		channel = await self.client.db.inf('/reg/nal').config.change_log.read()
 		channel = self.client.get_channel(channel) or await self.client.fetch_channel(channel)
 		await (await channel.send(embed=self.embed)).publish()
-		if 'hide' not in self.version: await self.client.db.inf.write('/reg/nal',['version'],self.version)
+		if 'hide' not in self.version: await self.client.db.inf('/reg/nal').version.write(self.version)
 		await interaction.response.edit_message(view=None,embed=Embed(title='successfully announced commit',color=self.embed.color))
 		self.stop()
 	
@@ -45,7 +45,7 @@ class commit_view(EmptyView):
 
 	async def start(self,**kwargs) -> None:
 		guild:Guild = kwargs.pop('guild')
-		self.donator_fields = {f'{role.name} tier':'\n'.join(m.mention for m in role.members) for role in [guild.get_role(i) for i in await self.client.db.inf.read('/reg/nal',['config','donation_roles'])] if role.members}
+		self.donator_fields = {f'{role.name} tier':'\n'.join(m.mention for m in role.members) for role in [guild.get_role(i) for i in await self.client.db.inf('/reg/nal').config.donation_roles.read()] if role.members}
 		self.donator_fields = dict(list(self.donator_fields.items())+[('please report bugs with /issue','[development server](<https://discord.gg/4mteVXBDW7>)')])
 		self.reload()
 		

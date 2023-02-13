@@ -17,7 +17,7 @@ class talking_stick_commands(Cog):
 	stick = SlashCommandGroup('stick','talking stick commands')
 	
 	async def check(self,ctx:ApplicationContext) -> bool:
-		if not await self.client.db.guilds.read(ctx.guild.id,['config','talking_stick','enabled']):
+		if not await self.client.db.guild(ctx.guild.id).config.talking_stick.enabled.read():
 			await ctx.response.send_message('the talking stick is not enabled on this server. enable it with /config',ephemeral=await self.client.hide(ctx))
 			return False
 		return True
@@ -40,8 +40,8 @@ class talking_stick_commands(Cog):
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
 		output,nl = [],'\n'
 
-		for id in await self.client.db.guilds.read(ctx.guild.id,['data','talking_stick','active']):
-			line = f'{await self.client.db.users.read(int(id),["username"])}'
+		for id in await self.client.db.guild(ctx.guild.id).data.talking_stick.active.read():
+			line = f'{await self.client.db.user(int(id)).username.read()}'
 			if len(f'{nl.join(output)}\n{line}') > 1980: break
 			output.append(line)
 
@@ -53,14 +53,15 @@ class talking_stick_commands(Cog):
 			ephemeral=await self.client.hide(ctx))
 
 	async def roll_talking_stick(self,guild:Guild) -> None:
-		role = guild.get_role(await self.client.db.guilds.read(guild.id,['config','talking_stick','role']))
-		active_members = await self.client.db.guilds.read(guild.id,['data','talking_stick','active'])
+		role = guild.get_role(await self.client.db.guild(guild.id).config.talking_stick.role.read())
+		active_members = await self.client.db.guild(guild.id).data.talking_stick.active.read()
+		old_stick = await self.client.db.guild(guild.id).data.talking_stick.current_stick.read()
 		if len(active_members) == 0: return
 		for attempt in range(15):
 			rand:Member = choice(active_members)
-			if not await self.client.db.users.read(rand,['config','general','talking_stick']): continue
-			old_stick = await self.client.db.guilds.read(guild.id,['data','talking_stick','current_stick'])
-			if old_stick == rand: continue # continue if repeat user
+			# continue if repeat user
+			if old_stick == rand: continue
+			if not await self.client.db.user(rand).config.general.talking_stick.read(): continue
 			try: member = await guild.fetch_member(rand)
 			except NotFound: continue
 			if member.bot: continue
@@ -69,11 +70,11 @@ class talking_stick_commands(Cog):
 
 		for old_member in role.members: await old_member.remove_roles(role)
 		await member.add_roles(role)
-		await self.client.db.guilds.write(guild.id,['data','talking_stick','current_stick'],rand)
-		await self.client.db.guilds.inc(guild.id,['data','leaderboards','sticks',str(rand)])
-		await self.client.db.guilds.write(guild.id,['data','talking_stick','active'],[])
+		await self.client.db.guild(guild.id).data.talking_stick.current_stick.write(rand)
+		await self.client.db.guild(guild.id).data.leaderboards.sticks.inc(1,[str(rand)])
+		await self.client.db.guild(guild.id).data.talking_stick.active.write([])
 		
-		await (guild.get_channel(await self.client.db.guilds.read(guild.id,['config','talking_stick','channel']))).send(
+		await (guild.get_channel(await self.client.db.guild(guild.id).config.talking_stick.channel.read())).send(
 			f'congrats {member.mention} you have the talking stick.',
 			embed=Embed(
 				title=f'chances: 1/{len(active_members)}',
@@ -86,7 +87,7 @@ class talking_stick_commands(Cog):
 	async def talking_stick_loop(self) -> None:
 		for guild in self.client.guilds:
 			try:
-				data = await self.client.db.guilds.read(guild.id,['config','talking_stick'])
+				data = await self.client.db.guild(guild.id).config.talking_stick.read()
 				if not data['enabled'] or not data['role'] or not data['channel']: continue
 				await self.roll_talking_stick(guild)
 			except Exception as error:

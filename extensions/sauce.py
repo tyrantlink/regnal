@@ -92,7 +92,7 @@ class sauce_commands(Cog):
 		return False
 
 	async def _api_key(self,guild:Guild) -> str:
-		return await self.client.db.guilds.read(guild.id,['data','sauce','key']) or self.client.env.saucenao_key	
+		return await self.client.db.guild(guild.id).data.sauce.key.read() or self.client.env.saucenao_key	
 
 	def _params(self,api_key:str,url:str) -> dict:
 		return {

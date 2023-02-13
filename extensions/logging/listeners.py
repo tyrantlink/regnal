@@ -24,11 +24,11 @@ class logging_listeners(Cog):
 		log:tuple[int,str,str]=None,
 		attachments:list[str]=None
 	) -> None:
-		if await self.client.db.messages.read(_id) is not None:
-			await self.client.db.messages.append(_id,['logs'],log)
-			if deleted_by is not None: await self.client.db.messages.write(_id,['deleted_by'],deleted_by)
+		if await self.client.db.message(_id).read() is not None:
+			await self.client.db.message(_id).logs.append(list(log))
+			if deleted_by is not None: await self.client.db.message(_id).deleted_by.write(deleted_by)
 			return
-		await self.client.db.messages.new(_id,{
+		await self.client.db.message(0).new(_id,{
 			'_id':_id,
 			'author':author,
 			'guild':guild,
@@ -42,11 +42,11 @@ class logging_listeners(Cog):
 	async def send_embed(self,message_id:int,channel:TextChannel,limit:int=25) -> None:
 		embed = await self.utils.gen_embed(channel.guild,message_id,limit)
 		log_message = await channel.send(embed=embed)
-		await self.client.db.messages.append(message_id,['log_messages'],log_message.id)
+		await self.client.db.message(message_id).log_messages.append(log_message.id)
 
 	async def log_check(self,member:Member,mode:str) -> tuple[int,TextChannel|None]:
 		if member.guild is None: return (0,None)
-		config:dict = await self.client.db.guilds.read(member.guild.id,['config','logging'])
+		config:dict = await self.client.db.guild(member.guild.id).config.logging.read()
 		if not config.get('enabled') or not config.get(mode,False): return (0,None)
 		if (config.get('log_bots') and member.bot): return (0,None)
 		if (channel:=config.get('channel',None)) is not None:
@@ -81,7 +81,7 @@ class logging_listeners(Cog):
 		if before.content == after.content: return
 		check,channel = await self.log_check(before,'edited_messages')
 		if not check: return
-		if await self.client.db.messages.read(before.id) is None:
+		if await self.client.db.message(before.id).read() is None:
 			await self.log(before.id,before.author.id,before.guild.id,before.channel.id,
 				before.reference.message_id if before.reference else None,None,
 				[int(before.created_at.timestamp()),'original',before.content],
@@ -97,7 +97,7 @@ class logging_listeners(Cog):
 	async def on_message_delete(self,message:Message) -> None:
 		check,channel = await self.log_check(message,'deleted_messages')
 		if not check: return
-		if await self.client.db.guilds.read(message.guild.id,['config','general','pluralkit']):
+		if await self.client.db.guild(message.guild.id).config.general.pluralkit.read():
 			if await self.client.pk.get_message(message.id) is not None: check = 1
 		await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
 			message.reference.message_id if message.reference else None,(await self.find_deleter(message)).id,

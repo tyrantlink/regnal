@@ -17,7 +17,7 @@ class role_menu_commands(Cog):
 
 	async def open_role_menu(self,ctx:ApplicationContext,message_id:str) -> None:
 		if message_id:
-			current_data = await self.client.db.role_menu.read(int(message_id))
+			current_data = await self.client.db.role_menu(int(message_id)).read()
 			if not current_data:
 				await ctx.respond(f'`[{message_id}]` not found in role menu database',ephemeral=True)
 				return

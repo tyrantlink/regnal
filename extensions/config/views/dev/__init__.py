@@ -47,13 +47,13 @@ class dev_menu(EmptyView):
 		else: self.embed.description = config_data.get(self.selected,{}).get('description',None)
 
 	async def reload_config(self) -> None:
-		self.config = await self.client.db.inf.read('/reg/nal',['config'])
+		self.config = await self.client.db.inf('/reg/nal').config.read()
 		options = [SelectOption(label=k,description=v.get('description','').split('\n')[0][:100]) for k,v in config_info.get('dev',{}).items()]
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
 
 	async def write_config(self,value) -> None:
-		await self.client.db.inf.write('/reg/nal',['config',self.selected],value)
+		await self.client.db.inf('/reg/nal').config.write(value,[self.selected])
 		await self.reload_config()
 		self.reload_embed()
 

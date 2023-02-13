@@ -15,7 +15,7 @@ last_update
 /music
 /content/to_mongo
 test.py
-/tmp/nsfw_filter/*
+/tmp/*
 /nsfw_model
 change-log.yml
 google_auth.json

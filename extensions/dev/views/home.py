@@ -35,7 +35,7 @@ class home_view(EmptyView):
 			])
 	async def option_select(self,select:Select,interaction:Interaction) -> None:
 		self.reboot_confirmation = False
-		db = await self.client.db.inf.read('/reg/nal',[])
+		db = await self.client.db.inf('/reg/nal').read()
 		match select.values[0]:
 			case 'commit': view = commit_view(self,self.client,interaction.user,db.get('version'),self.embed.color)
 			case 'logs':   view = None
