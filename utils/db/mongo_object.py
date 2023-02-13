@@ -2,6 +2,9 @@ from pymongo.errors import DuplicateKeyError
 from pymongo.collection import Collection
 from typing import Any
 
+class ReadPathError(Exception):
+	"""raised when reading an invalid path"""
+
 class MongoObject:
 	def __init__(self,db,collection:Collection,_id:str|int,path:list[str]) -> None:
 		self.__db   = db
@@ -12,8 +15,12 @@ class MongoObject:
 	async def read(self,a_path:list[str]=None) -> dict|Any:
 		"""read value"""
 		res:dict = await self.__col.find_one({'_id':self.__id})
+		path = self.__path+(a_path if a_path is not None else [])
 		self.__db.session_stats['db_reads'] += 1
-		for key in self.__path+(a_path if a_path is not None else []): res = res.get(key,{})
+		if path:
+			for obj in path[:-1]: res = res.get(obj,{})
+			try: res = res.get(path[-1])
+			except AttributeError: raise ReadPathError(f'path {path} is invalid')
 		return res
 
 	async def write(self,value:Any=None,a_path:list[str]=None) -> bool:
