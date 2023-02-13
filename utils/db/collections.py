@@ -424,15 +424,15 @@ class User(MongoObject):
 		class ___tts(MongoObject):
 			def __init__(self,db,col,_id,path) -> None:
 				super().__init__(db,col,_id,path)
-				self.mode = MongoObject(db,col,_id,['config','general','mode'])
+				self.mode = MongoObject(db,col,_id,['config','tts','mode'])
 				"""str"""
-				self.name = MongoObject(db,col,_id,['config','general','name'])
+				self.name = MongoObject(db,col,_id,['config','tts','name'])
 				"""str"""
-				self.voice = MongoObject(db,col,_id,['config','general','voice'])
+				self.voice = MongoObject(db,col,_id,['config','tts','voice'])
 				"""str"""
-				self.transcription = MongoObject(db,col,_id,['config','general','transcription'])
+				self.transcription = MongoObject(db,col,_id,['config','tts','transcription'])
 				"""bool"""
-				self.speaking_rate = MongoObject(db,col,_id,['config','general','speaking_rate'])
+				self.speaking_rate = MongoObject(db,col,_id,['config','tts','speaking_rate'])
 				"""float"""
 
 	class ___data(MongoObject):
