@@ -263,7 +263,7 @@ async def main():
 		with open('dev') as dev:
 			dev = loads(dev.read())
 			extensions = dev['extensions']
-	client = client_cls(db,extensions,doc['env'])
+	client = client_cls(db,extensions,Env(doc['env']))
 	try:
 		match MODE:
 			case '/reg/nal': await client.start(client.env.token)
