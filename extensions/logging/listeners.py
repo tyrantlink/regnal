@@ -126,7 +126,7 @@ class logging_listeners(Cog):
 	async def on_member_join(self,member:Member) -> None:
 		check,channel = await self.log_check(member,'member_join')
 		if check <= 1: return
-		embed = Embed(title=f'{member.name} joined the server',color=0xff6969)
+		embed = Embed(title=f'{member.name} joined the server',color=0x69ff69)
 		embed.add_field(name='id',value=member.id,inline=False)
 		embed.add_field(name='username',value=member.name,inline=False)
 		embed.add_field(name='discriminator',value=member.discriminator,inline=False)
