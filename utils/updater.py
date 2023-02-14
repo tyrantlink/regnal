@@ -18,11 +18,7 @@ class UpdateHandler:
 
 	async def pull(self) -> None:
 		"""pull commit from github"""
-		for process in [
-			create_subprocess_shell('git reset --hard',stdout=-3,stderr=-3),
-			create_subprocess_shell('git pull')]:
-			p = await process
-			await p.communicate()
+		await (await create_subprocess_shell('git reset --hard && git pull')).communicate()
 		self.client.git_hash()
 
 	def modified_handler(self) -> None:
