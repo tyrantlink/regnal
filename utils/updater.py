@@ -32,7 +32,7 @@ class UpdateHandler:
 				case _: pass
 
 	def act(self) -> None:
-		if 'reboot' in self.actions: _exit(0)
+		if 'reboot' in self.actions or 'extensions._shared_vars' in self.actions: _exit(0)
 		for extension in self.actions:
 			if extension == 'extensions.tet' and not self.client.MODE == 'tet': continue
 			self.client.reload_extension(extension)
