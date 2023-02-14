@@ -32,6 +32,7 @@ class client_cls(Client):
 		self.env = env
 		self.au:dict = None
 		self.MODE = MODE
+		self.git_hash()
 		if 'clear' in argv: return
 		self.log = log(self.db,MODE == 'dev')
 		self.pk = PluralKit()
@@ -41,7 +42,6 @@ class client_cls(Client):
 		if MODE == 'dev':
 			self.flags.update({'DEV':None})
 			self.log.debug('LAUNCHED IN DEV MODE',to_db=False)
-		self.git_hash()
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
 		for extension,enabled in extensions.items():
 			if enabled:
@@ -190,7 +190,7 @@ class base_commands(Cog):
 	@loop(minutes=5)
 	async def uptime_loop(self) -> None:
 		await sleep(5)
-		nhours = int((time()-self.lu)/60/60)
+		nhours = int((time()-self.client.lu)/60/60)
 		try: await self.client.change_presence(activity=Activity(type=ActivityType.listening,name=f'last update: {nhours} hours ago' if nhours else 'last update: just now'))
 		except AttributeError: pass
 
