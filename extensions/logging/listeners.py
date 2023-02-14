@@ -44,15 +44,17 @@ class logging_listeners(Cog):
 		log_message = await channel.send(embed=embed)
 		await self.client.db.message(message_id).log_messages.append(log_message.id)
 
-	async def log_check(self,member:Member,mode:str) -> tuple[int,TextChannel|None]:
-		if member.guild is None: return (0,None)
-		config:dict = await self.client.db.guild(member.guild.id).config.logging.read()
+	async def log_check(self,message:Message|Member,mode:str) -> tuple[int,TextChannel|None]:
+		if message.guild is None: return (0,None)
+		config:dict = await self.client.db.guild(message.guild.id).config.logging.read()
 		if not config.get('enabled') or not config.get(mode,False): return (0,None)
-		if (config.get('log_bots') and member.bot): return (0,None)
+		if (config.get('log_bots') and message.bot): return (0,None)
 		if (channel:=config.get('channel',None)) is not None:
-			try: channel = member.guild.get_channel(channel) or await member.guild.fetch_channel(channel)
+			try: channel = message.guild.get_channel(channel) or await message.guild.fetch_channel(channel)
 			except (NotFound,Forbidden): channel = None
-		if channel is None or member.id == self.client.user.id: return (1,None)
+		if channel is None: return (1,None)
+		if isinstance(message,Message):
+			if message.author.id == self.client.user.id and channel.id == message.channel.id: return (1,None)
 		return (2,channel)
 
 	async def find_deleter(self,message:Message) -> Member|None:
