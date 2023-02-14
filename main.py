@@ -288,7 +288,7 @@ async def startup_event():
 
 @api.post('/github-commit',status_code=200)
 async def on_update(request:Request) -> None:
-	UpdateHandler(client,loads(await request.body()))
+	await UpdateHandler(client,loads(await request.body())).run()
 
 if __name__ == '__main__':
 	try: urun(api,host='0.0.0.0',port=7364,log_level='critical')

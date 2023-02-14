@@ -1,4 +1,4 @@
-from subprocess import Popen
+from asyncio import create_subprocess_shell
 from client import Client
 from os import _exit
 
@@ -10,15 +10,19 @@ class UpdateHandler:
 		self.modified = list(set([f for c in self.commits for f in c.get('modified')]))
 		if self.modified == []: return
 		self.actions:list[str] = []
-		self.modified_handler()
-		if self.actions == []: return
-		self.pull()
-		self.act()
 
-	def pull(self) -> None:
+	async def run(self) -> None:
+		self.modified_handler()
+		await self.pull()
+		if self.actions: self.act()
+
+	async def pull(self) -> None:
 		"""pull commit from github"""
-		Popen(['git','reset','--hard'],stdout=-3,stderr=-3)
-		Popen(['git','pull'])
+		for process in [
+			create_subprocess_shell('git reset --hard',stdout=-3,stderr=-3),
+			create_subprocess_shell('git pull')]:
+			p = await process
+			await p.communicate()
 
 	def modified_handler(self) -> None:
 		for filename in self.modified:
