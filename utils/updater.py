@@ -1,6 +1,8 @@
 from asyncio import create_subprocess_shell,sleep
+from os.path import exists
 from client import Client
 from os import _exit
+
 
 class UpdateHandler:
 	def __init__(self,client:Client,payload:dict) -> None:
@@ -19,8 +21,11 @@ class UpdateHandler:
 	async def pull(self) -> None:
 		"""pull commit from github"""
 		if self.client.MODE == '/reg/nal':
-			await (await create_subprocess_shell('git reset --hard && git pull')).wait()
-		else: await sleep(5)
+			await (await create_subprocess_shell('touch updating;git reset --hard && git pull;rm updating')).wait()
+		else:
+			for i in range(100):
+				await sleep(0.1)
+				if not exists('updating'): break
 		self.client.git_hash()
 
 	def modified_handler(self) -> None:
