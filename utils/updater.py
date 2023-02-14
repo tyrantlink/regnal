@@ -30,8 +30,7 @@ class UpdateHandler:
 				case [
 					'main.py'|
 					'client.py'|
-					'utils',*_
-					]:
+					'utils',*_]:
 					self.log.info(f'update detected, reboot required',to_db=False)
 					self.actions.insert(0,'reboot')
 				case ['extensions',*extension]: self.actions.append(f'extensions.{extension[0].split(".")[0]}')
