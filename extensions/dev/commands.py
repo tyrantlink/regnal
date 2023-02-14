@@ -52,12 +52,12 @@ class dev_commands(Cog):
 
 	@slash_command(
 		name='suggest',
-		description='suggest a new feature for /reg/nal')
+		description='suggest a new feature')
 	async def slash_suggest(self,ctx:ApplicationContext) -> None:
 		await self.report(ctx,'suggestion')
 
 	@slash_command(
 		name='issue',
-		description='report an issue with /reg/nal')
+		description='report an issue')
 	async def slash_issue(self,ctx:ApplicationContext) -> None:
 		await self.report(ctx,'issue')
