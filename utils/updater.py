@@ -31,7 +31,9 @@ class UpdateHandler:
 		else:
 			for i in range(100):
 				await sleep(0.1)
-				if not exists('updating'): break
+				if not exists('updating'):
+					await sleep(2)
+					break
 		await self.update_status()
 
 	def modified_handler(self) -> None:
