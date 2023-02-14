@@ -1,6 +1,8 @@
 from asyncio import create_subprocess_shell,sleep
+from discord import Activity,ActivityType
 from os.path import exists
 from client import Client
+from time import time
 from os import _exit
 
 
@@ -18,6 +20,10 @@ class UpdateHandler:
 		await self.pull()
 		if self.actions: self.act()
 
+	async def update_status(self) -> None:
+		try: await self.client.change_presence(activity=Activity(type=ActivityType.listening,name=f'last update: {nhours} hours ago' if (nhours:=int((time()-self.client.lu)/60/60)) else 'last update: just now'))
+		except AttributeError: pass
+
 	async def pull(self) -> None:
 		"""pull commit from github"""
 		if self.client.MODE == '/reg/nal':
@@ -27,6 +33,7 @@ class UpdateHandler:
 				await sleep(0.1)
 				if not exists('updating'): break
 		self.client.git_hash()
+		await self.update_status()
 
 	def modified_handler(self) -> None:
 		for filename in self.modified:
