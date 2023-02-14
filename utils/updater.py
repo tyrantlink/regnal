@@ -17,7 +17,7 @@ class UpdateHandler:
 
 	def pull(self) -> None:
 		"""pull commit from github"""
-		run(['git','reset','--hard','&&','git','pull'],stdout=-3,stderr=-3)
+		run(['git','reset','--hard','&&','git','pull'])
 
 	def modified_handler(self) -> None:
 		for filename in self.modified:
