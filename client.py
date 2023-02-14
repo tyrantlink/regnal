@@ -53,10 +53,10 @@ class Client(Bot):
 
 	async def hide(self,ctx:ApplicationContext|Interaction) -> bool:
 		...
-		
+
 	async def on_connect(self) -> None:
 		...
-	
+
 	async def on_ready(self) -> None:
 		...
 
@@ -71,7 +71,7 @@ class Client(Bot):
 
 	async def on_application_command_error(self,ctx:ApplicationContext|Interaction,error:ApplicationCommandInvokeError) -> None:
 		...
-	
+
 	async def on_error(self,event:str,*args,**kwargs) -> None:
 		...
 
@@ -120,6 +120,6 @@ class MixedUser:
 		self.icon:str
 		self.discriminator:str|None
 		self.bot:bool
-		
+
 		for k,v in kwargs.items():
 			setattr(self,k,v)
