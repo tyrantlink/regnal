@@ -49,27 +49,7 @@ class qotd_commands(Cog):
 		role = roles[0].mention if roles else None
 
 		match str(channel.type):
-			case 'text':
-				msg = await channel.send(embed=embed)
-				save = [int(time()),msg.id]
-				if config.get('spawn_threads',False):
-					if config.get('delete_after',False):
-						thread_name = 'qotd'
-						if len(last:=data.get('last',[])) == 3:
-							try:
-								if (old_thread:=channel.get_thread(last[-1])) is not None:
-									await old_thread.delete()
-							except AttributeError: pass
-							except Forbidden:
-								if guild.owner:
-									await self._dm_error(guild.owner,'permission error!','you enabled the `delete_after` QOTD option,\nbut /reg/nal does not have permission to delete threads,\nplease give him the `Manage Threads` permission, or disable the `delete_after` option')
-									await self.client.log.debug(f'failed to create qotd thread for guild {guild.name}')
-					else: thread_name = f'qotd-{datetime.now().strftime("%A.%d.%m.%y").lower()}'
-					thread = await msg.create_thread(name=thread_name,auto_archive_duration=1440)
-					save.append(thread.id)
-					if role:
-						await thread.send(role)
-				else: thread = msg
+			case 'text': msg = await channel.send(role,embed=embed)
 			case 'forum':
 				try:
 					if (old_thread:=channel.get_thread(data.get('last',[])[-1])) is not None:
@@ -79,19 +59,18 @@ class qotd_commands(Cog):
 					if guild.owner:
 						await self._dm_error(guild.owner,'permission error!','/reg/nal failed to archive the last QOTD thread, please give him the `Manage Threads` permission')
 						await self.client.log.debug(f'failed to create qotd thread for guild {guild.name}')
-				thread = await channel.create_thread(
+				msg = await channel.create_thread(
 					name=question if len(question) <= 100 else f'{question[:97]}...',
 					content=role,
 					embed=embed,
 					auto_archive_duration=1440)
-				await thread.edit(pinned=True)
-				save = [int(time()),thread.id]
+				await msg.edit(pinned=True)
 			case _:
 				await self._dm_error(guild.owner,'channel error!',f'the QOTD channel must be set to either a text channel or a forum channel,\nit is a currently set to a {channel.type} channel')
 				return
-		await self.client.db.guild(guild.id).data.qotd.last.write(save)
+		await self.client.db.guild(guild.id).data.qotd.last.write([int(time()),msg.id])
 		await self.client.db.guild(guild.id).data.qotd.asked.append(question)
-		return thread
+		return msg
 
 	@qotd.command(
 		name='now',

@@ -332,19 +332,7 @@ config_info = {
 				"description": "channel where questions will be asked",
 				"default": None,
 				"type": "channel"
-			},
-			"spawn_threads":
-			{
-				"description": "whether or not questions will be created with a thread",
-				"default": False,
-				"type": "bool"
-			},
-			"delete_after":
-			{
-				"description": "*no effect unless spawn_threads is enabled\ndelete threads when the next question is posted",
-				"default": False,
-				"type": "bool"
-			},
+			}
 		},
 		"talking_stick":
 		{
