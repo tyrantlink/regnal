@@ -53,9 +53,10 @@ class talking_stick_commands(Cog):
 			ephemeral=await self.client.hide(ctx))
 
 	async def roll_talking_stick(self,guild:Guild) -> None:
-		role = guild.get_role(await self.client.db.guild(guild.id).config.talking_stick.role.read())
-		active_members = await self.client.db.guild(guild.id).data.talking_stick.active.read()
-		old_stick = await self.client.db.guild(guild.id).data.talking_stick.current_stick.read()
+		guild_data = await self.client.db.guild(guild.id).read()
+		role = guild.get_role(guild_data.get('config',{}).get('talking_stick',{}).get('role'))
+		active_members = guild_data.get('data',{}).get('talking_stick',{}).get('active')
+		old_stick = guild_data.get('data',{}).get('talking_stick',{}).get('current_stick',None)
 		if len(active_members) == 0: return
 		for attempt in range(15):
 			rand:Member = choice(active_members)
@@ -74,7 +75,7 @@ class talking_stick_commands(Cog):
 		await self.client.db.guild(guild.id).data.leaderboards.sticks.inc(1,[str(rand)])
 		await self.client.db.guild(guild.id).data.talking_stick.active.write([])
 		
-		await (guild.get_channel(await self.client.db.guild(guild.id).config.talking_stick.channel.read())).send(
+		await (guild.get_channel(guild_data.get('config',{}).get('talking_stick',{}).get('channel'))).send(
 			f'congrats {member.mention} you have the talking stick.',
 			embed=Embed(
 				title=f'chances: 1/{len(active_members)}',
