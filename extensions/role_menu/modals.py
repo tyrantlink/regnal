@@ -11,6 +11,6 @@ class role_menu_modal(Modal):
 
 	async def callback(self,interaction:Interaction) -> None:
 		self.response = [i.value for i in self.children]
-		
+
 		await interaction.response.edit_message(embed=self.embed,view=self.view)
 		self.stop()

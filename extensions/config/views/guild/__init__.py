@@ -86,7 +86,7 @@ class guild_config(EmptyView):
 					description=f'channel type `{channel.type.name}` not supported for channel.type.name `{self.category}`'))
 					return False
 		return True
-		
+
 	async def write_config(self,value,interaction:Interaction=None) -> None:
 		match self.selected:
 			case 'embed_color': 
@@ -107,7 +107,7 @@ class guild_config(EmptyView):
 		await self.client.db.guild(self.guild.id).config.write(value,[self.category,self.selected])
 		await self.reload_config()
 		self.reload_embed()
-	
+
 	@button(
 		label='<',style=2,
 		custom_id='back_button',row=2)
@@ -168,7 +168,7 @@ class guild_config(EmptyView):
 			for option in select.options: option.default = False
 			if self.category == 'auto_responses': self.add_item(self.custom_au_button)
 		await interaction.response.edit_message(view=self,embed=self.embed)
-	
+
 	@channel_select(
 		placeholder='select a channel',
 		custom_id='channel_select',row=1,min_values=0)
@@ -228,7 +228,7 @@ class guild_config(EmptyView):
 			case _     : raise
 		self.remove_item(self.configure_list_button)
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label='set',style=1,
 		custom_id='modal_button',row=2)
@@ -268,5 +268,3 @@ class guild_config(EmptyView):
 			title=f'custom auto responses',
 			color=self.embed.color)
 		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read()))
-
-		

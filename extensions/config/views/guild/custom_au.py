@@ -15,7 +15,7 @@ class custom_au_view(EmptyView):
 		self.remove_confirmed = False
 		self.new_au = None
 		self.add_items(self.page_select,self.back_button)
-	
+
 	@property
 	def default_new_au(self):
 		return {
@@ -28,7 +28,7 @@ class custom_au_view(EmptyView):
 
 	def add_items(self,*items:Item) -> None:
 		for item in items: self.add_item(item)
-	
+
 	def au_reload(self,guild_id:int) -> None:
 		if self.client.flags.get('RELOAD_AU',None) is None: self.client.flags.update({'RELOAD_AU':[]})
 		if guild_id not in self.client.flags.get('RELOAD_AU'):
@@ -172,7 +172,7 @@ class custom_au_view(EmptyView):
 		modal = CustomModal(self,'add custom auto response',[
 			InputText(label='trigger message',placeholder='cannot start with $ or contain a .',min_length=1,max_length=100,style=InputTextStyle.short,value=self.new_au.get('trigger')),
 			InputText(label='response',placeholder='"{none}" to give no response (used for disabling a default auto response)',min_length=1,max_length=500,style=InputTextStyle.long,value=self.new_au.get('response'))])
-		
+
 		await interaction.response.send_modal(modal)
 		await modal.wait()
 		if modal.children[0].value.startswith('$') or '.' in modal.children[0].value:

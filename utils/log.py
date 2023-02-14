@@ -10,7 +10,7 @@ class log:
 	def __init__(self,db:MongoDatabase,DEV_MODE:bool) -> None:
 		self.db = db
 		self.DEV_MODE = DEV_MODE
-	
+
 	def print(self,message:str,type:str,format:bool=True):
 		print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{type.upper()}] {message}' if format else message)
 

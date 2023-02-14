@@ -90,7 +90,7 @@ class Guild(MongoObject):
 				"""int"""
 				self.pluralkit = MongoObject(db,col,_id,['config','general','pluralkit'])
 				"""bool"""
-		
+
 		class ___logging(MongoObject):
 			def __init__(self,db,col,_id,path) -> None:
 				super().__init__(db,col,_id,path)
@@ -242,7 +242,7 @@ class Guild(MongoObject):
 				"""list[int]"""
 				self.custom = self.___custom(db,col,_id,['data','auto_responses','custom'])
 				"""dict[str,dict]"""
-			
+
 			class ___custom(MongoObject):
 				def __init__(self,db,col,_id,path) -> None:
 					super().__init__(db,col,_id,path)

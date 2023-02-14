@@ -29,7 +29,7 @@ class publish_view(EmptyView):
 		if 'hide' not in self.version: await self.client.db.inf('/reg/nal').version.write(self.version)
 		await interaction.response.edit_message(view=None,embed=Embed(title='successfully announced commit',color=self.embed.color))
 		self.stop()
-	
+
 
 class commit_view(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,user:User,version:str,embed_color:int=None) -> None:
@@ -49,7 +49,7 @@ class commit_view(EmptyView):
 		self.donator_fields = {f'{role.name} tier':'\n'.join(m.mention for m in role.members) for role in [guild.get_role(i) for i in await self.client.db.inf('/reg/nal').config.donation_roles.read()] if role.members}
 		self.donator_fields = dict(list(self.donator_fields.items())+[('please report bugs with /issue','[development server](<https://discord.gg/4mteVXBDW7>)')])
 		self.reload()
-		
+
 	def reload(self) -> None:
 		self.embed.clear_fields()
 		self.clear_items()

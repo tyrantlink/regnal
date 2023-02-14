@@ -195,7 +195,7 @@ class user_config(EmptyView):
 			case 'bool': await self.write_config(False)
 			case _     : raise
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label='set',style=1,
 		custom_id='modal_button',row=2)

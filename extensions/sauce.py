@@ -115,7 +115,7 @@ class sauce_commands(Cog):
 		if not nsfw_allowed:
 			if service == 'nhentai' or await self._is_nsfw(image_url):
 				return Embed(title='!!NSFW!!',description='the result may be nsfw, please run this command in an nsfw channel.',color=0xff6969)
-		
+
 		embed = Embed(title=data.get('eng_name',None) or data.get('jp_name',None) or data.get('title','no title'),color=color)
 		fields = self.art.get_embed_data(service,data,header)
 		if fields is None: return False
@@ -130,7 +130,7 @@ class sauce_commands(Cog):
 		async with ClientSession() as session:
 				async with session.get(f'https://saucenao.com/search.php',params=params) as res:
 					return await res.json()
-	
+
 	async def _base_sauce(self,ctx:ApplicationContext,message:Message) -> None:
 		if len(message.attachments) == 0 and len(message.embeds) == 0:
 			await ctx.response.send_message('this message has no attachments or embeds.',ephemeral=await self.client.hide(ctx))

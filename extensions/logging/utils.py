@@ -51,5 +51,5 @@ class utils:
 		for log in logs: embed.add_field(name=f'{log[1].upper().ljust(width)} <t:{log[0]}:t>',value=log[2] or '​',inline=False)
 		width = max([len(f) for f,i in footer])
 		embed.set_footer(text='\n'.join([f'{l.ljust(width)} {i}' for l,i in footer]),icon_url=embed.footer.icon_url)
-		
+
 		return embed

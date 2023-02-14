@@ -12,7 +12,7 @@ class role_menu_published_view(View):
 		self.client = client
 		super().__init__(timeout=None)
 		self.add_item(role_menu_select(client,options,placeholder,preview))
-	
+
 	async def on_error(self,error:Exception,item:Item,interaction:Interaction) -> None:
 		if interaction.response.is_done(): await interaction.followup.send(error,ephemeral=True)
 		else: await interaction.response.send_message(error,ephemeral=True)
@@ -36,7 +36,7 @@ class role_menu_view(View):
 		if interaction.response.is_done(): await interaction.followup.send(error,ephemeral=True)
 		else: await interaction.response.send_message(error,ephemeral=True)
 		await self.client.log.error(error)
-	
+
 	async def main_menu_button(self,interaction:Interaction,title:str,description:str=None) -> None:
 		self.embed.title = title
 		self.embed.description = description
@@ -81,7 +81,7 @@ class role_menu_view(View):
 			return
 		self.data['options'][response['label']] = {'role':response['role'].id,'label':response['label'],'description':response['description'],'emoji':response['emoji']}
 		await interaction.followup.send(f'successfully added role {response["role"].mention}\n\ndismiss this message and return to the role menu command',ephemeral=True)
-	
+
 	@button(label='remove role',style=1)
 	async def button_remove_role(self,button:Button,interaction:Interaction) -> None:
 		self.previewed = False
@@ -128,4 +128,3 @@ class role_menu_view(View):
 			self.embed.description = 'you may now dismiss this message'
 			self.clear_items()
 			await interaction.response.edit_message(embed=self.embed,view=self)
-	

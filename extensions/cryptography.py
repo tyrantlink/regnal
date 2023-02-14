@@ -27,7 +27,7 @@ class cryptography_commands(Cog):
 			case 'base64': output = b64encode(message.encode()).decode()
 			case 'caesar cipher': output = self.caesar_cipher(True,message,int(argument) if argument else 7)
 		await ctx.response.send_message(output,ephemeral=await self.client.hide(ctx))
-	
+
 	@slash_command(
 		name='decode',
 		description='decode a message',
@@ -53,7 +53,7 @@ class cryptography_commands(Cog):
 			except UnicodeEncodeError:
 				await ctx.response.send_message('failed to create QR code. unicode encode error.',ephemeral=await self.client.hide(ctx))
 				return
-			
+
 			qr.png(qr_binary,1000 // qr.get_png_size(),quiet_zone=2)
 			qr_binary.seek(0)
 			await ctx.response.send_message(file=File(qr_binary,'regnal_qr_code.png'),ephemeral=await self.client.hide(ctx))

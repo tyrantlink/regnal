@@ -15,7 +15,7 @@ class config_view(EmptyView):
 		self.embed = Embed(title='config',color=embed_color)
 		self.add_item(self.option_select)
 		self.populate_options()
-	
+
 	def populate_options(self) -> None:
 		self.options = [SelectOption(label='user',description='user specific options')]
 		if self.guild is not None:
@@ -38,4 +38,3 @@ class config_view(EmptyView):
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
 		await view.start()
 		await interaction.response.edit_message(view=view,embed=view.embed)
-			

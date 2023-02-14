@@ -24,7 +24,7 @@ class configure_list_view(EmptyView):
 	async def channel_select(self,select:Select,interaction:Interaction) -> None:
 		self.channels_selected = select.values
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label='<',style=2,row=1,
 		custom_id='back_button')

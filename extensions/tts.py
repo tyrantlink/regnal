@@ -91,7 +91,7 @@ class guild_data:
 				if self.vc._player: self.vc._player._end.wait()
 			except Exception: pass
 			await self.play_message(*await self.queue.get())
-			
+
 
 class tts_cog(Cog):
 	def __init__(self,client:Client) -> None:

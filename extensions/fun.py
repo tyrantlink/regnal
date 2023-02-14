@@ -68,7 +68,7 @@ class fun_commands(Cog):
 		description='/reg/nal can tell time.')
 	async def slash_time(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(datetime.now().strftime("%H:%M:%S.%f"),ephemeral=await self.client.hide(ctx))
-	
+
 	@slash_command(
 		name='8ball',
 		description='ask the 8ball a question',

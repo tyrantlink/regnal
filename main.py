@@ -98,7 +98,7 @@ class client_cls(Client):
 				with open('last_update','w') as file:
 					file.write(f'{git}{self.lu}')
 			else: self.lu = float(last_update[1])
-		
+
 	async def on_connect(self) -> None:
 		if 'clear' in argv:
 			await self.sync_commands()
@@ -107,7 +107,7 @@ class client_cls(Client):
 		await self._owner_init()
 		if MODE in ['/reg/nal','tet']: await self.sync_commands()
 		elif 'sync' in argv: await self.sync_commands()
-	
+
 	async def on_ready(self) -> None:
 		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds',to_db=False)
 
@@ -147,7 +147,7 @@ class base_commands(Cog):
 	def __init__(self,client:client_cls) -> None:
 		self.client = client
 		self.uptime_loop.start()
-	
+
 	@slash_command(
 		name='stats',
 		description='get /reg/nal\'s session stats')
@@ -234,7 +234,7 @@ class message_handler(Cog):
 				await self.client.db.user(author.id).config.general.talking_stick.write(False)
 			else: await self.client.db.user(author.id).bot.write(author.bot)
 			user = await self.client.db.user(author.id).read()
-			
+
 		# check user no_track
 		if user.get('config',{}).get('general',{}).get('no_track',False): return
 		# updates username and discriminator every 50 messages

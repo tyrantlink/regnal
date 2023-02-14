@@ -70,7 +70,7 @@ class PluralKit:
 	def __init__(self) -> None:
 		self._recent_requests = []
 		self._cache = {}
-	
+
 	async def cache_timeout(self,key) -> None:
 		await sleep(30)
 		self._cache.pop(key,None)

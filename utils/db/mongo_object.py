@@ -38,7 +38,7 @@ class MongoObject:
 		await self._col.update_one({'_id':self.__id},{'$set':{'.'.join(self.__path+(a_path if a_path is not None else [])):None}})
 		self.__db.session_stats['db_writes'] += 1
 		return True
-	
+
 	async def append(self,value:Any=None,a_path:list[str]=None) -> bool:
 		"""append value to an array"""
 		await self._col.update_one({'_id':self.__id},{'$push':{'.'.join(self.__path+(a_path if a_path is not None else [])):value}})
@@ -63,7 +63,7 @@ class MongoObject:
 		await self._col.update_one({'_id':self.__id},{'$inc':{'.'.join(self.__path+(a_path if a_path is not None else [])):value}})
 		self.__db.session_stats['db_writes'] += 1
 		return True
-	
+
 	async def dec(self,value:int|float=1,a_path:list[str]=None) -> bool:
 		"""decrement a number"""
 		await self.inc(-value,a_path)

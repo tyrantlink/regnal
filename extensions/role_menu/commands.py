@@ -47,7 +47,7 @@ class role_menu_commands(Cog):
 		guild_only=True,default_member_permissions=Permissions(manage_roles=True))
 	async def message_edit_role_menu(self,ctx:ApplicationContext,message:Message) -> None:
 		await self.open_role_menu(ctx,message.id)
-	
+
 	@slash_command(
 		name='add_role_to_menu',
 		description='/role_menu must be used first',
@@ -68,4 +68,3 @@ class role_menu_commands(Cog):
 			'emoji':emoji}
 		role_inputs[ctx.user.id]['event'].set()
 		await ctx.response.send_message(f'validating role... dismiss this message',ephemeral=True)
-	

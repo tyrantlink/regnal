@@ -13,9 +13,9 @@ class talking_stick_commands(Cog):
 	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.talking_stick_loop.start()
-	
+
 	stick = SlashCommandGroup('stick','talking stick commands')
-	
+
 	async def check(self,ctx:ApplicationContext) -> bool:
 		if not await self.client.db.guild(ctx.guild.id).config.talking_stick.enabled.read():
 			await ctx.response.send_message('the talking stick is not enabled on this server. enable it with /config',ephemeral=await self.client.hide(ctx))
@@ -74,7 +74,7 @@ class talking_stick_commands(Cog):
 		await self.client.db.guild(guild.id).data.talking_stick.current_stick.write(rand)
 		await self.client.db.guild(guild.id).data.leaderboards.sticks.inc(1,[str(rand)])
 		await self.client.db.guild(guild.id).data.talking_stick.active.write([])
-		
+
 		await (guild.get_channel(guild_data.get('config',{}).get('talking_stick',{}).get('channel'))).send(
 			f'congrats {member.mention} you have the talking stick.',
 			embed=Embed(

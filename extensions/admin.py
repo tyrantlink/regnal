@@ -7,7 +7,7 @@ from client import Client
 class admin_commands(Cog):
 	def __init__(self,client:Client) -> None:
 		self.client = client
-	
+
 	@slash_command(
 		name='purge',
 		description='purge message history',
