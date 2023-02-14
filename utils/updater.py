@@ -1,4 +1,4 @@
-from asyncio import create_subprocess_shell
+from asyncio import create_subprocess_shell,sleep
 from client import Client
 from os import _exit
 
@@ -18,7 +18,9 @@ class UpdateHandler:
 
 	async def pull(self) -> None:
 		"""pull commit from github"""
-		await (await create_subprocess_shell('git reset --hard && git pull')).wait()
+		if self.client.MODE == '/reg/nal':
+			await (await create_subprocess_shell('git reset --hard && git pull')).wait()
+		else: await sleep(5)
 		self.client.git_hash()
 
 	def modified_handler(self) -> None:
