@@ -1,5 +1,6 @@
-from os import system,_exit
+from subprocess import run
 from client import Client
+from os import _exit
 
 class UpdateHandler:
 	def __init__(self,client:Client,payload:dict) -> None:
@@ -16,7 +17,7 @@ class UpdateHandler:
 
 	def pull(self) -> None:
 		"""pull commit from github"""
-		system('git pull')
+		run(['git','reset','--hard','&&','git','pull'],stdout=-3,stderr=-3)
 
 	def modified_handler(self) -> None:
 		for filename in self.modified:
