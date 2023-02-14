@@ -27,7 +27,7 @@ class UpdateHandler:
 					'client.py'|
 					'utils'
 					]: self.actions.insert(0,'reboot')
-				case ['extensions',*extension]: self.actions.append(f'extensions.{extension[0]}')
+				case ['extensions',*extension]: self.actions.append(f'extensions.{extension[0].split(".")[0]}')
 				case _: pass
 
 	def act(self) -> None:
@@ -35,4 +35,3 @@ class UpdateHandler:
 		for extension in self.actions:
 			if extension == 'extensions.tet' and not self.client.MODE == 'tet': continue
 			self.client.reload_extension(extension)
-
