@@ -170,7 +170,7 @@ class auto_response_listeners(Cog):
 		if message.id not in self.timeouts: return False
 		try: await message.channel.send(response)
 		except Forbidden: return False
-		if delete_original and content.lower() == raw_au and au.file: await message.delete(reason='auto response deletion')
+		if delete_original and (content.lower() == raw_au or au.regex) and au.file: await message.delete(reason='auto response deletion')
 		for delay,followup in au.followups:
 			async with message.channel.typing():
 				await sleep(delay)
