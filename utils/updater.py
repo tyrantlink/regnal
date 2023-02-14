@@ -32,7 +32,6 @@ class UpdateHandler:
 			for i in range(100):
 				await sleep(0.1)
 				if not exists('updating'): break
-		self.client.git_hash()
 		await self.update_status()
 
 	def modified_handler(self) -> None:
@@ -55,3 +54,4 @@ class UpdateHandler:
 			if extension == 'extensions.tet' and not self.client.MODE == 'tet': continue
 			self.client.reload_extension(extension)
 			self.client.log.info(f'[EXT_RELOAD] {extension.split(".")[-1]}',to_db=False)
+		self.client.git_hash()
