@@ -52,7 +52,7 @@ class logging_listeners(Cog):
 		if (channel:=config.get('channel',None)) is not None:
 			try: channel = member.guild.get_channel(channel) or await member.guild.fetch_channel(channel)
 			except (NotFound,Forbidden): channel = None
-		if channel is None: return (1,None)
+		if channel is None or member.id == self.client.user.id: return (1,None)
 		return (2,channel)
 
 	async def find_deleter(self,message:Message) -> Member|None:
