@@ -18,7 +18,7 @@ class UpdateHandler:
 
 	async def pull(self) -> None:
 		"""pull commit from github"""
-		await (await create_subprocess_shell('git reset --hard && git pull')).communicate()
+		await (await create_subprocess_shell('git reset --hard && git pull')).wait()
 		self.client.git_hash()
 
 	def modified_handler(self) -> None:
