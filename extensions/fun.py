@@ -110,54 +110,6 @@ class fun_commands(Cog):
 		result = choice(role.members)
 		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.hide(ctx))
 
-	async def acquire_hentai(self) -> tuple:
-		id = randint(1,423204)
-		async with ClientSession() as session:
-			async with session.get(f'https://nhentai.net/api/gallery/{id}') as res:
-				match res.status:
-					case 200: return (await res.json(),id)
-					case _: return ({'error':'cock'},id)
-
-	@slash_command(
-		name='hentai',
-		description='get a random nhentai doujin to read.',
-		nsfw=True)
-	async def slash_hentai(self,ctx:ApplicationContext) -> None:
-		await ctx.response.send_message(f'this is broken because i\'m too lazy to bypass cloudflare\nplease try again if i mention this command in the change-log',ephemeral=await self.client.hide(ctx))
-		return
-		await ctx.defer(ephemeral=await self.client.hide(ctx))
-		for i in range(10):
-			out,id = await self.acquire_hentai()
-			if 'error' not in out.keys(): break
-		else:
-			await ctx.followup.send(f'failed to acquire hentai, try again in like, five minutes',ephemeral=await self.client.hide(ctx))
-			return
-	
-		embed = Embed(
-				title='random nhentai:',
-				description=f'https://nhentai.net/g/{id}',
-				color=await self.client.embed_color(ctx))
-		img_url = f'https://t.nhentai.net/galleries/{out["media_id"]}/cover.'
-		match out['images']['cover']['t']:
-			case 'p': img_url += 'png'
-			case 'j': img_url += 'jpg'
-			case 'g': img_url += 'gif'
-		embed.set_image(url=img_url)
-		info = {'parodies':[],'characters':[],'tags':[],'artists':[],'groups':[],'languages':[],'pages':[str(len(out["images"]["pages"]))]}
-		for i in out['tags']:
-			match i['type']:
-				case 'parody': info['parodies'].append(i['name'])
-				case 'character': info['characters'].append(i['name'])
-				case 'tag': info['tags'].append(i['name'])
-				case 'artist': info['artists'].append(i['name'])
-				case 'group': info['groups'].append(i['name'])
-				case 'language': info['languages'].append(i['name'])
-				case 'category': pass
-				case _: raise
-		for k,v in info.items():
-			if v: embed.add_field(name=k,value=', '.join(v),inline=True)
-		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
-
 	@slash_command(
 		name='bees',
 		description='bees.',
