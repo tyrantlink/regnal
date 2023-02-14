@@ -168,15 +168,15 @@ class base_commands(Cog):
 				if g_au_count:=len([j for k in [list(g_au[i].keys()) for i in list(g_au.keys())] for j in k]):
 					auto_response_count = f'{auto_response_count}(+{g_au_count})'
 			embed.add_field(name='auto responses',value=auto_response_count,inline=True)
-		lifetime_stats = await self.client.db.status_log("lifetime").stats.read()
+		lifetime_stats = await self.client.db.status_log(1).stats.read()
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			lifetime.append(f'{name}: {"{:,}".format(lifetime_stats.get(name)+self.client.db.session_stats.get(name))}')
 			session.append(f'{name}: {"{:,}".format(self.client.db.session_stats.get(name))}')
 
-		embed.add_field(name='total db size',value=format_bytes((await self.client.db.message(0).__col.database.command('dbstats'))['dataSize']),inline=False)
+		embed.add_field(name='total db size',value=format_bytes((await self.client.db.inf(0)._col.database.command('dbstats'))['dataSize']),inline=False)
 		embed.add_field(name='session',value='\n'.join(session),inline=True)
 		embed.add_field(name='lifetime',value='\n'.join(lifetime),inline=True)
-		embed.set_footer(text=f'version {await self.client.db.inf("/reg/nal").version} ({self.client.commit_id})')
+		embed.set_footer(text=f'version {await self.client.db.inf("/reg/nal").version.read()} ({self.client.commit_id})')
 		await ctx.followup.send(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
@@ -275,11 +275,10 @@ async def start():
 			case 'tet': await client.start(client.env.tet_token)
 			case 'dev': await client.start(client.env.dev_token)
 			case 'beta': await client.start(client.env.beta_token)
-	except Exception as e:
-		lifetime,session = await db.status_log('lifetime').stats.read(),db.session_stats
+	finally:
+		lifetime,session = await db.status_log(1).stats.read(),db.session_stats
 		for i in ['db_reads','db_writes','messages_seen','commands_used']: lifetime[i] += session[i]
-		await db.status_log('lifetime').stats.write(lifetime)
-		raise e
+		await db.status_log(1).stats.write(lifetime)
 
 api = FastAPI(docs_url=None)
 

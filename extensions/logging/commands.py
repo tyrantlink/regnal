@@ -37,7 +37,7 @@ class logging_commands(Cog):
 		guild_only=True,default_member_permissions=Permissions(view_audit_log=True),
 		options=[option(User,name='user',description='limit to logs from a specific user',required=False)])
 	async def slash_logging_recent(self,ctx:ApplicationContext,user:User) -> None:
-		data = [doc async for doc in self.client.db.message(0).__col.find(
+		data = [doc async for doc in self.client.db.message(0)._col.find(
 			{'guild':ctx.guild.id} if user is None else {'guild':ctx.guild.id,'author':user.id},sort=[('_id',-1)],limit=10)]
 
 		if data == []:
@@ -58,7 +58,7 @@ class logging_commands(Cog):
 				description=f'you can use the command again <t:{last_history+86400}:R>'),ephemeral=True)
 			return
 
-		data = [doc async for doc in self.client.db.message(0).__col.find({'guild_id':ctx.guild.id},sort=[('_id',-1 if sorting == 'newest first' else 1)])]
+		data = [doc async for doc in self.client.db.message(0)._col.find({'guild_id':ctx.guild.id},sort=[('_id',-1 if sorting == 'newest first' else 1)])]
 		data.insert(0,f'total entries: {len(data)}')
 
 		if data == []:
@@ -74,7 +74,7 @@ class logging_commands(Cog):
 	async def message_message_logs(self,ctx:ApplicationContext,message:Message) -> None:
 		log:dict = await self.client.db.message(int(message.id)).read()
 		if log is None or log.get('author',None) == self.client.user.id:
-			log = await self.client.db.message(0).__col.find_one({'log_messages':message.id}) or log
+			log = await self.client.db.message(0)._col.find_one({'log_messages':message.id}) or log
 		if log is None or log.get('guild',None) != ctx.guild.id:
 			await ctx.response.send_message(embed=Embed(title='no logs found.',color=0xffff69),ephemeral=await self.client.hide(ctx))
 			return
