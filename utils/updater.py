@@ -31,16 +31,16 @@ class UpdateHandler:
 					'main.py'|
 					'client.py'|
 					'utils',*_]:
-					self.log.info(f'update detected, reboot required',to_db=False)
+					self.client.log.info(f'update detected, reboot required',to_db=False)
 					self.actions.insert(0,'reboot')
 				case ['extensions',*extension]: self.actions.append(f'extensions.{extension[0].split(".")[0]}')
 				case _: pass
 
 	def act(self) -> None:
 		if 'reboot' in self.actions or 'extensions._shared_vars' in self.actions:
-			self.log.info(f'rebooting...',to_db=False)
+			self.client.log.info(f'rebooting...',to_db=False)
 			_exit(0)
 		for extension in self.actions:
 			if extension == 'extensions.tet' and not self.client.MODE == 'tet': continue
 			self.client.reload_extension(extension)
-			self.log.info(f'[EXT_RELOAD] {extension.split(".")[-1]}',to_db=False)
+			self.client.log.info(f'[EXT_RELOAD] {extension.split(".")[-1]}',to_db=False)
