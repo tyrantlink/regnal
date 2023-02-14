@@ -1,4 +1,4 @@
-from subprocess import run
+from subprocess import Popen
 from client import Client
 from os import _exit
 
@@ -17,8 +17,8 @@ class UpdateHandler:
 
 	def pull(self) -> None:
 		"""pull commit from github"""
-		run(['git','reset','--hard',])
-		run(['git','pull'])
+		Popen(['git','reset','--hard'],stdout=-3,stderr=-3)
+		Popen(['git','pull'])
 
 	def modified_handler(self) -> None:
 		for filename in self.modified:
