@@ -97,42 +97,6 @@ class fun_commands(Cog):
 				B: {int(color[6:8],16)}""",
 				color=int(color,16)),
 			ephemeral=await self.client.hide(ctx))
-	
-	@slash_command(
-		name='shorten',
-		description='shorten a link with s.regn.al',
-		options=[
-			option(str,name='url',description='e.g. https://example.com'),
-			option(str,name='name',description='name of link'),
-			option(str,name='path',description='s.regn.al/{path}, randomized if left empty',required=None,default=None)])
-	async def slash_shorten(self,ctx:ApplicationContext,url:str,name:str,path:str) -> None:
-		await ctx.response.send_message('my hard drive fucking died and i lost all my servers, so this doesn\'t work at the moment',ephemeral=await self.client.hide(ctx))
-		return
-		link_data = {
-			"longUrl": url,
-			"title": name,
-			"shortCodeLength": 8,
-			"tags": ["/reg/nal"]}
-		if path: link_data.update({"customSlug":sub(' ','',path)})
-		async with ClientSession() as session:
-			async with session.post('https://s.tyrant.link/rest/v2/short-urls',json=link_data,headers={'X-Api-Key':self.client.env.shlink}) as res:
-				out = await res.json()
-				match res.status:
-					case 200:
-						await ctx.response.send_message(
-							embed=Embed(
-								title='your link has been shortened:',
-								description=sub('http://','https://',out['shortUrl']),
-								color=await self.client.embed_color(ctx)),
-							ephemeral=await self.client.hide(ctx))
-					case 400:
-						if out['detail'] == f'Provided slug "{path}" is already in use.':
-							await ctx.response.send_message(f'path "{path}" is already in use',ephemeral=await self.client.hide(ctx))
-						else:
-							await ctx.response.send_message(f'unknown error, please submit issue with /issue\ndetails: {out["detail"]}',ephemeral=await self.client.hide(ctx))
-							await self.client.log.error(f'[SHLINK] {out["detail"]}')
-					case _: await ctx.response.send_message(f'unknown error, please submit issue with /issue\nstatus code: {res.status}',ephemeral=await self.client.hide(ctx))
-
 
 	@slash_command(
 		name='random',
