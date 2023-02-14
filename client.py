@@ -54,6 +54,9 @@ class Client(Bot):
 	async def hide(self,ctx:ApplicationContext|Interaction) -> bool:
 		...
 
+	def git_hash(self) ->None:
+		...
+
 	async def on_connect(self) -> None:
 		...
 

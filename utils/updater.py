@@ -23,6 +23,7 @@ class UpdateHandler:
 			create_subprocess_shell('git pull')]:
 			p = await process
 			await p.communicate()
+		self.client.git_hash()
 
 	def modified_handler(self) -> None:
 		for filename in self.modified:

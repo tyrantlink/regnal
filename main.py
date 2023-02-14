@@ -24,16 +24,6 @@ from sys import argv
 
 MODE = 'beta' if '--beta' in argv else 'dev' if exists('dev') else 'tet' if '--tet' in argv else '/reg/nal'
 
-with open('.git/refs/heads/master') as git:
-	git = git.read()
-	with open('last_update') as file:
-		last_update = file.readlines()
-	if last_update[0] != git:
-		lu = time()
-		with open('last_update','w') as file:
-			file.write(f'{git}{lu}')
-	else: lu = float(last_update[1])
-
 class client_cls(Client):
 	def __init__(self,db:MongoDatabase,extensions:dict[str,bool],env:Env) -> None:
 		super().__init__('i lika, do, da cha cha',None,intents=Intents.all(),max_messages=100000)
@@ -51,7 +41,7 @@ class client_cls(Client):
 		if MODE == 'dev':
 			self.flags.update({'DEV':None})
 			self.log.debug('LAUNCHED IN DEV MODE',to_db=False)
-		with open('.git/refs/heads/master') as git: self.commit_id = git.read(7)
+		self.git_hash()
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
 		for extension,enabled in extensions.items():
 			if enabled:
@@ -96,6 +86,18 @@ class client_cls(Client):
 			if isinstance(ctx,Interaction): return await self.db.user(ctx.user.id).config.general.hide_commands.read()
 		except Exception: pass
 		return True
+
+	def git_hash(self) ->None:
+		with open('.git/refs/heads/master') as git:
+			git = git.read()
+			self.commit_id = git[:7]
+			with open('last_update') as file:
+				last_update = file.readlines()
+			if last_update[0] != git:
+				self.lu = time()
+				with open('last_update','w') as file:
+					file.write(f'{git}{self.lu}')
+			else: self.lu = float(last_update[1])
 		
 	async def on_connect(self) -> None:
 		if 'clear' in argv:
@@ -188,7 +190,7 @@ class base_commands(Cog):
 	@loop(minutes=5)
 	async def uptime_loop(self) -> None:
 		await sleep(5)
-		nhours = int((time()-lu)/60/60)
+		nhours = int((time()-self.lu)/60/60)
 		try: await self.client.change_presence(activity=Activity(type=ActivityType.listening,name=f'last update: {nhours} hours ago' if nhours else 'last update: just now'))
 		except AttributeError: pass
 
