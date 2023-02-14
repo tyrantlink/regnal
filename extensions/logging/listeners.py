@@ -91,7 +91,8 @@ class logging_listeners(Cog):
 			[int(datetime.now().timestamp()),'edited',after.content],
 			[att.filename for att in after.attachments])
 		if check <= 1: return
-		await self.send_embed(after.id,channel,2)
+		try: await self.send_embed(after.id,channel,2)
+		except ValueError: return
 
 	@Cog.listener()
 	async def on_message_delete(self,message:Message) -> None:
@@ -104,7 +105,8 @@ class logging_listeners(Cog):
 			[int(datetime.now().timestamp()),'deleted',message.content],
 			[att.filename for att in message.attachments])
 		if check <= 1: return
-		await self.send_embed(message.id,channel,1)
+		try: await self.send_embed(message.id,channel,1)
+		except ValueError: return
 
 	@Cog.listener()
 	async def on_bulk_message_delete(self,messages:list[Message]) -> None:
@@ -118,7 +120,10 @@ class logging_listeners(Cog):
 				[deleted_at,'deleted',message.content],
 				[att.filename for att in message.attachments])
 		if check <= 1: return
-		embeds = [await self.utils.gen_embed(message.id,2) for message in messages]
+		embeds = []
+		for message in messages:
+			try: embeds.append(await self.utils.gen_embed(message.id,2))
+			except ValueError: pass
 		for pack in split_list(embeds,10):
 			await channel.send(embeds=pack)
 
