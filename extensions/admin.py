@@ -1,4 +1,4 @@
-from discord.commands import SlashCommandGroup,Option as option,slash_command
+from discord.commands import Option as option,slash_command
 from discord import ApplicationContext,Permissions
 from discord.ext.commands import Cog
 from client import Client

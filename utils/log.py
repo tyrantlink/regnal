@@ -1,6 +1,6 @@
 from discord import ApplicationContext,Message
-from traceback import format_exception
 from utils.tyrantlib import MakeshiftClass
+from traceback import format_exception
 from utils.db import MongoDatabase
 from datetime import datetime
 from inspect import stack
