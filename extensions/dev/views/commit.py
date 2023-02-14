@@ -2,6 +2,7 @@ from discord import Interaction,Embed,User,Guild,SelectOption,InputTextStyle
 from discord.ui import Button,button,Select,string_select,InputText
 from client import Client,EmptyView,CustomModal
 
+
 class publish_view(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,embed:Embed,version:str) -> None:
 		super().__init__(timeout=0)
