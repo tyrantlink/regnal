@@ -32,6 +32,7 @@ class Client(Bot):
 		self.db:MongoDatabase
 		self.flags:dict
 		self.au:dict|None
+		self.MODE:str
 		self.env:Env
 		self.log:log
 		self.pk:PluralKit

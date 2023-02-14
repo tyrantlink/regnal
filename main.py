@@ -7,10 +7,13 @@ from discord.ext.commands import Cog,slash_command
 from traceback import format_exc,format_tb
 from discord.errors import CheckFailure
 from client import Client,MixedUser,Env
+from utils.updater import UpdateHandler
 from utils.pluralkit import PluralKit
+from asyncio import sleep,create_task
+from fastapi import FastAPI,Request
 from discord.ext.tasks import loop
 from utils.db import MongoDatabase
-from asyncio import sleep,run
+from uvicorn import run as urun
 from os.path import exists
 from inspect import stack
 from utils.log import log
@@ -38,6 +41,7 @@ class client_cls(Client):
 		self.flags = {}
 		self.env = env
 		self.au:dict = None
+		self.MODE = MODE
 		if 'clear' in argv: return
 		self.log = log(self.db,MODE == 'dev')
 		self.pk = PluralKit()
@@ -253,8 +257,8 @@ class message_handler(Cog):
 
 			await self.client.db.guild(message.guild.id).data.talking_stick.active.append(author.id)
 
-
-async def main():
+async def start():
+	global client
 	with open('mongo') as mongo:
 		db = MongoDatabase(mongo.read())
 	doc = await db.inf('/reg/nal').read()
@@ -277,6 +281,16 @@ async def main():
 		await db.status_log('lifetime').stats.write(lifetime)
 		raise e
 
+api = FastAPI(docs_url=None)
+
+@api.on_event('startup')
+async def startup_event():
+	create_task(start())
+
+@api.post('/github-commit',status_code=200)
+async def on_update(request:Request) -> None:
+	UpdateHandler(client,loads(await request.body()))
+
 if __name__ == '__main__':
-	try: run(main())
+	try: urun(api,host='0.0.0.0',port=7364,log_level='critical')
 	except SystemExit: pass
