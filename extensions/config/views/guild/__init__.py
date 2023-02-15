@@ -258,13 +258,11 @@ class guild_config(EmptyView):
 			description=f'currently {mode}ed:\n'+(
 				'\n'.join([f'<#{i}>' for i in await self.client.db.guild(self.guild.id).data.read([path,mode])]) or 'None'),
 			color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=configure_list_view((path,mode),self,self.client,embed))
+		await interaction.response.edit_message(embed=embed,view=configure_list_view((path,mode),self,self.guild,self.client,embed))
 
 	@button(
 		label='custom auto responses',style=1,row=2,
 		custom_id='custom_au_button')
 	async def custom_au_button(self,button:Button,interaction:Interaction) -> None:
-		embed = Embed(
-			title=f'custom auto responses',
-			color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read()))
+		embed = Embed(title=f'custom auto responses',color=self.embed.color)
+		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.guild,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read()))

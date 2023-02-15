@@ -1,12 +1,13 @@
 from discord.ui import Button,button,Item,Select,string_select,user_select,InputText
-from discord import Interaction,Embed,SelectOption,InputTextStyle
+from discord import Interaction,Embed,SelectOption,InputTextStyle,Guild
 from client import Client,EmptyView,CustomModal
 
 
 class custom_au_view(EmptyView):
-	def __init__(self,original_view:EmptyView,client:Client,embed:Embed,custom_au:dict) -> None:
+	def __init__(self,original_view:EmptyView,guild:Guild,client:Client,embed:Embed,custom_au:dict) -> None:
 		super().__init__(timeout=0)
 		self.original_view = original_view
+		self.guild         = guild
 		self.client        = client
 		self.embed         = embed
 		self.custom_au     = custom_au
@@ -148,8 +149,8 @@ class custom_au_view(EmptyView):
 		if self.remove_confirmed:
 			if self.selected_au is None: raise
 			self.custom_au[self.page].pop(self.selected_au)
-			await self.client.db.guild(interaction.guild.id).data.auto_responses.custom.unset([self.page,self.selected_au.replace('.','\.')])
-			self.au_reload(interaction.guild.id)
+			await self.client.db.guild(self.guild.id).data.auto_responses.custom.unset([self.page,self.selected_au.replace('.','\.')])
+			self.au_reload(self.guild.id)
 			self.reload()
 		else:
 			self.embed.description = 'are you sure you want to remove this auto response?\nclick remove again to remove it.'
@@ -213,8 +214,8 @@ class custom_au_view(EmptyView):
 	async def save_button(self,button:Button,interaction:Interaction) -> None:
 		old_page = self.new_au.pop('method')
 		self.custom_au[old_page][self.new_au.pop('trigger')] = self.new_au
-		await self.client.db.guild(interaction.guild.id).data.auto_responses.custom.write(self.custom_au.get(old_page),[old_page])
-		self.au_reload(interaction.guild.id)
+		await self.client.db.guild(self.guild.id).data.auto_responses.custom.write(self.custom_au.get(old_page),[old_page])
+		self.au_reload(self.guild.id)
 		self.page = old_page
 		self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
