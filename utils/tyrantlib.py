@@ -45,7 +45,7 @@ def convert_time(seconds:int|float,decimal=15) -> str:
 
 def dev_only(ctx:ApplicationContext=None) -> bool:
 	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT THIS HAS TO BE AWAITED
-	async def perms(ctx,respond=True) -> bool:
+	async def perms(ctx:ApplicationContext,respond=True) -> bool:
 		if ctx.author.id == ctx.bot.owner_id: return True
 		if respond: await ctx.response.send_message('you must be the bot developer to run this command.',ephemeral=True)
 		return False
