@@ -107,8 +107,7 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 		role = guild.get_role(role_id)
 		match payload.event_type:
 			case 'REACTION_ADD':
-				await self.client.log.debug('roles list test',roles=[guild.get_role(ROLES.get(r)).name for r in REQUIRES_DISBOARDER])
-				if role_id in REQUIRES_DISBOARDER: await member.remove_roles(*[guild.get_role(ROLES.get(r)) for r in REQUIRES_DISBOARDER])
+				if reaction in REQUIRES_DISBOARDER: await member.remove_roles(*[guild.get_role(ROLES.get(r)) for r in REQUIRES_DISBOARDER])
 				await member.add_roles(role,reason='reaction role add')
 			case 'REACTION_REMOVE':
 				await member.remove_roles(role,reason='reaction role remove')
