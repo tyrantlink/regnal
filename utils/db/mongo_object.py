@@ -35,7 +35,7 @@ class MongoObject:
 
 	async def unset(self,a_path:list[str]=None) -> bool:
 		"""remove the specified field"""
-		await self._col.update_one({'_id':self.__id},{'$set':{'.'.join(self.__path+(a_path if a_path is not None else [])):None}})
+		await self._col.update_one({'_id':self.__id},{'$unset':{'.'.join(self.__path+(a_path if a_path is not None else [])):None}})
 		self.__db.session_stats['db_writes'] += 1
 		return True
 
