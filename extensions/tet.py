@@ -71,7 +71,9 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 		if message.author.get_role(role_id) is None:
 			match cmd:
 				case '?aschente': embed.set_author(name='welcome to disboard~!')
-				case '?lewd'    : embed.set_author(name='sus <:IzunaStare:319616840693317632>')
+				case '?lewd'    :
+					embed.set_author(name='sus')
+					embed.description = '<:IzunaStare:319616840693317632>'
 				case '?notlewd' : embed.set_author(name='you\'re no longer sus')
 				case '?artist'  : embed.set_author(name='added artist role')
 		else: embed.set_author(name='you already had the role, so i didn\'t do anything')
