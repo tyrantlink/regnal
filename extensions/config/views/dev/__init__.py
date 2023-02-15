@@ -13,6 +13,7 @@ class dev_menu(EmptyView):
 		self.client       = client
 		self.embed        = Embed(title='dev config',color=embed_color or back_view.embed.color)
 		self.selected     = None
+		self.category     = None
 		self.embed.set_author(name=self.client.user.name,icon_url=self.client.user.avatar.url)
 		if back_view is not None: self.add_item(self.back_button)
 		self.add_items(self.category_select)
