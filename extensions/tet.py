@@ -98,7 +98,7 @@ class tet_commands(Cog):
 			embed.set_author(name='you already had the role, so i didn\'t do anything',icon_url=self.client.user.display_avatar.url)
 			await ctx.response.send_message(embed=embed,ephemeral=True)
 			return
-		await ctx.author.add_roles(role)
+		await ctx.author.add_roles(role,reason='used /aschente')
 		embed.set_author(name='welcome to disboard~!',icon_url=self.client.user.display_avatar.url)
 		await ctx.response.send_message(embed=embed,ephemeral=True)
 
