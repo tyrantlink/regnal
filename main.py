@@ -60,7 +60,8 @@ class client_cls(Client):
 	async def _owner_init(self) -> None:
 		app = await self.application_info()
 		if app.team: self.owner_ids = {m.id for m in app.team.members}
-		else: self.owner_id = app.owner.id
+		else: self.owner_ids = {app.owner.id}
+		self.owner_id  = app.team.members[0].id
 
 	def _extloaded(self) -> None:
 		if len(ext:=stack()[1].filename.split('extensions/')[-1].split('/')) == 1:
