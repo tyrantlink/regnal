@@ -105,6 +105,7 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 			await self.db.update_one({'_id':member.id},{'role':role_id},upsert=True)
 			return
 		role = guild.get_role(role_id)
+		await self.client.log.debug(payload.event_type)
 		match payload.event_type:
 			case 'REACTION_ADD':
 				await self.client.log.debug('reaction role add',roles=[guild.get_role(ROLES.get(r)).name for r in REQUIRES_DISBOARDER if member.get_role(ROLES.get(r)) is not None])
