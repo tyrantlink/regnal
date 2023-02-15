@@ -107,10 +107,11 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 		role = guild.get_role(role_id)
 		match payload.event_type:
 			case 'REACTION_ADD':
-				await self.client.log.debug('reaction role',roles=[guild.get_role(ROLES.get(r)).name for r in REQUIRES_DISBOARDER if member.get_role(ROLES.get(r)) is not None])
+				await self.client.log.debug('reaction role add',roles=[guild.get_role(ROLES.get(r)).name for r in REQUIRES_DISBOARDER if member.get_role(ROLES.get(r)) is not None])
 				if reaction in REQUIRES_DISBOARDER: await member.remove_roles(*[guild.get_role(ROLES.get(r)) for r in REQUIRES_DISBOARDER if member.get_role(ROLES.get(r)) is not None],atomic=False,reason='reaction role add')
 				await member.add_roles(role,reason='reaction role add')
 			case 'REACTION_REMOVE':
+				await self.client.log.debug('reaction role remove',roles=[guild.get_role(ROLES.get(r)).name for r in REQUIRES_DISBOARDER if member.get_role(ROLES.get(r)) is not None])
 				await member.remove_roles(role,reason='reaction role remove',atomic=False)
 
 class tet_commands(Cog):
