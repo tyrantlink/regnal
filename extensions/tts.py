@@ -116,7 +116,8 @@ class tts_cog(Cog):
 			not getattr(message.author,'voice',None) or
 			message.content.startswith('-') or
 			message.content == '' or
-			message.author.bot): return
+			message.author.bot or
+			message.author.id in await self.client.db.guild(message.guild.id).data.tts.banned_users.read()): return
 		match await self.client.db.user(message.author.id).config.tts.mode.read():
 			case 'every message': pass
 			case 'only when muted' if message.author.voice.self_mute or message.author.voice.mute: pass
