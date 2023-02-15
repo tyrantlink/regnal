@@ -274,6 +274,8 @@ class Guild(MongoObject):
 				super().__init__(db,col,_id,path)
 				self.usage = MongoObject(db,col,_id,['data','tts','usage'])
 				"""int"""
+				self.banned_users = MongoObject(db,col,_id,['data','tts','banned_users'])
+				"""list[int]"""
 
 class Log(MongoObject):
 	def __init__(self,db,col:Collection,_id) -> None:
