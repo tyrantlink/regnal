@@ -3,6 +3,7 @@ from discord import Interaction,Embed,SelectOption,Guild,Member,CategoryChannel
 from extensions._shared_vars import config_info
 from client import Client,EmptyView,CustomModal
 from .configure_list import configure_list_view
+from .tts_banning import tts_banning_view
 from .custom_au import custom_au_view
 from discord.abc import GuildChannel
 from asyncio import create_task
@@ -133,7 +134,9 @@ class guild_config(EmptyView):
 		self.category = select.values[0]
 		self.clear_items()
 		self.add_items(self.back_button,self.option_select)
-		if self.category == 'auto_responses': self.add_item(self.custom_au_button)
+		match self.category:
+			case 'auto_responses': self.add_item(self.custom_au_button)
+			case 'tts': self.add_item(self.tts_banning_button)
 		await self.reload_config()
 		self.reload_embed()
 		await interaction.response.edit_message(view=self,embed=self.embed)
@@ -166,7 +169,9 @@ class guild_config(EmptyView):
 			self.reload_embed()
 			self.add_items(self.back_button,self.option_select)
 			for option in select.options: option.default = False
-			if self.category == 'auto_responses': self.add_item(self.custom_au_button)
+			match self.category:
+				case 'auto_responses': self.add_item(self.custom_au_button)
+				case 'tts': self.add_item(self.tts_banning_button)
 		await interaction.response.edit_message(view=self,embed=self.embed)
 
 	@channel_select(
@@ -266,3 +271,12 @@ class guild_config(EmptyView):
 	async def custom_au_button(self,button:Button,interaction:Interaction) -> None:
 		embed = Embed(title=f'custom auto responses',color=self.embed.color)
 		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.guild,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read()))
+
+	@button(
+		label='ban users',style=1,row=2,
+		custom_id='tts_banning_button')
+	async def tts_banning_button(self,button:Button,interaction:Interaction) -> None:
+		embed = Embed(title=f'tts banning',color=self.embed.color,
+			description=f'currently banned:\n'+(
+				'\n'.join([f'<@{i}>' for i in await self.client.db.guild(interaction.guild.id).data.tts.banned_users.read()]) or 'None'))
+		await interaction.response.edit_message(embed=embed,view=tts_banning_view(self,self.guild,self.client,embed))
