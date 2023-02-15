@@ -77,6 +77,7 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 		else: embed.set_author(name='you already had the role, so i didn\'t do anything')
 		if role_id >= 0: await message.author.add_roles(role,reason=f'{cmd} command')
 		else: await message.author.remove_roles(role,reason=f'{cmd} command')
+		await message.channel.send(embed=embed)
 
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
