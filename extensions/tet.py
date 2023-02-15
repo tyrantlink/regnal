@@ -87,7 +87,8 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 		await self.message_role_handler(message)
 		await self.message_command_handler(message)
 
-	@Cog.listener()
+	@Cog.listener('on_raw_reaction_add')
+	@Cog.listener('on_raw_reaction_remove')
 	async def on_raw_reaction_add(self,payload:RawReactionActionEvent) -> None:
 		if payload.message_id not in REACTION_MESSAGES or payload.guild_id is None: return
 		reaction = payload.emoji.name if payload.emoji.id is None else payload.emoji.id
