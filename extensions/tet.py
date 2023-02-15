@@ -69,10 +69,12 @@ class tet_stupid_reaction_roles_bullshit(Cog):
 		try: guild = self.client.get_guild(payload.guild_id) or await self.client.fetch_guild(payload.guild_id)
 		except Forbidden: return
 		if guild is None: return
-		try: member = payload.member or guild.get_member(payload.user_id) or await guild.fetch_member(payload.user_id)
+		try:
+			member = payload.member or guild.get_member(payload.user_id)
+			if not isinstance(member,Member): member = await guild.fetch_member(payload.user_id)
 		except Forbidden: return
 		if member is None: return
-		if role_id in REQUIRES_DISBOARDER and DISBOARDERS_ROLE not in [r.id for r in member.roles]:
+		if role_id in REQUIRES_DISBOARDER and member.get_role(DISBOARDERS_ROLE) is not None:
 			await self.db.update_one({'_id':member.id},{'role':role_id},upsert=True)
 			return
 		role = guild.get_role(role_id)
