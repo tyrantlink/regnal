@@ -80,9 +80,8 @@ class PluralKit:
 		create_task(self.cache_timeout(key))
 
 	async def from_cache(self,endpoint:str) -> tuple[str|None,dict|None]:
-		if (cache:=self._cache.get(endpoint,(None,None))) == 'PENDING':
-			while (cache:=self._cache.get(endpoint,(None,None))) == 'PENDING':
-				await sleep(0.001)
+		while (cache:=self._cache.get(endpoint,(None,None))) == 'PENDING':
+			await sleep(0.001)
 		return cache
 
 	async def _handle_ratelimit(self) -> None:
