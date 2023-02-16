@@ -102,7 +102,7 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 			if not isinstance(member,Member): member = await guild.fetch_member(payload.user_id)
 		except Forbidden: return
 		if member is None: return
-		if role_id in REQUIRES_DISBOARDER and member.get_role(DISBOARDERS_ROLE) is not None:
+		if reaction in REQUIRES_DISBOARDER and member.get_role(DISBOARDERS_ROLE) is not None:
 			await self.db.update_one({'_id':member.id},{'role':role_id},upsert=True)
 			return
 		role = guild.get_role(role_id)
