@@ -178,7 +178,7 @@ class auto_response_listeners(Cog):
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
 
-		if responses == self.base_responses:
+		if responses == self.base_responses and au.guild is None:
 			user_data = await self.client.db.user(user.id).read()
 			if raw_au not in user_data.get('data',{}).get('au').get(mode,[raw_au]) and not user_data.get('config',{}).get('general',{}).get('no_track',True):
 				await self.client.db.user(user.id).data.au.append(raw_au,[mode])

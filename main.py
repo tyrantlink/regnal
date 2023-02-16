@@ -36,9 +36,9 @@ class client_cls(Client):
 		if 'clear' in argv: return
 		self.log = log(self.db,MODE == 'dev')
 		self.pk = PluralKit()
-		if not MODE == 'beta':
-			self.add_cog(base_commands(self))
-			self.add_cog(message_handler(self))
+		# if not MODE == 'beta':
+		self.add_cog(base_commands(self))
+		self.add_cog(message_handler(self))
 		if MODE == 'dev':
 			self.flags.update({'DEV':None})
 			self.log.debug('LAUNCHED IN DEV MODE',to_db=False)
@@ -165,7 +165,7 @@ class base_commands(Cog):
 		embed.add_field(name='line count',value=f'{self.client.lines} lines',inline=True)
 		embed.add_field(name='commands',value=len([cmd for cmd in self.client.walk_application_commands() if not isinstance(cmd,SlashCommandGroup)]),inline=True)
 		if self.client.au:
-			auto_response_count = len([j for k in [list(self.client.au[i].keys()) for i in list(self.client.au.keys())] for j in k])
+			auto_response_count = len([k for i in self.client.au.values() for k,v in i.items() if v.get('guild', None) is None])
 			if ctx.guild:
 				g_au = await self.client.db.guild(ctx.guild.id).data.auto_responses.custom.read()
 				if g_au_count:=len([j for k in [list(g_au[i].keys()) for i in list(g_au.keys())] for j in k]):
