@@ -101,7 +101,7 @@ class logging_listeners(Cog):
 		check,channel = await self.log_check(message,'deleted_messages')
 		if not check: return
 		if await self.client.db.guild(message.guild.id).config.general.pluralkit.read():
-			if await self.client.pk.get_message(message.id) is not None: check = 1
+			if await self.client.pk.get_message(message.id,5,False) is not None: check = 1
 		await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
 			message.reference.message_id if message.reference else None,(await self.find_deleter(message)).id,
 			[int(datetime.now().timestamp()),'deleted',message.content],
