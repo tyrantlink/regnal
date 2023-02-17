@@ -41,7 +41,7 @@ class configure_list_view(EmptyView):
 		for i in self.channels_selected:
 			if i.id not in current: current.append(i.id)
 		await self.client.db.guild(self.guild.id).data.write(current,[self.option_type[0],self.option_type[1]])
-		await self.reload(self.guild.id)
+		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -52,5 +52,5 @@ class configure_list_view(EmptyView):
 		for i in self.channels_selected:
 			if i.id in current: current.remove(i.id)
 		await self.client.db.guild(self.guild.id).data.write(current,[self.option_type[0],self.option_type[1]])
-		await self.reload(self.guild.id)
+		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
