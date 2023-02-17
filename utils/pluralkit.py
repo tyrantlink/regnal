@@ -91,8 +91,8 @@ class PluralKit:
 			await sleep(perf_counter()-self._recent_requests[0])
 			await self._handle_ratelimit()
 
-	async def request(self,endpoint:str):
-		if (cache:=await self.from_cache(endpoint))[0] is not None:
+	async def request(self,endpoint:str,use_cache:bool=True):
+		if use_cache and (cache:=await self.from_cache(endpoint))[0] is not None:
 			return cache
 		self._cache.update({endpoint:'PENDING'})
 		await self._handle_ratelimit()
@@ -118,8 +118,8 @@ class PluralKit:
 		if req[0]: return Member(req[1])
 		else: return None
 
-	async def get_message(self,message_id:str,delay:float=0.4) -> Message|None:
+	async def get_message(self,message_id:str,delay:float=0.2,use_cache:bool=True) -> Message|None:
 		await sleep(delay)
-		req = await self.request(f'/messages/{message_id}')
+		req = await self.request(f'/messages/{message_id}',use_cache)
 		if req[0]: return Message(req[1])
 		else: return None
