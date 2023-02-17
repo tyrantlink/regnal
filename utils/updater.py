@@ -11,8 +11,7 @@ class UpdateHandler:
 		self.client = client
 		self.payload = payload
 		self.commits:list[dict] = payload.get('commits',[])
-		self.modified = list(set([f for c in self.commits for f in c.get('modified')]))
-		if self.modified == []: return
+		self.modified = list(set([f for c in self.commits for f in c.get('modified') if not c.get('message','').startswith(('nu;','du;'))]))
 		self.actions:list[str] = []
 
 	async def run(self) -> None:
