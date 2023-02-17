@@ -8,7 +8,7 @@ class ReadPathError(Exception):
 class MongoObject:
 	def __init__(self,db,collection:Collection,_id:str|int,path:list[str]) -> None:
 		self.__db   = db
-		self._col  = collection
+		self._col   = collection
 		self.__id   = _id
 		self.__path = path
 
