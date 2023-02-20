@@ -59,4 +59,4 @@ RUN mkdir -p ~/ffmpeg_sources ~/bin && cd ~/ffmpeg_sources && \
     hash -r
 RUN mv ~/bin/ffmpeg /usr/local/bin && mv ~/bin/ffprobe /usr/local/bin && mv ~/bin/ffplay /usr/local/bin
 RUN python3.10 -m pip install --no-cache-dir -r requirements.txt
-CMD ["python3.10","main.py"]
+CMD ["python3.10","-u","main.py"]
