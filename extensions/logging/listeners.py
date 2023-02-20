@@ -124,8 +124,9 @@ class logging_listeners(Cog):
 		if check <= 1: return
 		embeds = []
 		for message in messages:
-			try: embeds.append(await self.utils.gen_embed(message.id,2))
-			except ValueError: pass
+			try: embed = await self.utils.gen_embed(message.id,2)
+			except ValueError: continue
+			if isinstance(embed,Embed): embeds.append(embed)
 		for pack in split_list(embeds,10):
 			await channel.send(embeds=pack)
 
