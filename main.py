@@ -34,7 +34,7 @@ class client_cls(Client):
 		self.MODE = MODE
 		self.git_hash()
 		if 'clear' in argv: return
-		self.log = log(self.db,MODE == 'dev')
+		self.log = log(self.db,MODE)
 		self.pk = PluralKit()
 		# if not MODE == 'beta':
 		self.add_cog(base_commands(self))

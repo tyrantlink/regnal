@@ -7,24 +7,27 @@ from inspect import stack
 from time import time
 
 class log:
-	def __init__(self,db:MongoDatabase,DEV_MODE:bool) -> None:
+	def __init__(self,db:MongoDatabase,MODE:str) -> None:
 		self.db = db
-		self.DEV_MODE = DEV_MODE
+		self.MODE = MODE
 
 	def print(self,message:str,type:str,format:bool=True):
-		print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{" [DEV] " if self.DEV_MODE else " "}[{type.upper()}] {message}' if format else message)
+		print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{f" [{self.MODE.upper()}] " if self.MODE != "/reg/nal" else " "}[{type.upper()}] {message}' if format else message)
 
 	async def _submit(self,type:str,message:str,ctx:ApplicationContext=None,do_print:bool=True,**kwargs) -> None:
 		if ctx:
 			guild = ctx.guild.id if ctx.guild else None
 			channel = ctx.channel.id if ctx.channel else None
 			author = ctx.author.id if ctx.author else None
-		else: guild,channel,author = None,None,None
+		else:
+			guild = kwargs.pop('guild',None)
+			channel = kwargs.pop('channel',None)
+			author = kwargs.pop('author',None)
 		if do_print: self.print(message,type,kwargs.get('format_print',True))
 		await self.db.log(0).new('+1',{
 			'ts':time(),
 			'dt':datetime.now().strftime("%m/%d/%Y %H:%M:%S"),
-			'dev':self.DEV_MODE,
+			'mode':self.MODE,
 			'type':type,
 			'log':message,
 			'guild':guild,
