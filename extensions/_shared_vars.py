@@ -244,7 +244,7 @@ config_info = {
 			},
 			"log_all_messages":
 			{
-				"description": "all sent messages, not just deleted and edited messages",
+				"description": "creates a log entry for every message sent, this ensures that every state of a message will be logged, and will also be useful in preventing caching issues. mostly useful for deletes and bulk deletes",
 				"default": False,
 				"type": "bool"
 			},
