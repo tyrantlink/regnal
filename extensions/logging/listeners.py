@@ -80,7 +80,7 @@ class logging_listeners(Cog):
 				id=int(data.get('id')),
 				author=await self.client.get_or_fetch_user(data.get('author',{}).get('id')),
 				guild=_guild,
-				channel=_guild.get_channel(data.get('channel_id')),
+				channel=_guild.get_channel(data.get('channel_id')) or await _guild.fetch_channel(data.get('channel_id')),
 				reference=MakeshiftClass(message_id=int(reference.get('message_id'))) if (reference:=data.get('message_reference')) else None,
 				created_at=snowflake_time(int(data.get('id'))),
 				content=data.get('content'),
@@ -98,16 +98,21 @@ class logging_listeners(Cog):
 
 	@Cog.listener()
 	async def on_raw_message_edit(self,payload:RawMessageUpdateEvent) -> None:
-		before = payload.cached_message or await self.from_raw(payload.data)
+		before = payload.cached_message
 		after  = await self.from_raw(payload.data)
-		if before.content == after.content: return
-		check,channel = await self.log_check(before,'edited_messages')
+		print(after.author)
+		print(after.guild)
+		print(after.channel)
+
+		check,channel = await self.log_check(before or after,'edited_messages')
 		if not check: return
-		if await self.client.db.message(before.id).read() is None:
-			await self.log(before.id,before.author.id,before.guild.id,before.channel.id,
-				before.reference.message_id if before.reference else None,None,
-				[int(before.created_at.timestamp()),'original',before.content],
-				[att.filename for att in before.attachments])
+		if before is not None:
+			if before.content == after.content: return
+			if await self.client.db.message(before.id).read() is None:
+				await self.log(before.id,before.author.id,before.guild.id,before.channel.id,
+					before.reference.message_id if before.reference else None,None,
+					[int(before.created_at.timestamp()),'original',before.content],
+					[att.filename for att in before.attachments])
 		await self.log(after.id,after.author.id,after.guild.id,after.channel.id,
 			after.reference.message_id if after.reference else None,None,
 			[int(datetime.now().timestamp()),'edited',after.content],
