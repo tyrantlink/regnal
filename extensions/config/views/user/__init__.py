@@ -84,6 +84,9 @@ class user_config(EmptyView):
 					return
 
 		await self.client.db.user(self.user.id).config.write(value,[self.category,self.selected])
+		await self.client.log.info(f'{self.user.name} modified user config',**{
+			'author':self.user.id,
+			f'{self.category}/{self.selected}':value})
 		await self.reload_config()
 		self.reload_embed()
 

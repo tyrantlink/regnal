@@ -14,6 +14,7 @@ class guild_config(EmptyView):
 		self.back_view   = back_view
 		self.client      = client
 		self.guild       = guild
+		self.user        = user
 		self.embed       = Embed(title='guild config',color=embed_color or back_view.embed.color)
 		self.config      = {}
 		self.category    = None
@@ -106,6 +107,10 @@ class guild_config(EmptyView):
 						title='WARNING: i can\'t see into the following channels,\nthey will not be logged',
 						description='\n'.join(channels),color=0xffff69),ephemeral=True))
 		await self.client.db.guild(self.guild.id).config.write(value,[self.category,self.selected])
+		await self.client.log.info(f'{self.user.name} modified guild config',**{
+			'author':self.user.id,
+			'guild':self.guild.id,
+			f'{self.category}/{self.selected}':value})
 		await self.reload_config()
 		self.reload_embed()
 
@@ -263,14 +268,14 @@ class guild_config(EmptyView):
 			description=f'currently {mode}ed:\n'+(
 				'\n'.join([f'<#{i}>' for i in await self.client.db.guild(self.guild.id).data.read([path,mode])]) or 'None'),
 			color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=configure_list_view((path,mode),self,self.guild,self.client,embed))
+		await interaction.response.edit_message(embed=embed,view=configure_list_view((path,mode),self,self.user,self.guild,self.client,embed))
 
 	@button(
 		label='custom auto responses',style=1,row=2,
 		custom_id='custom_au_button')
 	async def custom_au_button(self,button:Button,interaction:Interaction) -> None:
 		embed = Embed(title=f'custom auto responses',color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.guild,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read()))
+		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.user,self.guild,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read()))
 
 	@button(
 		label='ban users',style=1,row=2,
@@ -279,4 +284,4 @@ class guild_config(EmptyView):
 		embed = Embed(title=f'tts banning',color=self.embed.color,
 			description=f'currently banned:\n'+(
 				'\n'.join([f'<@{i}>' for i in await self.client.db.guild(interaction.guild.id).data.tts.banned_users.read()]) or 'None'))
-		await interaction.response.edit_message(embed=embed,view=tts_banning_view(self,self.guild,self.client,embed))
+		await interaction.response.edit_message(embed=embed,view=tts_banning_view(self,self.user,self.guild,self.client,embed))

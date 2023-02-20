@@ -1,13 +1,14 @@
 from discord.ui import Button,button,Item,user_select,Select
-from discord import Interaction,Embed,Guild
+from discord import Interaction,Embed,Guild,Member
 from client import Client,EmptyView
 
 
 class tts_banning_view(EmptyView):
-	def __init__(self,original_view:EmptyView,guild:Guild,client:Client,embed:Embed) -> None:
+	def __init__(self,original_view:EmptyView,user:Member,guild:Guild,client:Client,embed:Embed) -> None:
 		super().__init__(timeout=0)
 		self.original_view  = original_view
 		self.guild          = guild
+		self.user           = user
 		self.client         = client
 		self.embed          = embed
 		self.selected_user  = None
@@ -41,14 +42,12 @@ class tts_banning_view(EmptyView):
 			await interaction.response.defer(ephemeral=True)
 			return
 		await self.client.db.guild(self.guild.id).data.tts.banned_users.append(self.selected_user.id)
+		await self.client.log.info(f'{self.user.name} modified tts banning',**{
+			'author':self.user.id,
+			'guild':self.guild.id,
+			'banned':{'id':self.selected_user.id,'name':self.selected_user.name,'discriminator':self.selected_user.discriminator}})
 		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-		# current:list = await self.client.db.guild(interaction.guild.id).data.read([self.option_type[0],self.option_type[1]])
-		# for i in self.channels_selected:
-		# 	if i.id not in current: current.append(i.id)
-		# await self.client.db.guild(interaction.guild.id).data.write(current,[self.option_type[0],self.option_type[1]])
-		# await self.reload(interaction.guild.id)
-		# await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
 		label='unban',style=3,row=1,
@@ -58,11 +57,9 @@ class tts_banning_view(EmptyView):
 			await interaction.response.defer(ephemeral=True)
 			return
 		await self.client.db.guild(self.guild.id).data.tts.banned_users.remove(self.selected_user.id)
+		await self.client.log.info(f'{self.user.name} modified tts banning',**{
+			'author':self.user.id,
+			'guild':self.guild.id,
+			'unbanned':{'id':self.selected_user.id,'name':self.selected_user.name,'discriminator':self.selected_user.discriminator}})
 		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-		# current:list = await self.client.db.guild(interaction.guild.id).data.read([self.option_type[0],self.option_type[1]])
-		# for i in self.channels_selected:
-		# 	if i.id in current: current.remove(i.id)
-		# await self.client.db.guild(interaction.guild.id).data.write(current,[self.option_type[0],self.option_type[1]])
-		# await self.reload(interaction.guild.id)
-		# await interaction.response.edit_message(embed=self.embed,view=self)

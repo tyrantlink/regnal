@@ -1,13 +1,14 @@
 from discord.ui import Button,button,Item,Select,string_select,user_select,InputText
-from discord import Interaction,Embed,SelectOption,InputTextStyle,Guild
+from discord import Interaction,Embed,SelectOption,InputTextStyle,Guild,Member
 from client import Client,EmptyView,CustomModal
 
 
 class custom_au_view(EmptyView):
-	def __init__(self,original_view:EmptyView,guild:Guild,client:Client,embed:Embed,custom_au:dict) -> None:
+	def __init__(self,original_view:EmptyView,user:Member,guild:Guild,client:Client,embed:Embed,custom_au:dict) -> None:
 		super().__init__(timeout=0)
 		self.original_view = original_view
 		self.guild         = guild
+		self.user          = user
 		self.client        = client
 		self.embed         = embed
 		self.custom_au     = custom_au
@@ -150,6 +151,10 @@ class custom_au_view(EmptyView):
 			if self.selected_au is None: raise
 			self.custom_au[self.page].pop(self.selected_au)
 			await self.client.db.guild(self.guild.id).data.auto_responses.custom.unset([self.page,self.selected_au.replace('.','\.')])
+			await self.client.log.info(f'{self.user.name} modified custom auto responses',**{
+			'author':self.user.id,
+			'guild':self.guild.id,
+			self.page:self.selected_au})
 			self.au_reload(self.guild.id)
 			self.reload()
 		else:
@@ -212,9 +217,13 @@ class custom_au_view(EmptyView):
 		label='save',style=3,row=2,
 		custom_id='save_button',disabled=True)
 	async def save_button(self,button:Button,interaction:Interaction) -> None:
-		old_page = self.new_au.pop('method')
-		self.custom_au[old_page][self.new_au.pop('trigger')] = self.new_au
+		old_page,trigger = self.new_au.pop('method'),self.new_au.pop('trigger')
+		self.custom_au[old_page][trigger] = self.new_au
 		await self.client.db.guild(self.guild.id).data.auto_responses.custom.write(self.custom_au.get(old_page),[old_page])
+		await self.client.log.info(f'{self.user.name} modified custom auto responses',**{
+			'author':self.user.id,
+			'guild':self.guild.id,
+			old_page:self.custom_au.get(old_page,{}).get(trigger,None)})
 		self.au_reload(self.guild.id)
 		self.page = old_page
 		self.reload()
