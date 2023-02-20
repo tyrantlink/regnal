@@ -1,9 +1,9 @@
 from discord import Message,Member,Embed,TextChannel,RawMessageUpdateEvent,RawMessageDeleteEvent,RawBulkMessageDeleteEvent
+from utils.db.mongo_object import ReadPathError
 from discord.errors import NotFound,Forbidden
 from utils.tyrantlib import MakeshiftClass
 from discord.utils import snowflake_time
 from datetime import datetime,timedelta
-from utils.tyrantlib import split_list
 from discord.ext.commands import Cog
 from client import Client
 from .utils import utils
@@ -98,6 +98,7 @@ class logging_listeners(Cog):
 
 	@Cog.listener()
 	async def on_raw_message_edit(self,payload:RawMessageUpdateEvent) -> None:
+		if payload.guild_id is None: return
 		before = payload.cached_message
 		after  = await self.from_raw(payload.data)
 		check,channel = await self.log_check(before or after,'edited_messages')
@@ -119,38 +120,46 @@ class logging_listeners(Cog):
 
 	@Cog.listener()
 	async def on_raw_message_delete(self,payload:RawMessageDeleteEvent) -> None:
-		message = payload.cached_message or await self.from_raw(payload.data)
+		if payload.guild_id is None: return
+		message = payload.cached_message or MakeshiftClass(
+			guild=self.client.get_guild(int(payload.guild_id)) or await self.client.fetch_guild(int(payload.guild_id)),
+			channel=MakeshiftClass(id=int(payload.channel_id)),
+			author=MakeshiftClass(id=None,bot=False))
 		check,channel = await self.log_check(message,'deleted_messages')
 		if not check: return
-		if await self.client.db.guild(message.guild.id).config.general.pluralkit.read():
-			if await self.client.pk.get_message(message.id,5,False) is not None: check = 1
-		await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
+		if await self.client.db.guild(int(payload.guild_id)).config.general.pluralkit.read():
+			if await self.client.pk.get_message(int(payload.message_id),5,False) is not None: check = 1
+		if payload.cached_message is None:
+			try: log = await self.client.db.message(int(payload.message_id)).read()
+			except ReadPathError: return
+			if log is None: return
+			await self.client.db.message(int(payload.message_id)).logs.append([int(datetime.now().timestamp()),'deleted',log.get('logs',[[None]])[-1][-1]])
+		else:
+			await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
 			message.reference.message_id if message.reference else None,(await self.find_deleter(message)).id,
 			[int(datetime.now().timestamp()),'deleted',message.content],
 			[att.filename for att in message.attachments])
 		if check <= 1: return
-		try: await self.send_embed(message.id,channel,1)
+		try: await self.send_embed(int(payload.message_id),channel,1)
 		except ValueError: return
 
 	@Cog.listener()
-	async def on_bulk_message_delete(self,messages:list[Message]) -> None:
-		check,channel = await self.log_check(messages[0],'deleted_messages')
+	async def on_raw_bulk_message_delete(self,payload:RawBulkMessageDeleteEvent) -> None:
+		check,channel = await self.log_check(MakeshiftClass(
+			guild=self.client.get_guild(int(payload.guild_id)) or await self.client.fetch_guild(int(payload.guild_id)),
+			channel=MakeshiftClass(id=int(payload.channel_id)),
+			author=MakeshiftClass(id=None,bot=False)),'deleted_messages')
 		if not check: return
 		deleted_at = int(datetime.now().timestamp())
-		deleter    = await self.find_deleter(messages[0])
-		for message in messages:
-			await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
-				message.reference.message_id if message.reference else None,deleter.id,
-				[deleted_at,'deleted',message.content],
-				[att.filename for att in message.attachments])
+		m_ids = list(payload.message_ids)
+		for message_id in m_ids:
+			try: log = await self.client.db.message(message_id).read()
+			except ReadPathError: continue
+			if log is None: continue
+			await self.client.db.message(message_id).logs.append([deleted_at,'deleted',log.get('logs',[[None]])[-1][-1]])
 		if check <= 1: return
-		embeds = []
-		for message in messages:
-			try: embed = await self.utils.gen_embed(message.id,2)
-			except ValueError: continue
-			if isinstance(embed,Embed): embeds.append(embed)
-		for pack in split_list(embeds,10):
-			await channel.send(embeds=pack)
+		embed = Embed(title=f'{len(m_ids)} messages bulk deleted in <#{payload.channel_id}>',description=','.join([str(i) for i in m_ids]),color=0xff6969)
+		await channel.send(embed=embed)
 
 	@Cog.listener()
 	async def on_member_join(self,member:Member) -> None:
