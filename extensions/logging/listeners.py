@@ -100,10 +100,6 @@ class logging_listeners(Cog):
 	async def on_raw_message_edit(self,payload:RawMessageUpdateEvent) -> None:
 		before = payload.cached_message
 		after  = await self.from_raw(payload.data)
-		print(after.author)
-		print(after.guild)
-		print(after.channel)
-
 		check,channel = await self.log_check(before or after,'edited_messages')
 		if not check: return
 		if before is not None:
