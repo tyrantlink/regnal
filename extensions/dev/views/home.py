@@ -84,8 +84,8 @@ class home_view(EmptyView):
 		await modal.wait()
 		await modal.interaction.response.defer(invisible=True)
 		await sleep(int(modal.children[2].value))
-		reply = await interaction.channel.fetch_message(int(ref[1:] if ref[0] == 'p' else ref)) if (ref:=modal.children[1].value) != '' else None
-		await interaction.channel.send(modal.children[0].value,reference=reply,mention_author=ref[0] == 'p')
+		reply = None if (ref:=modal.children[1].value) == '' else await interaction.channel.fetch_message(int(ref[1:] if ref[0] == 'p' else ref))
+		await interaction.channel.send(modal.children[0].value,reference=reply,mention_author=False if ref == '' else ref[0] == 'p')
 
 	@button(
 		label='reload au',style=1,
