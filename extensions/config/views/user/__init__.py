@@ -25,9 +25,6 @@ class user_config(EmptyView):
 	def config_type(self) -> str|None:
 		return config_info.get('user' if self.user.type == 'discord' else 'pk_user',{}).get(self.category,{}).get(self.selected,{}).get('type',None)
 
-	async def start(self) -> bool:
-		pass
-
 	@property
 	def user(self) -> MixedUser:
 		return self._user

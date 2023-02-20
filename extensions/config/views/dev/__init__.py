@@ -22,9 +22,6 @@ class dev_menu(EmptyView):
 	def config_type(self) -> str|None:
 		return config_info.get('dev',{}).get(self.selected,{}).get('type',None)
 
-	async def start(self) -> bool:
-		pass
-
 	async def impersonate(self,category:str,interaction:Interaction) -> tuple[user_config|guild_config,Interaction]:
 		modal = CustomModal(self,f'input {category} id',[InputText(label=f'{category} id')])
 		await interaction.response.send_modal(modal)

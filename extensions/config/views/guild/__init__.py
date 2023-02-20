@@ -38,9 +38,6 @@ class guild_config(EmptyView):
 	def config_type(self) -> str|None:
 		return config_info.get('guild',{}).get(self.category,{}).get(self.selected,{}).get('type',None)
 
-	async def start(self) -> bool:
-		pass
-
 	def reload_embed(self) -> None:
 		self.embed.clear_fields()
 		category_data = config_info.get('guild',{}).get(self.category,{})

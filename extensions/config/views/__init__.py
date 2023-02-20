@@ -36,5 +36,4 @@ class config_view(EmptyView):
 			case 'guild': view = guild_config(self,self.client,self.user,self.guild)
 			case 'dev':   view = dev_menu(self,self.client)
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
-		await view.start()
 		await interaction.response.edit_message(view=view,embed=view.embed)
