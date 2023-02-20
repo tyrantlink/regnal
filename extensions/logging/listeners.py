@@ -1,5 +1,7 @@
-from discord import Message,Member,Embed,TextChannel
+from discord import Message,Member,Embed,TextChannel,RawMessageUpdateEvent,RawMessageDeleteEvent,RawBulkMessageDeleteEvent
 from discord.errors import NotFound,Forbidden
+from utils.tyrantlib import MakeshiftClass
+from discord.utils import snowflake_time
 from datetime import datetime,timedelta
 from utils.tyrantlib import split_list
 from discord.ext.commands import Cog
@@ -24,6 +26,7 @@ class logging_listeners(Cog):
 		log:tuple[int,str,str]=None,
 		attachments:list[str]=None
 	) -> None:
+		if self.client.MODE in ['dev','beta']: return
 		if await self.client.db.message(_id).read() is not None:
 			await self.client.db.message(_id).logs.append(list(log))
 			if deleted_by is not None: await self.client.db.message(_id).deleted_by.write(deleted_by)
@@ -48,7 +51,7 @@ class logging_listeners(Cog):
 		if message.guild is None: return (0,None)
 		config:dict = await self.client.db.guild(message.guild.id).config.logging.read()
 		if not config.get('enabled') or not config.get(mode,False): return (0,None)
-		if (config.get('log_bots') and message.bot): return (0,None)
+		if (config.get('log_bots') and message.author.bot): return (0,None)
 		if (channel:=config.get('channel',None)) is not None:
 			try: channel = message.guild.get_channel(channel) or await message.guild.fetch_channel(channel)
 			except (NotFound,Forbidden): channel = None
@@ -70,6 +73,21 @@ class logging_listeners(Cog):
 				return log.user
 		return message.author
 
+	async def from_raw(self,data:dict) -> Message:
+		_guild = self.client.get_guild(data.get('guild_id')) or await self.client.fetch_guild(data.get('guild_id'))
+		try:
+			message = MakeshiftClass(
+				id=int(data.get('id')),
+				author=await self.client.get_or_fetch_user(data.get('author',{}).get('id')),
+				guild=_guild,
+				channel=_guild.get_channel(data.get('channel_id')),
+				reference=MakeshiftClass(message_id=int(reference.get('message_id'))) if (reference:=data.get('message_reference')) else None,
+				created_at=snowflake_time(int(data.get('id'))),
+				content=data.get('content'),
+				attachments=[MakeshiftClass(filename=a.get('filename')) for a in data.get('attachments',{})])
+		except Exception: return None
+		return message
+
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
 		if not (await self.log_check(message,'log_all_messages'))[0]: return
@@ -79,7 +97,9 @@ class logging_listeners(Cog):
 			[att.filename for att in message.attachments])
 
 	@Cog.listener()
-	async def on_message_edit(self,before:Message,after:Message) -> None:
+	async def on_raw_message_edit(self,payload:RawMessageUpdateEvent) -> None:
+		before = payload.cached_message or await self.from_raw(payload.data)
+		after  = await self.from_raw(payload.data)
 		if before.content == after.content: return
 		check,channel = await self.log_check(before,'edited_messages')
 		if not check: return
@@ -97,7 +117,8 @@ class logging_listeners(Cog):
 		except ValueError: return
 
 	@Cog.listener()
-	async def on_message_delete(self,message:Message) -> None:
+	async def on_raw_message_delete(self,payload:RawMessageDeleteEvent) -> None:
+		message = payload.cached_message or await self.from_raw(payload.data)
 		check,channel = await self.log_check(message,'deleted_messages')
 		if not check: return
 		if await self.client.db.guild(message.guild.id).config.general.pluralkit.read():
