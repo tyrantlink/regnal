@@ -28,8 +28,8 @@ class logging_commands(Cog):
 			return
 		if raw:
 			log = dumps(log,indent=2)
-			if len(log)+12 > 2000: await ctx.response.send_message(file=File(StringIO(log),f'log{message_id}.txt'))
-			else: await ctx.response.send_message(f'```json\n{log}\n```')
+			if len(log)+12 > 2000: await ctx.response.send_message(file=File(StringIO(log),f'log{message_id}.txt'),ephemeral=await self.client.hide(ctx))
+			else: await ctx.response.send_message(f'```json\n{log}\n```',ephemeral=await self.client.hide(ctx))
 		else: await ctx.response.send_message(embed=await self.utils.gen_embed(ctx.guild,int(message_id)),ephemeral=await self.client.hide(ctx))
 
 	@logging.command(name='recent',
