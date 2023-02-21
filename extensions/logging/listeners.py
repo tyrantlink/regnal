@@ -75,17 +75,15 @@ class logging_listeners(Cog):
 
 	async def from_raw(self,data:dict) -> Message:
 		_guild = self.client.get_guild(data.get('guild_id')) or await self.client.fetch_guild(data.get('guild_id'))
-		try:
-			message = MakeshiftClass(
-				id=int(data.get('id')),
-				author=await self.client.get_or_fetch_user(int(data.get('author',{}).get('id'))),
-				guild=_guild,
-				channel=_guild.get_channel(data.get('channel_id')) or await _guild.fetch_channel(data.get('channel_id')),
-				reference=MakeshiftClass(message_id=int(reference.get('message_id'))) if (reference:=data.get('message_reference')) else None,
-				created_at=snowflake_time(int(data.get('id'))),
-				content=data.get('content'),
-				attachments=[MakeshiftClass(filename=a.get('filename')) for a in data.get('attachments',{})])
-		except Exception: return None
+		message = MakeshiftClass(
+			id=int(data.get('id')),
+			author=await self.client.get_or_fetch_user(int(data.get('author',{}).get('id'))),
+			guild=_guild,
+			channel=_guild.get_channel(data.get('channel_id')) or await _guild.fetch_channel(data.get('channel_id')),
+			reference=MakeshiftClass(message_id=int(reference.get('message_id'))) if (reference:=data.get('message_reference')) else None,
+			created_at=snowflake_time(int(data.get('id'))),
+			content=data.get('content'),
+			attachments=[MakeshiftClass(filename=a.get('filename')) for a in data.get('attachments',{})])
 		return message
 
 	@Cog.listener()
@@ -99,10 +97,11 @@ class logging_listeners(Cog):
 	@Cog.listener()
 	async def on_raw_message_edit(self,payload:RawMessageUpdateEvent) -> None:
 		if payload.guild_id is None: return
+		if payload.data.get('author',None) is None: return
 		before = payload.cached_message
 		after  = await self.from_raw(payload.data)
 		if before is None or after is None:
-			await self.client.log.debug('raw message edit error:',payload=dict(payload.data))
+			await self.client.log.debug('raw message edit error',payload=dict(payload.data))
 			return
 		check,channel = await self.log_check(before or after,'edited_messages')
 		if not check: return
