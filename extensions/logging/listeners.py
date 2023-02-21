@@ -78,7 +78,7 @@ class logging_listeners(Cog):
 		try:
 			message = MakeshiftClass(
 				id=int(data.get('id')),
-				author=await self.client.get_or_fetch_user(data.get('author',{}).get('id')),
+				author=await self.client.get_or_fetch_user(int(data.get('author',{}).get('id'))),
 				guild=_guild,
 				channel=_guild.get_channel(data.get('channel_id')) or await _guild.fetch_channel(data.get('channel_id')),
 				reference=MakeshiftClass(message_id=int(reference.get('message_id'))) if (reference:=data.get('message_reference')) else None,
