@@ -48,7 +48,15 @@ class utils:
 				embed.description += f'\n\n[replying to {str(replying_to.author)}](<{replying_to.jump_url}>)'
 				footer.append(('reply',f'id: {replying_to.id}'))
 		width = max([len(l) for l in logs])
-		for log in logs: embed.add_field(name=f'{log[1].upper().ljust(width)} <t:{log[0]}:t>',value=log[2] or '​',inline=False)
+		chr_limit = False
+		for log in logs:
+			if len(log[2]) <= 1024: embed.add_field(name=f'{log[1].upper().ljust(width)} <t:{log[0]}:t>',value=log[2],inline=False)
+			else:
+				embed.add_field(name=f'{log[1].upper().ljust(width)} <t:{log[0]}:t>',value=f'{log[2][:1021]}...',inline=False)
+				chr_limit = True
+		if chr_limit:
+			if len(embed.fields) >= 25: embed.remove_field(0)
+			embed.add_field(name='CHARACTER LIMIT WARNING',value=f'the character limit was hit on one of these messages, you can use {[f"</{cmd.qualified_name}:{cmd.qualified_id}>" for cmd in self.client.walk_application_commands() if cmd.qualified_name == "logging get"][0]} with the `raw` value set to `True` to see the full log')
 		width = max([len(f) for f,i in footer])
 		embed.set_footer(text='\n'.join([f'{l.ljust(width)} {i}' for l,i in footer]),icon_url=embed.footer.icon_url)
 
