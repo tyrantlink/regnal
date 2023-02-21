@@ -101,6 +101,9 @@ class logging_listeners(Cog):
 		if payload.guild_id is None: return
 		before = payload.cached_message
 		after  = await self.from_raw(payload.data)
+		if before is None or after is None:
+			await self.client.log.debug('raw message edit error:',payload=dict(payload.data))
+			return
 		check,channel = await self.log_check(before or after,'edited_messages')
 		if not check: return
 		if before is not None:
