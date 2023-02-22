@@ -41,12 +41,6 @@ REQUIRES_DISBOARDER = [
 	418650515153354762,
 	862802371448275024,
 	'❄️']
-COMMAND_ROLES = {
-	'?aschente':306153845048737792,
-	'?lewd':845538867784450049,
-	'?notlewd':-845538867784450049,
-	'?artist':582503462047186955
-}
 
 class tet_stupid_dyno_replacement_bullshit(Cog):
 	"""will be removed once onboarding is fully public, this is just a temp solution for replacing dyno"""
@@ -61,31 +55,10 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 		await message.author.add_roles(message.guild.get_role(role),reason='reaction role add')
 		await self.db.delete_one({'_id':message.author.id})
 
-	async def message_command_handler(self,message:Message) -> None:
-		if message.channel.id != 305832196550295564: return
-		cmd = message.content.strip()
-		role_id = COMMAND_ROLES.get(cmd,None)
-		if role_id is None: return
-		role = message.guild.get_role(abs(role_id))
-		embed = Embed(color=0xf9b5fa)
-		if message.author.get_role(role_id) is None:
-			match cmd:
-				case '?aschente': embed.set_author(name='welcome to disboard~!')
-				case '?lewd'    :
-					embed.set_author(name='sus')
-					embed.description = '<:IzunaStare:319616840693317632>'
-				case '?notlewd' : embed.set_author(name='you\'re no longer sus')
-				case '?artist'  : embed.set_author(name='added artist role')
-		else: embed.set_author(name='you already had the role, so i didn\'t do anything')
-		if role_id >= 0: await message.author.add_roles(role,reason=f'{cmd} command')
-		else: await message.author.remove_roles(role,reason=f'{cmd} command')
-		await message.channel.send(embed=embed)
-
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
 		if message.guild is None or not isinstance(message.author,Member): return
 		await self.message_role_handler(message)
-		await self.message_command_handler(message)
 
 	@Cog.listener('on_raw_reaction_add')
 	@Cog.listener('on_raw_reaction_remove')
@@ -133,6 +106,37 @@ class tet_commands(Cog):
 			return
 		await ctx.author.add_roles(role,reason='used /aschente')
 		embed.set_author(name='welcome to disboard~!',icon_url=self.client.user.display_avatar.url)
+		await ctx.response.send_message(embed=embed,ephemeral=True)
+
+	@slash_command(
+		name='lewd',
+		description='sus',
+		guild_ids=[305627343895003136])
+	async def slash_lewd(self,ctx:ApplicationContext) -> None:
+		embed = Embed(color=0xf9b5fa)
+		role  = ctx.guild.get_role(845538867784450049)
+		if ctx.author.get_role(role.id):
+			embed.set_author(name='you already had the role, so i didn\'t do anything',icon_url=self.client.user.display_avatar.url)
+			await ctx.response.send_message(embed=embed,ephemeral=True)
+			return
+		await ctx.author.add_roles(role,reason='used /lewd')
+		embed.set_author(name='sus')
+		embed.description = '<:IzunaStare:319616840693317632>'
+		await ctx.response.send_message(embed=embed,ephemeral=True)
+
+	@slash_command(
+		name='notlewd',
+		description='less sus',
+		guild_ids=[305627343895003136])
+	async def slash_notlewd(self,ctx:ApplicationContext) -> None:
+		embed = Embed(color=0xf9b5fa)
+		role  = ctx.guild.get_role(845538867784450049)
+		if not ctx.author.get_role(role.id):
+			embed.set_author(name='you didn\'t have the role, so i didn\'t do anything',icon_url=self.client.user.display_avatar.url)
+			await ctx.response.send_message(embed=embed,ephemeral=True)
+			return
+		await ctx.author.remove_roles(role,reason='used /notlewd')
+		embed.set_author(name='you\'re no longer sus')
 		await ctx.response.send_message(embed=embed,ephemeral=True)
 
 
