@@ -14,6 +14,7 @@ from fastapi import FastAPI,Request
 from discord.ext.tasks import loop
 from utils.db import MongoDatabase
 from uvicorn import run as urun
+from utils.nsfw import nsfw
 from os.path import exists
 from inspect import stack
 from utils.log import log
@@ -36,13 +37,16 @@ class client_cls(Client):
 		if 'clear' in argv: return
 		self.log = log(self.db,MODE)
 		self.pk = PluralKit()
-		# if not MODE == 'beta':
-		self.add_cog(base_commands(self))
-		self.add_cog(message_handler(self))
+		if not MODE == 'beta':
+			self.add_cog(base_commands(self))
+			self.add_cog(message_handler(self))
 		if MODE == 'dev':
 			self.flags.update({'DEV':None})
 			self.log.debug('LAUNCHED IN DEV MODE',to_db=False)
 		self.loaded_extensions,self._raw_loaded_extensions = [],[]
+		if (
+			'nsfw_filter' in extensions.keys() or
+			'sauce' in extensions.keys()): self.nsfw = nsfw()
 		for extension,enabled in extensions.items():
 			if enabled:
 				self.load_extension(f'extensions.{extension}')

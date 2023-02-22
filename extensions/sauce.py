@@ -1,16 +1,12 @@
 from discord.commands import Option as option,slash_command,message_command
 from discord import Embed,ApplicationContext,Message,Guild
 from aiofiles import open as aio_open
-from os import environ,devnull,remove
-environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # needs to be before nsfw_detector import
 from discord.ext.commands import Cog
 from aiohttp import ClientSession
-from nsfw_detector import predict
 from urllib.parse import quote
 from secrets import token_hex
 from client import Client
 from asyncio import sleep
-import sys
 
 
 class art_services:
@@ -57,16 +53,10 @@ class art_services:
 class sauce_commands(Cog):
 	def __init__(self,client:Client) -> None:
 		self.client = client
-		predict.tf.get_logger().setLevel(50)
-		predict.tf.autograph.set_verbosity(0)
-		self.nsfw_model = predict.load_model('nsfw_model')
 		self.valid_formats = ['gif','jpg','png','bmp','webp']
 		self.art = art_services()
-		self.stdout = sys.stdout # save stdout 
-
 		self.invalid_embed = Embed(title='ERROR',description='no valid images were found',color=0xff6969)
 		self.invalid_embed.add_field(name='valid image types',value=", ".join(self.valid_formats))
-
 		self.no_result_embed = Embed(title='failed to find a result',description='uhhhhh, good luck',color=0xff6969)
 
 	async def _is_nsfw(self,url:str) -> bool:
@@ -76,20 +66,7 @@ class sauce_commands(Cog):
 				if res.status != 200: return None
 				async with aio_open(filepath,'wb') as file:
 					await file.write(await res.read())
-
-		with open(devnull,'w') as null:
-			sys.stdout = null # overwrite stdout
-			out = predict.classify(self.nsfw_model,filepath)
-			sys.stdout = self.stdout # return stdout
-			remove(filepath)
-
-		for k,v in out[list(out.keys())[0]].items():
-			match k:
-				case 'hentai' if v > 0.125: return True
-				case 'porn'   if v > 0.18: return True
-				case 'sexy'   if v > 0.60: return True
-				case _: pass
-		return False
+		return await self.client.nsfw.is_nsfw(filepath)
 
 	async def _api_key(self,guild:Guild) -> str:
 		return await self.client.db.guild(guild.id).data.sauce.key.read() or self.client.env.saucenao_key	

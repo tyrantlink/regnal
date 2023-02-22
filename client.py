@@ -4,6 +4,7 @@ from discord.ui import View,Item,Modal,InputText
 from discord.ext.commands import Bot
 from utils.db import MongoDatabase
 from functools import partial
+from utils.nsfw import nsfw
 from utils.log import log
 
 """
@@ -36,6 +37,7 @@ class Client(Bot):
 		self.env:Env
 		self.log:log
 		self.pk:PluralKit
+		self.nsfw:nsfw|None
 		self.loaded_extensions:list
 		self._raw_loaded_extensions:list
 
