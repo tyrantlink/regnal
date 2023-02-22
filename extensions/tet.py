@@ -26,7 +26,7 @@ ROLES = {
 	'🎵':902636085472006155,'🔍':1046582058002161765,
 	'♂️':909164111265415278,'♀️':909163765306622063,
 	'⚧':909164269768155156}
-REQUIRES_DISBOARDER = [
+LIMITED_TO_ONE = [
 	318046820750196736,
 	317959303350976513,
 	345993133584154625,
@@ -46,19 +46,6 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 	"""will be removed once onboarding is fully public, this is just a temp solution for replacing dyno"""
 	def __init__(self,client:Client) -> None:
 		self.client = client
-		self.db:Collection = self.client.db._client.reaction_roles_bullshit
-
-	async def message_role_handler(self,message:Message) -> None:
-		if message.author.get_role(DISBOARDERS_ROLE) is not None: return
-		if (doc:=await self.db.find_one({'_id':message.author.id})) is None: return
-		if (role:=doc.get('role',None)) is None: return
-		await message.author.add_roles(message.guild.get_role(role),reason=f'delayed reaction role add on {message.author}')
-		await self.db.delete_one({'_id':message.author.id})
-
-	@Cog.listener()
-	async def on_message(self,message:Message) -> None:
-		if message.guild is None or not isinstance(message.author,Member): return
-		await self.message_role_handler(message)
 
 	@Cog.listener('on_raw_reaction_add')
 	@Cog.listener('on_raw_reaction_remove')
@@ -77,17 +64,11 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 		if member is None: return
 		match payload.event_type:
 			case 'REACTION_ADD':
-				if reaction in REQUIRES_DISBOARDER and member.get_role(DISBOARDERS_ROLE) is None:
-					await self.db.update_one({'_id':member.id},{'$set':{'role':role_id}},upsert=True)
-					return
-				await self.client.log.info(f'reaction role add on {member}',roles=[guild.get_role(ROLES.get(r)).name for r in REQUIRES_DISBOARDER if member.get_role(ROLES.get(r)) is not None])
-				if reaction in REQUIRES_DISBOARDER: await member.remove_roles(*[guild.get_role(ROLES.get(r)) for r in REQUIRES_DISBOARDER if member.get_role(ROLES.get(r)) is not None],atomic=False,reason='reaction role add')
+				await self.client.log.info(f'reaction role add on {member}',roles=[guild.get_role(ROLES.get(r)).name for r in ROLES.keys() if member.get_role(ROLES.get(r)) is not None])
+				if reaction in LIMITED_TO_ONE: await member.remove_roles(*[guild.get_role(ROLES.get(r)) for r in LIMITED_TO_ONE if member.get_role(ROLES.get(r)) is not None],atomic=False,reason='reaction role add')
 				await member.add_roles(guild.get_role(role_id),reason='reaction role add')
 			case 'REACTION_REMOVE':
-				if reaction in REQUIRES_DISBOARDER and member.get_role(DISBOARDERS_ROLE) is None:
-					await self.db.delete_one({'_id':member.id})
-					return
-				await self.client.log.info(f'reaction role remove on {member}',roles=[guild.get_role(ROLES.get(r)).name for r in REQUIRES_DISBOARDER if member.get_role(ROLES.get(r)) is not None])
+				await self.client.log.info(f'reaction role remove on {member}',roles=[guild.get_role(ROLES.get(r)).name for r in ROLES.keys() if member.get_role(ROLES.get(r)) is not None])
 				await member.remove_roles(guild.get_role(role_id),reason='reaction role remove')
 
 class tet_commands(Cog):
