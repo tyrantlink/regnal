@@ -76,7 +76,7 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 		except Forbidden: return
 		if member is None: return
 		if reaction in REQUIRES_DISBOARDER and member.get_role(DISBOARDERS_ROLE) is None:
-			await self.db.update_one({'_id':member.id},{'role':role_id},upsert=True)
+			await self.db.update_one({'_id':member.id},{'$set':{'role':role_id}},upsert=True)
 			return
 		match payload.event_type:
 			case 'REACTION_ADD':
