@@ -47,7 +47,7 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.db:Collection = self.client.db._client.reaction_roles_bullshit
-	
+
 	async def message_role_handler(self,message:Message) -> None:
 		if message.author.get_role(DISBOARDERS_ROLE) is not None: return
 		if (doc:=await self.db.find_one({'_id':message.author.id})) is None: return
@@ -75,7 +75,7 @@ class tet_stupid_dyno_replacement_bullshit(Cog):
 			if not isinstance(member,Member): member = await guild.fetch_member(payload.user_id)
 		except Forbidden: return
 		if member is None: return
-		if reaction in REQUIRES_DISBOARDER and member.get_role(DISBOARDERS_ROLE) is not None:
+		if reaction in REQUIRES_DISBOARDER and member.get_role(DISBOARDERS_ROLE) is None:
 			await self.db.update_one({'_id':member.id},{'role':role_id},upsert=True)
 			return
 		match payload.event_type:
