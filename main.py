@@ -258,7 +258,7 @@ class message_handler(Cog):
 			# if author not in active member or ignored, add to active member list
 			if author.bot: return
 			if author.id in guild.get('data',{}).get('talking_stick',{}).get('active',[]): return
-			if user.get('config',{}).get('ignored',False): return
+			if user.get('config',{}).get('general',{}).get('ignored',False): return
 			if ts_limit:=guild.get('config',{}).get('talking_stick',{}).get('limit',None):
 				if not author.get_role(ts_limit): return
 
