@@ -11,14 +11,16 @@ from time import time
 
 class AutoResponse:
 	def __init__(self,trigger:str,**kwargs) -> None:
-		self.trigger:str  = trigger
-		self.response:str = kwargs.get('response',None)
-		self.redir:str    = kwargs.get('redir',None)
-		self.regex:bool   = kwargs.get('regex',False)
-		self.nsfw:bool    = kwargs.get('nsfw',False)
-		self.file:bool    = kwargs.get('file',False)
-		self.user:str     = kwargs.get('user',None)
-		self.guild:str    = kwargs.get('guild',None)
+		self.trigger:str = trigger
+		self.redir:str   = kwargs.get('redir',None)
+		self.regex:bool  = kwargs.get('regex',False)
+		self.nsfw:bool   = kwargs.get('nsfw',False)
+		self.file:bool   = kwargs.get('file',False)
+		self.user:str    = kwargs.get('user',None)
+		self.guild:str   = kwargs.get('guild',None)
+		self.multi:bool  = kwargs.get('multi',False)
+		self.response:str|list[str] = kwargs.get('response',None)
+		self.multi_weights:list[float] = kwargs.get('multi_weights',None)
 		self.followups:list[tuple[float,str]] = kwargs.get('followups',[])
 
 class auto_response_listeners(Cog):
@@ -152,7 +154,8 @@ class auto_response_listeners(Cog):
 			else: break
 		else: return False
 
-		if (response:=au.response) is None or response.lower() == '{none}': return False
+		response = choices(au.response,au.multi_weights)[0] if au.multi else au.response
+		if response is None or response.lower() == '{none}': return False
 		if au.nsfw and not message.channel.nsfw: return False
 		if au.user is not None and str(message.author.id) != au.user: return False
 		if au.guild is not None and str(message.guild.id) != au.guild: return False
