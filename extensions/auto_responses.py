@@ -44,16 +44,7 @@ class auto_response_listeners(Cog):
 		except ValueError: pass
 
 	def load_au(self,au_dict:dict) -> dict[str,AutoResponse]:
-		return {k:AutoResponse(k,
-			response  = v.get('response',None),
-			redir     = v.get('redir',None),
-			regex     = v.get('regex',None),
-			nsfw      = v.get('nsfw',False),
-			file      = v.get('file',False),
-			user      = v.get('user',None),
-			guild     = v.get('guild',None),
-			followups = v.get('followups',[])
-		) for k,v in au_dict.items()}
+		return {k:AutoResponse(k,**v) for k,v in au_dict.items()}
 
 	@Cog.listener()
 	async def on_message(self,message:Message,user:MixedUser=None) -> None:
