@@ -71,4 +71,4 @@ class log:
 	def debug(self,message:str,to_db:bool=True,**kwargs) -> None:
 		"""to_db returns a coroutine"""
 		if to_db: return self._submit('debug',message,**kwargs)
-		else    : self.print(message,'info',kwargs.get('format_print',True))
+		else    : self.print(message,'debug',kwargs.get('format_print',True))
