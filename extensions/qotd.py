@@ -18,6 +18,9 @@ class qotd_commands(Cog):
 			self.qotd_loop.change_interval(time=(datetime.now()+timedelta(seconds=20)).astimezone(datetime.now().astimezone().tzinfo).timetz())
 		self.qotd_loop.start()
 
+	def cog_unload(self) -> None:
+		self.qotd_loop.cancel()
+
 	qotd = SlashCommandGroup('qotd','question of the day commands')
 
 	async def _dm_error(self,user:User,title:str,description:str) -> None:
