@@ -165,7 +165,7 @@ class tts_cog(Cog):
 				self.tts,await self.client.db.inf('/reg/nal').transcription.read())})
 		await ctx.response.send_message(embed=Embed(
 			title='joined!',
-			description=f'joined {ctx.author.voice.channel.mention}\nby default, i\'ll only read your messages if you\'re muted\nyou can change this with {[f"</{cmd.qualified_name}:{cmd.qualified_id}>" for cmd in self.client.walk_application_commands() if cmd.qualified_name == "config"][0]}\nprepend messages with "-" and i won\'t read them, regardless of config',
+			description=f'joined {ctx.author.voice.channel.mention}\nby default, i\'ll only read your messages if you\'re muted\nyou can change this with </config:{self.client.get_application_command("config").id}>\nprepend messages with "-" and i won\'t read them, regardless of config',
 			color=await self.client.embed_color(ctx)),ephemeral=await self.client.hide(ctx))
 
 	@tts.command(

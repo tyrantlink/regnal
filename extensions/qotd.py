@@ -87,7 +87,7 @@ class qotd_commands(Cog):
 		output = await self._send_qotd(ctx.guild)
 		await ctx.response.defer(ephemeral=await self.client.hide(ctx))
 		if output is None:
-			await ctx.followup.send(embed=Embed(title='ERROR',description=f'i failed to send the QOTD message.\nis it enabled in {[f"</{cmd.qualified_name}:{cmd.qualified_id}>" for cmd in self.client.walk_application_commands() if cmd.qualified_name == "config"][0]} and is there a channel set?',color=0xff6969),
+			await ctx.followup.send(embed=Embed(title='ERROR',description=f'i failed to send the QOTD message.\nis it enabled in </config:{self.client.get_application_command("config").id}> and is there a channel set?',color=0xff6969),
 				ephemeral=await self.client.hide(ctx))
 			return
 		await ctx.followup.send(embed=Embed(title='success',description=f'read the question [here](<{output.jump_url}>)' if output else None,color=await self.client.embed_color(ctx)),
@@ -125,3 +125,5 @@ class qotd_commands(Cog):
 def setup(client:Client) -> None:
 	client._extloaded()
 	client.add_cog(qotd_commands(client))
+
+# async def teardown(client:Client) -> None:

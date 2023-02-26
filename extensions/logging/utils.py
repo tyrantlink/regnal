@@ -11,9 +11,9 @@ class utils:
 		if doc is None: doc:dict = await self.client.db.message(message_id).read()
 		if doc is None: return False
 		try: channel = guild.get_channel_or_thread(doc.get('channel')) or await guild.fetch_channel(doc.get('channel'))
-		except (NotFound,Forbidden): raise ValueError(f'channel not found\nplease use </logging get:{[cmd.id for cmd in self.client.walk_application_commands() if cmd.qualified_name == "logging get"][0]}> with the message_id `{doc.get("_id")}` and the raw option set to `True`')
+		except (NotFound,Forbidden): raise ValueError(f'channel not found\nplease use </logging get:{self.client.get_application_command("logging get").id}> with the message_id `{doc.get("_id")}` and the raw option set to `True`')
 		try: author = guild.get_member(doc.get('author')) or await guild.fetch_member(doc.get('author')) or self.client.get_user(doc.get('author')) or await self.client.fetch_user(doc.get('author'))
-		except (NotFound,Forbidden): raise ValueError(f'author not found, they may have deleted their account\nplease use </logging get:{[cmd.id for cmd in self.client.walk_application_commands() if cmd.qualified_name == "logging get"][0]}> with the message_id `{doc.get("_id")}` and the raw option set to `True`')
+		except (NotFound,Forbidden): raise ValueError(f'author not found, they may have deleted their account\nplease use </logging get:{self.client.get_application_command("logging get").id}` and the raw option set to `True`')
 		logs = doc.get('logs')[limit*-1:]
 		mode = logs[-1][1]
 		embed = Embed()
@@ -56,7 +56,7 @@ class utils:
 				chr_limit = True
 		if chr_limit:
 			if len(embed.fields) >= 25: embed.remove_field(0)
-			embed.add_field(name='CHARACTER LIMIT WARNING',value=f'the character limit was hit on one of these messages, you can use {[f"</{cmd.qualified_name}:{cmd.qualified_id}>" for cmd in self.client.walk_application_commands() if cmd.qualified_name == "logging get"][0]} with the `raw` value set to `True` to see the full log')
+			embed.add_field(name='CHARACTER LIMIT WARNING',value=f'the character limit was hit on one of these messages, you can use </logging get:{self.client.get_application_command("logging get").id}> with the `raw` value set to `True` to see the full log')
 		width = max([len(f) for f,i in footer])
 		embed.set_footer(text='\n'.join([f'{l.ljust(width)} {i}' for l,i in footer]),icon_url=embed.footer.icon_url)
 
