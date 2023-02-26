@@ -97,6 +97,11 @@ class tet_commands(Cog):
 	async def slash_lewd(self,ctx:ApplicationContext) -> None:
 		embed = Embed(color=0xf9b5fa)
 		role  = ctx.guild.get_role(845538867784450049)
+		if ctx.author.get_role(306153845048737792) is None:
+			embed.color = 0xff6969
+			embed.set_author(name='you must be a member before using this command!',icon_url=self.client.user.display_avatar.url)
+			await ctx.response.send_message(embed=embed,ephemeral=True)
+			return
 		if ctx.author.get_role(role.id):
 			embed.set_author(name='you already had the role, so i didn\'t do anything',icon_url=self.client.user.display_avatar.url)
 			await ctx.response.send_message(embed=embed,ephemeral=True)
@@ -113,6 +118,11 @@ class tet_commands(Cog):
 	async def slash_notlewd(self,ctx:ApplicationContext) -> None:
 		embed = Embed(color=0xf9b5fa)
 		role  = ctx.guild.get_role(845538867784450049)
+		if ctx.author.get_role(306153845048737792) is None:
+			embed.color = 0xff6969
+			embed.set_author(name='you must be a member before using this command!',icon_url=self.client.user.display_avatar.url)
+			await ctx.response.send_message(embed=embed,ephemeral=True)
+			return
 		if not ctx.author.get_role(role.id):
 			embed.set_author(name='you didn\'t have the role, so i didn\'t do anything',icon_url=self.client.user.display_avatar.url)
 			await ctx.response.send_message(embed=embed,ephemeral=True)
