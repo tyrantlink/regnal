@@ -96,7 +96,6 @@ class dev_menu(EmptyView):
 			# case 'auto responses': view = None
 			case 'user config'|'guild config': view,interaction = await self.impersonate(select.values[0].split()[0],interaction)
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
-		await view.start()
 		await interaction.response.edit_message(view=view,embed=view.embed)
 
 	@string_select(

@@ -29,5 +29,4 @@ class config_commands(Cog):
 				case 'guild': view = guild_config(None,self.client,ctx.author,ctx.guild,embed_color)
 				case 'dev':   view = dev_menu(None,self.client,embed_color)
 				case _: raise ValueError('improper option selected, this probably shouldn\'t be possible')
-			await view.start()
 		await ctx.response.send_message(embed=view.embed,view=view,ephemeral=True)
