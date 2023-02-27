@@ -49,6 +49,7 @@ class utils:
 		width = max([len(l) for l in logs])
 		chr_limit = False
 		for log in logs:
+			if log[2] is None: continue
 			if len(log[2]) <= 1024: embed.add_field(name=f'{log[1].upper().ljust(width)} <t:{log[0]}:t>',value=log[2],inline=False)
 			else:
 				embed.add_field(name=f'{log[1].upper().ljust(width)} <t:{log[0]}:t>',value=f'{log[2][:1021]}...',inline=False)
