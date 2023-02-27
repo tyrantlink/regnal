@@ -39,7 +39,6 @@ class utils:
 				if deleted_by is not None:
 					embed.description += f' by {deleted_by.mention}'
 					footer.append(('deleter',f'id: {deleted_by.id}'))
-					embed.set_footer(icon_url=deleted_by.avatar)
 		try:
 			if (replying_to:=doc.get('replying_to')) is not None: replying_to = await channel.fetch_message(replying_to)
 		except (NotFound,Forbidden): pass
@@ -58,6 +57,6 @@ class utils:
 			if len(embed.fields) >= 25: embed.remove_field(0)
 			embed.add_field(name='CHARACTER LIMIT WARNING',value=f'the character limit was hit on one of these messages, you can use </logging get:{self.client.get_application_command("logging get").id}> with the `raw` value set to `True` to see the full log')
 		width = max([len(f) for f,i in footer])
-		embed.set_footer(text='\n'.join([f'{l.ljust(width)} {i}' for l,i in footer]),icon_url=embed.footer.icon_url)
+		embed.set_footer(text='\n'.join([f'{l.ljust(width)} {i}' for l,i in footer]))
 
 		return embed
