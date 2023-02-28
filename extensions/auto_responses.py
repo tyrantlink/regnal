@@ -164,9 +164,10 @@ class auto_response_listeners(Cog):
 		if message.id not in self.timeouts: return False
 		try: await message.channel.send(response)
 		except Forbidden: return False
+		original_deleted = False
 		if delete_original and (content.lower() == raw_au or au.regex) and au.file:
 			try: await message.delete(reason='auto response deletion')
-			except Forbidden: original_deleted = False
+			except Forbidden: pass
 			else:
 				original_deleted = True
 				await self.client.log.info(f'auto response trigger deleted by {message.author}')
