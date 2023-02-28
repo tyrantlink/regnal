@@ -164,7 +164,12 @@ class auto_response_listeners(Cog):
 		if message.id not in self.timeouts: return False
 		try: await message.channel.send(response)
 		except Forbidden: return False
-		if delete_original and (content.lower() == raw_au or au.regex) and au.file: await message.delete(reason='auto response deletion')
+		if delete_original and (content.lower() == raw_au or au.regex) and au.file:
+			try: await message.delete(reason='auto response deletion')
+			except Forbidden: pass
+			else:
+				original_deleted = True
+				await self.client.log.info(f'auto response trigger deleted by {message.author}')
 		for delay,followup in au.followups:
 			async with message.channel.typing():
 				await sleep(delay)
@@ -177,7 +182,7 @@ class auto_response_listeners(Cog):
 			if raw_au not in user_data.get('data',{}).get('au').get(mode,[raw_au]) and not user_data.get('config',{}).get('general',{}).get('no_track',True):
 				await self.client.db.user(user.id).data.au.append(raw_au,[mode])
 
-		await self.client.log.listener(message,category=mode,trigger=raw_au)
+		await self.client.log.listener(message,category=mode,trigger=raw_au,original_deleted=original_deleted)
 		return True
 
 	def rand_name(self,message:Message,splitter:str) -> str:
