@@ -151,13 +151,13 @@ class AutoResponse:
 			'response':self.response,
 			'regex':self.regex,
 			'nsfw':self.nsfw,
-			'user':self.user})
+			'user':self.user,
+			'case_sensitive':self.case_sensitive,})
 		if guild_only: return res
 		res.update({
 			'file':self.file,
 			'guild':self.guild,
 			'multi':self.multi,
-			'case_sensitive':self.case_sensitive,
 			'multi_weights':self.multi_weights,
 			'followups':self.followups})
 		return res

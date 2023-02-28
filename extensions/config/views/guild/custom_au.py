@@ -36,7 +36,7 @@ class custom_au_view(EmptyView):
 				self.get_item('new_button').disabled = len(self.custom_au.keys()) >= 25
 				self.update_select()
 			case 'new':
-				self.add_items(self.method_select,self.limit_user_select,self.back_button,self.set_button,self.regex_button,self.nsfw_button,self.save_button)
+				self.add_items(self.method_select,self.limit_user_select,self.back_button,self.set_button,self.regex_button,self.nsfw_button,self.case_sensitive_button,self.save_button)
 				if self.selected_au:
 					options = self.get_item('method_select').options
 					for option in options: option.default = option.label == self.selected_au.method
@@ -61,11 +61,9 @@ class custom_au_view(EmptyView):
 		self.embed.add_field(name='match with regex',value=self.selected_au.regex)
 		self.embed.add_field(name='limited to user',value=f"<@{self.selected_au.user}>" if self.selected_au.user is not None else 'None')
 		self.embed.add_field(name='nsfw',value=self.selected_au.nsfw)
+		self.embed.add_field(name='case sensitive',value=self.selected_au.case_sensitive)
 		self.embed.add_field(name='trigger',value=self.selected_au.trigger,inline=False)
 		self.embed.add_field(name='response',value=self.selected_au.response,inline=False)
-		if self.get_item('regex_button') and self.get_item('nsfw_button'):
-			self.get_item('regex_button').style = 3 if self.selected_au.regex else 4
-			self.get_item('nsfw_button').style = 3 if self.selected_au.nsfw else 4
 
 	@string_select(
 		custom_id='custom_au_select',row=0,
@@ -107,6 +105,9 @@ class custom_au_view(EmptyView):
 		self.page = 'new'
 		self.embed_au()
 		self.get_item('save_button').disabled = False
+		self.get_item('regex_button').style = 3 if self.selected_au.regex else 4
+		self.get_item('nsfw_button').style = 3 if self.selected_au.nsfw else 4
+		self.get_item('case_sensitive_button').style = 3 if self.selected_au.case_sensitive else 4
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -187,6 +188,15 @@ class custom_au_view(EmptyView):
 	async def nsfw_button(self,button:Button,interaction:Interaction) -> None:
 		self.selected_au.nsfw = not self.selected_au.nsfw
 		button.style = 3 if self.selected_au.nsfw else 4
+		self.embed_au()
+		await interaction.response.edit_message(embed=self.embed,view=self)
+
+	@button(
+		label='case_sensitive',style=4,row=2,
+		custom_id='case_sensitive_button')
+	async def case_sensitive_button(self,button:Button,interaction:Interaction) -> None:
+		self.selected_au.case_sensitive = not self.selected_au.case_sensitive
+		button.style = 3 if self.selected_au.case_sensitive else 4
 		self.embed_au()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
