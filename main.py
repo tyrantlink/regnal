@@ -107,7 +107,7 @@ class client_cls(Client):
 					file.write(f'{git}{self.lu}')
 			else: self.lu = float(last_update[1])
 
-	async def on_connect(self) -> None:
+	async def on_ready(self) -> None:
 		if 'clear' in argv:
 			await self.sync_commands()
 			print('cleared commands')
@@ -115,9 +115,7 @@ class client_cls(Client):
 		await self._owner_init()
 		if MODE in ['/reg/nal','tet']: await self.sync_commands()
 		elif 'sync' in argv: await self.sync_commands()
-
-	async def on_ready(self) -> None:
-		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds',to_db=False)
+		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds with {self.shard_count} shard{"s" if self.shard_count != 1 else ""}',to_db=False)
 
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return

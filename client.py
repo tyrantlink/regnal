@@ -1,7 +1,7 @@
 from discord import ApplicationContext,Interaction,ApplicationCommandInvokeError,Embed,User,Member as DiscordMember
 from utils.pluralkit import PluralKit,Member as PKMember
 from discord.ui import View,Item,Modal,InputText
-from discord.ext.commands import Bot
+from discord.ext.commands import AutoShardedBot
 from utils.db import MongoDatabase
 from functools import partial
 from utils.nsfw import nsfw
@@ -27,7 +27,7 @@ class Env:
 		for k,v in env_dict.items():
 			setattr(self,k,v)
 
-class Client(Bot):
+class Client(AutoShardedBot):
 	def __init__(self,*args,**kwargs) -> None:
 		super().__init__(*args,**kwargs)
 		self.db:MongoDatabase
@@ -56,10 +56,7 @@ class Client(Bot):
 	async def hide(self,ctx:ApplicationContext|Interaction) -> bool:
 		...
 
-	def git_hash(self) ->None:
-		...
-
-	async def on_connect(self) -> None:
+	def git_hash(self) -> None:
 		...
 
 	async def on_ready(self) -> None:
