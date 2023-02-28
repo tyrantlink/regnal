@@ -1,6 +1,6 @@
-from discord.ui import Button,button,Item,Select,string_select,user_select,InputText
+from discord.ui import Button,button,Select,string_select,user_select,InputText
 from discord import Interaction,Embed,SelectOption,InputTextStyle,Guild,Member
-from client import Client,EmptyView,CustomModal
+from client import Client,EmptyView,CustomModal,AutoResponse
 
 
 class custom_au_view(EmptyView):
@@ -13,102 +13,74 @@ class custom_au_view(EmptyView):
 		self.embed         = embed
 		self.custom_au     = custom_au
 		self.page          = 'main'
-		self.selected_au   = None
-		self.remove_confirmed = False
-		self.new_au = None
-		self.add_items(self.page_select,self.back_button)
+		self.selected_au:AutoResponse = None
+
+	def set_au_reload_flag(self) -> None:
+		if self.client.flags.get('RELOAD_AU',None) is None: self.client.flags.update({'RELOAD_AU':[]})
+		if self.guild.id not in self.client.flags.get('RELOAD_AU'):
+			self.client.flags['RELOAD_AU'].append(self.guild.id)
 
 	@property
-	def default_new_au(self):
-		return {
-			'method':None,
-			'trigger':None,
-			'response':None,
-			'user':None,
-			'regex':False,
-			'nsfw':False}
+	def page(self) -> str:
+		return self._page
 
-	def add_items(self,*items:Item) -> None:
-		for item in items: self.add_item(item)
-
-	def au_reload(self,guild_id:int) -> None:
-		if self.client.flags.get('RELOAD_AU',None) is None: self.client.flags.update({'RELOAD_AU':[]})
-		if guild_id not in self.client.flags.get('RELOAD_AU'):
-			self.client.flags['RELOAD_AU'].append(guild_id)
-
-	def reload(self) -> None:
-		self.selected_au = None
+	@page.setter
+	def page(self,value) -> None:
 		self.remove_confirmed = False
 		self.embed.description = None
 		self.embed.clear_fields()
 		self.clear_items()
-		match self.page:
+		match value:
 			case 'main':
-				self.add_items(self.page_select,self.back_button)
-			case 'contains'|'exact'|'exact_cs':
-				self.embed.add_field(name='method',value=self.page)
 				self.add_items(self.custom_au_select,self.back_button,self.new_button)
-				self.get_item('new_button').disabled = len(self.custom_au.get(self.page,{}).keys()) >= 25
+				self.get_item('new_button').disabled = len(self.custom_au.keys()) >= 25
 				self.update_select()
 			case 'new':
-				self.add_items(self.limit_user_select,self.back_button,self.set_button,self.regex_button,self.nsfw_button,self.save_button)
+				self.add_items(self.method_select,self.limit_user_select,self.back_button,self.set_button,self.regex_button,self.nsfw_button,self.save_button)
+				if self.selected_au:
+					options = self.get_item('method_select').options
+					for option in options: option.default = option.label == self.selected_au.method
+					self.get_item('method_select').options = options
 			case _: raise
+		self._page = value
 
 	def update_select(self):
-		for child in self.children:
-			if child.custom_id != 'custom_au_select': continue
-			if (options:=[SelectOption(label=k,description=v.get('response','').split('\n')[0][:100]) for k,v in self.custom_au.get(self.page,{}).items()]):
-				child.options = options
-				child.placeholder = 'select an auto response'
-				child.disabled = False
-			else:
-				child.options = [SelectOption(label='None')]
-				child.placeholder = 'there are no custom auto responses'
-				child.disabled = True
-			break
+		select = self.get_item('custom_au_select')
+		if (options:=[SelectOption(label=k,description=v.get('response','').split('\n')[0][:100]) for k,v in self.custom_au.items()]):
+			select.options = options
+			select.placeholder = 'select an auto response'
+			select.disabled = False
+		else:
+			select.options = [SelectOption(label='None')]
+			select.placeholder = 'there are no custom auto responses'
+			select.disabled = True
 
-	def embed_au(self,au:dict):
+	def embed_au(self):
 		self.embed.clear_fields()
-		self.embed.add_field(name='method',value=au.get('method','ERROR'))
-		self.embed.add_field(name='match with regex',value=au.get('regex',False))
-		self.embed.add_field(name='limited to user',value=f"<@{au.get('user',False)}>" if au.get('user',False) else False)
-		self.embed.add_field(name='nsfw',value=au.get('nsfw',False))
-		self.embed.add_field(name='trigger',value=au.get('trigger','ERROR'),inline=False)
-		self.embed.add_field(name='response',value=au.get('response',False),inline=False)
-		for child in self.children:
-			match child.custom_id:
-				case 'regex_button': child.style = 3 if au.get('regex',False) else 4
-				case 'nsfw_button': child.style = 3 if au.get('nsfw',False) else 4
-				case _: continue
-
-	@string_select(
-		custom_id='page_select',row=0,
-		placeholder='select a category',
-		options=[SelectOption(label=l,description=d) for l,d in [
-			('exact','trigger is exactly the message'),
-			('exact_cs','trigger is exactly the message (case sensitive)'),
-			('contains','trigger anywhere within the message')]])
-	async def page_select(self,select:Select,interaction:Interaction) -> None:
-		self.page = select.values[0]
-		self.reload()
-		await interaction.response.edit_message(embed=self.embed,view=self)
+		self.embed.add_field(name='method',value=self.selected_au.method)
+		self.embed.add_field(name='match with regex',value=self.selected_au.regex)
+		self.embed.add_field(name='limited to user',value=f"<@{self.selected_au.user}>" if self.selected_au.user is not None else 'None')
+		self.embed.add_field(name='nsfw',value=self.selected_au.nsfw)
+		self.embed.add_field(name='trigger',value=self.selected_au.trigger,inline=False)
+		self.embed.add_field(name='response',value=self.selected_au.response,inline=False)
+		if self.get_item('regex_button') and self.get_item('nsfw_button'):
+			self.get_item('regex_button').style = 3 if self.selected_au.regex else 4
+			self.get_item('nsfw_button').style = 3 if self.selected_au.nsfw else 4
 
 	@string_select(
 		custom_id='custom_au_select',row=0,
 		placeholder='select an auto response')
 	async def custom_au_select(self,select:Select,interaction:Interaction) -> None:
-		self.selected_au = select.values[0]
 		self.remove_confirmed = False
 		self.embed.description = None
-		au = self.custom_au.get(self.page,{}).get(self.selected_au,{})
-		au.update({'method':self.page,'trigger':self.selected_au})
-		self.embed_au(au)
-		self.add_item(self.edit_button)
-		if len(self.custom_au.get(self.page,{}).keys()) != 0: self.add_item(self.remove_button)
+		if self.custom_au.get(select.values[0],None) is None: raise ValueError(f'invalid selection `{select.values[0]}`')
+		self.selected_au = AutoResponse(select.values[0],**self.custom_au.get(select.values[0]))
+		self.embed_au()
+		self.add_items(self.edit_button,self.remove_button)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='<',style=2,row=1,
+		label='<',style=2,row=2,
 		custom_id='back_button')
 	async def back_button(self,button:Button,interaction:Interaction) -> None:
 		if self.page == 'main':
@@ -116,68 +88,75 @@ class custom_au_view(EmptyView):
 			self.stop()
 			return
 		self.page = 'main'
-		self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='new',style=3,row=1,
+		label='new',style=3,row=2,
 		custom_id='new_button')
 	async def new_button(self,button:Button,interaction:Interaction) -> None:
-		self.new_au = self.default_new_au
-		self.new_au.update({'method':self.page})
+		self.selected_au = AutoResponse(None,method=None)
 		self.page = 'new'
-		self.reload()
-		self.embed_au(self.new_au)
+		self.embed_au()
 		self.get_item('save_button').disabled = True
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='edit',style=1,row=1,
+		label='edit',style=1,row=2,
 		custom_id='edit_button')
 	async def edit_button(self,button:Button,interaction:Interaction) -> None:
-		self.new_au = self.custom_au.get(self.page,{}).get(self.selected_au)
-		self.new_au.update({'method':self.page})
 		self.page = 'new'
-		self.reload()
-		self.embed_au(self.new_au)
+		self.embed_au()
 		self.get_item('save_button').disabled = False
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='remove',style=4,row=1,
+		label='remove',style=4,row=2,
 		custom_id='remove_button')
 	async def remove_button(self,button:Button,interaction:Interaction) -> None:
 		if self.remove_confirmed:
-			if self.selected_au is None: raise
-			self.custom_au[self.page].pop(self.selected_au)
-			await self.client.db.guild(self.guild.id).data.auto_responses.custom.unset([self.page,self.selected_au.replace('.','\.')])
+			if self.selected_au is None: raise ValueError('cannot remove nothing')
+			self.custom_au.pop(self.selected_au.trigger)
+			await self.client.db.guild(self.guild.id).data.auto_responses.custom.unset([self.selected_au.trigger.replace('.','\.')])
 			await self.client.log.info(f'{self.user.name} modified custom auto responses',**{
 			'author':self.user.id,
 			'guild':self.guild.id,
-			self.page:self.selected_au})
-			self.au_reload(self.guild.id)
-			self.reload()
+			'trigger':self.selected_au.trigger})
+			self.set_au_reload_flag()
+			self.page = 'main'
 		else:
 			self.embed.description = 'are you sure you want to remove this auto response?\nclick remove again to remove it.'
 			self.remove_confirmed = True
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@user_select(
-		placeholder='limit to a user',
+		placeholder='limit to a user',row=1,
 		custom_id='limit_user_select',min_values=0)
 	async def limit_user_select(self,select:Select,interaction:Interaction) -> None:
-		if select.values: self.new_au.update({'user':select.values[0].id})
-		else: self.new_au.update({'user':None})
-		self.embed_au(self.new_au)
+		if select.values: self.selected_au.user = select.values[0].id
+		else: self.selected_au.user = None
+		self.embed_au()
+		await interaction.response.edit_message(embed=self.embed,view=self)
+
+	@string_select(
+		custom_id='method_select',row=0,
+		placeholder='select a method',
+		options=[SelectOption(label='exact',description='trigger is exactly the message'),
+			SelectOption(label='contains',description='trigger anywhere within the message')])
+	async def method_select(self,select:Select,interaction:Interaction) -> None:
+		self.selected_au.method = select.values[0]
+		for option in select.options: option.default = option.label == self.selected_au.method
+		if self.selected_au.trigger is not None and self.selected_au.response is not None:
+			self.get_item('save_button').disabled = False
+		self.embed_au()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='set',style=1,row=1,
+		label='set',style=1,row=2,
 		custom_id='set_button')
 	async def set_button(self,button:Button,interaction:Interaction) -> None:
 		modal = CustomModal(self,'add custom auto response',[
-			InputText(label='trigger message',placeholder='cannot start with $ or contain a .',min_length=1,max_length=100,style=InputTextStyle.short,value=self.new_au.get('trigger')),
-			InputText(label='response',placeholder='"{none}" to give no response (used for disabling a default auto response)',min_length=1,max_length=500,style=InputTextStyle.long,value=self.new_au.get('response'))])
+			InputText(label='trigger message',placeholder='cannot start with $ or contain a .',min_length=1,max_length=100,style=InputTextStyle.short,value=self.selected_au.trigger),
+			InputText(label='response',placeholder='"{none}" to give no response (used for disabling a default auto response)',min_length=1,max_length=500,style=InputTextStyle.long,value=self.selected_au.response)])
 
 		await interaction.response.send_modal(modal)
 		await modal.wait()
@@ -186,45 +165,41 @@ class custom_au_view(EmptyView):
 			embed.add_field(name='error',value='auto response trigger cannot start with $ or contain a .')
 			await modal.interaction.response.send_message(embed=embed,ephemeral=self.client.hide(interaction))
 			return
-		self.new_au.update({
-			'trigger':modal.children[0].value,	
-			'response':modal.children[1].value})
-		self.embed_au(self.new_au)
-		self.get_item('save_button').disabled = False
+		self.selected_au.trigger = modal.children[0].value
+		self.selected_au.response = modal.children[1].value
+		self.embed_au()
+		if self.selected_au.method is not None:
+			self.get_item('save_button').disabled = False
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='regex',style=4,row=1,
+		label='regex',style=4,row=2,
 		custom_id='regex_button')
 	async def regex_button(self,button:Button,interaction:Interaction) -> None:
-		self.new_au.update({'regex':not self.new_au.get('regex')})
-		if self.new_au.get('regex'): button.style = 3
-		else: button.style = 4
-		self.embed_au(self.new_au)
+		self.selected_au.regex = not self.selected_au.regex
+		button.style = 3 if self.selected_au.regex else 4
+		self.embed_au()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='nsfw',style=4,row=1,
+		label='nsfw',style=4,row=2,
 		custom_id='nsfw_button')
 	async def nsfw_button(self,button:Button,interaction:Interaction) -> None:
-		self.new_au.update({'nsfw':not self.new_au.get('nsfw')})
-		if self.new_au['nsfw']: button.style = 3
-		else: button.style = 4
-		self.embed_au(self.new_au)
+		self.selected_au.nsfw = not self.selected_au.nsfw
+		button.style = 3 if self.selected_au.nsfw else 4
+		self.embed_au()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
-		label='save',style=3,row=2,
+		label='save',style=3,row=3,
 		custom_id='save_button',disabled=True)
 	async def save_button(self,button:Button,interaction:Interaction) -> None:
-		old_page,trigger = self.new_au.pop('method'),self.new_au.pop('trigger')
-		self.custom_au[old_page][trigger] = self.new_au
-		await self.client.db.guild(self.guild.id).data.auto_responses.custom.write(self.custom_au.get(old_page),[old_page])
+		self.custom_au[self.selected_au.trigger] = self.selected_au.to_dict()
+		await self.client.db.guild(self.guild.id).data.auto_responses.custom.write(self.selected_au.to_dict(),[self.selected_au.trigger])
 		await self.client.log.info(f'{self.user.name} modified custom auto responses',**{
 			'author':self.user.id,
 			'guild':self.guild.id,
-			old_page:self.custom_au.get(old_page,{}).get(trigger,None)})
-		self.au_reload(self.guild.id)
-		self.page = old_page
-		self.reload()
+			'trigger':self.selected_au.trigger})
+		self.set_au_reload_flag()
+		self.page = 'main'
 		await interaction.response.edit_message(embed=self.embed,view=self)

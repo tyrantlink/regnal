@@ -128,3 +128,36 @@ class MixedUser:
 
 		for k,v in kwargs.items():
 			setattr(self,k,v)
+
+class AutoResponse:
+	def __init__(self,trigger:str,**kwargs) -> None:
+		self.trigger:str = trigger
+		self.method:str  = kwargs.get('method')
+		self.regex:bool  = kwargs.get('regex',False)
+		self.nsfw:bool   = kwargs.get('nsfw',False)
+		self.file:bool   = kwargs.get('file',False)
+		self.user:str    = kwargs.get('user',None)
+		self.guild:str   = kwargs.get('guild',None)
+		self.multi:bool  = kwargs.get('multi',False)
+		self.response:str|list[str] = kwargs.get('response',None)
+		self.case_sensitive:bool = kwargs.get('case_sensitive',False)
+		self.multi_weights:list[float] = kwargs.get('multi_weights',None)
+		self.followups:list[tuple[float,str]] = kwargs.get('followups',[])
+
+	def to_dict(self,guild_only:bool=True,include_trigger:bool=False) -> dict:
+		res = {'trigger':self.trigger} if include_trigger else {}
+		res.update({
+			'method':self.method,
+			'response':self.response,
+			'regex':self.regex,
+			'nsfw':self.nsfw,
+			'user':self.user})
+		if guild_only: return res
+		res.update({
+			'file':self.file,
+			'guild':self.guild,
+			'multi':self.multi,
+			'case_sensitive':self.case_sensitive,
+			'multi_weights':self.multi_weights,
+			'followups':self.followups})
+		return res
