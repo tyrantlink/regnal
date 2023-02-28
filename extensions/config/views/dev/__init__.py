@@ -52,7 +52,7 @@ class dev_menu(EmptyView):
 
 	async def write_config(self,value) -> None:
 		await self.client.db.inf('/reg/nal').config.write(value,[self.selected])
-		await self.client.log.info(f'{self.user.name} modified dev config',**{
+		await self.client.log.info(f'{self.user.name} set  dev config {self.selected} to {value}',**{
 			'author':self.user.id,self.selected:value})
 		await self.reload_config()
 		self.reload_embed()

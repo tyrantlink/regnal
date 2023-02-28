@@ -104,7 +104,7 @@ class guild_config(EmptyView):
 						title='WARNING: i can\'t see into the following channels,\nthey will not be logged',
 						description='\n'.join(channels),color=0xffff69),ephemeral=True))
 		await self.client.db.guild(self.guild.id).config.write(value,[self.category,self.selected])
-		await self.client.log.info(f'{self.user.name} modified guild config',**{
+		await self.client.log.info(f'{self.user.name} set guild config {self.category}/{self.selected} to {value} in {self.guild.name}',**{
 			'author':self.user.id,
 			'guild':self.guild.id,
 			f'{self.category}/{self.selected}':value})
