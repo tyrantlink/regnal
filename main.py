@@ -47,9 +47,9 @@ class client_cls(Client):
 		if (
 			extensions.get('nsfw_filter',True) or
 			extensions.get('sauce',True)):
-			self.log.debug('initializing nsfw class',False)
+			self.log.info('initializing nsfw class',False)
 			self.nsfw = nsfw()
-			self.log.debug('initialized nsfw class',False)
+			self.log.info('initialized nsfw class',False)
 		for extension,enabled in extensions.items():
 			if enabled:
 				self.load_extension(f'extensions.{extension}')
