@@ -172,10 +172,10 @@ class base_commands(Cog):
 		embed.add_field(name='line count',value=f'{self.client.lines} lines',inline=True)
 		embed.add_field(name='commands',value=len([cmd for cmd in self.client.walk_application_commands() if not isinstance(cmd,SlashCommandGroup)]),inline=True)
 		if self.client.au:
-			auto_response_count = len([k for i in self.client.au.values() for k,v in i.items() if v.get('guild', None) is None])
+			auto_response_count = len([v for v in self.client.au.values() if v.get('guild',None) is None])
 			if ctx.guild:
 				g_au = await self.client.db.guild(ctx.guild.id).data.auto_responses.custom.read()
-				if g_au_count:=len([j for k in [list(g_au[i].keys()) for i in list(g_au.keys())] for j in k]):
+				if g_au_count:=len(g_au):
 					auto_response_count = f'{auto_response_count}(+{g_au_count})'
 			embed.add_field(name='auto responses',value=auto_response_count,inline=True)
 		lifetime_stats = await self.client.db.status_log(1).stats.read()
