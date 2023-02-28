@@ -72,6 +72,7 @@ class auto_response_listeners(Cog):
 		if message.content is None: return
 		if (reload:=self.client.flags.pop('RELOAD_AU',None)) is not None:
 			for guild_id in reload: await self.load_au(guild_id)
+		if self.base_responses is None: await self.load_au('base')
 		if self.guild_responses.get(message.guild.id,None) is None: await self.load_au(message.guild.id)
 
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
