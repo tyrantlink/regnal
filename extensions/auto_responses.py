@@ -166,7 +166,7 @@ class auto_response_listeners(Cog):
 		except Forbidden: return False
 		if delete_original and (content.lower() == raw_au or au.regex) and au.file:
 			try: await message.delete(reason='auto response deletion')
-			except Forbidden: pass
+			except Forbidden: original_deleted = False
 			else:
 				original_deleted = True
 				await self.client.log.info(f'auto response trigger deleted by {message.author}')
