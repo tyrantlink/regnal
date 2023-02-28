@@ -54,13 +54,15 @@ class commands_commands(Cog):
 			color=await self.client.embed_color(ctx))
 		if ctx.guild.icon:
 			embed.set_thumbnail(url=ctx.guild.icon.with_size(512).with_format('png').url)
+		guild_data = await self.client.db.guild(ctx.guild.id).data.read()
 		embed.add_field(
 			name='information:',
 			value=f"""creation date: {ctx.guild.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			member count: {ctx.guild.member_count}
 			channels: {len(ctx.guild.channels)}
 			roles: {len(ctx.guild.roles)}
-			tts usage: {await self.client.db.guild(ctx.guild.id).data.tts.usage.read()}""")
+			tts usage: {guild_data.get('tts',{}).get('usage')}
+			custom auto responses: {len(guild_data.get('auto_responses',{}).get('custom'))}""")
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
