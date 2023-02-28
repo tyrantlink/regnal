@@ -18,10 +18,6 @@ class auto_response_listeners(Cog):
 		self.cooldowns = {'au':{},'db':{}}
 		self.timeouts = []
 
-	@Cog.listener()
-	async def on_connect(self) -> None:
-		await self.load_au('base')
-
 	async def timeout(self,message_id:int) -> None:
 		self.timeouts.append(message_id)
 		await sleep(5)
