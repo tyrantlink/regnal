@@ -15,6 +15,7 @@ class UpdateHandler:
 		self.actions:list[str] = []
 
 	async def run(self) -> None:
+		self.client.log.info(f'update detected...',to_db=False)
 		self.modified_handler()
 		await self.pull()
 		if self.actions: self.act()
@@ -42,7 +43,6 @@ class UpdateHandler:
 					'main.py'|
 					'client.py'|
 					'utils',*_]:
-					self.client.log.info(f'update detected, reboot required',to_db=False)
 					self.actions.insert(0,'reboot')
 				case ['extensions',*extension]: self.actions.append(f'extensions.{extension[0].split(".")[0]}')
 				case _: pass
