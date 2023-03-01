@@ -28,6 +28,7 @@ class cryptography_commands(Cog):
 			case 'base64': output = b64encode(message.encode()).decode()
 			case 'caesar cipher': output = self.caesar_cipher(True,message,int(argument) if argument else 7)
 		await ctx.response.send_message(output,ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'output':output})
 
 	@slash_command(
 		name='decode',
@@ -41,6 +42,7 @@ class cryptography_commands(Cog):
 			case 'base64': output = b64decode(message)
 			case 'caesar cipher': output = self.caesar_cipher(False,message,int(argument) if argument else 7)
 		await ctx.response.send_message(output,ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'output':output})
 
 	@message_command(
 		name='QR Code')

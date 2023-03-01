@@ -118,10 +118,14 @@ class client_cls(Client):
 		elif 'sync' in argv: await self.sync_commands()
 		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds with {self.shard_count} shard{"s" if self.shard_count != 1 else ""}',to_db=False)
 
+	async def on_application_command(self,ctx:ApplicationContext) -> None:
+		ctx.output = {}
+
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return
-		options = {} if ctx.selected_options is None else {i['name']:i['value'] for i in ctx.selected_options}
-		await self.log.command(ctx,command=ctx.command.qualified_name,options=options,output=getattr(ctx,'output',{}))
+		await self.log.command(ctx,command=ctx.command.qualified_name,
+			input={} if ctx.selected_options is None else {i['name']:i['value'] for i in ctx.selected_options},
+			output=ctx.output)
 
 	async def on_unknown_application_command(self,interaction:Interaction) -> None:
 		await interaction.response.send_message('u wot m8?',ephemeral=True)

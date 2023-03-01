@@ -62,12 +62,15 @@ class fun_commands(Cog):
 		if modifiers != 0: embed.add_field(name='modifiers:',value=f"{'+' if modifiers > 0 else ''}{modifiers}",inline=False)
 		embed.add_field(name='result:',value='{:,}'.format(sum(rolls)+modifiers))
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'rolls':rolls,'modifiers':modifiers})
 
 	@slash_command(
 		name='time',
 		description='/reg/nal can tell time.')
 	async def slash_time(self,ctx:ApplicationContext) -> None:
-		await ctx.response.send_message(datetime.now().strftime("%H:%M:%S.%f"),ephemeral=await self.client.hide(ctx))
+		t = datetime.now().strftime("%H:%M:%S.%f")
+		await ctx.response.send_message(t,ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'time':t})
 
 	@slash_command(
 		name='8ball',
@@ -75,14 +78,16 @@ class fun_commands(Cog):
 		options=[
 			option(str,name='question',description='question to ask',max_length=256)])
 	async def slash_eightball(self,ctx:ApplicationContext,question:str) -> None:
-		embed = Embed(title=question,description=f'**{choice(eightball)}**',color=await self.client.embed_color(ctx))
+		answer = choice(eightball)
+		embed = Embed(title=question,description=f'**{answer}**',color=await self.client.embed_color(ctx))
 		embed.set_author(name=f'{self.client.user.name}\'s eighth ball',icon_url='https://regn.al/8ball.png')
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'answer':answer})
 
 	@slash_command(
 		name='color',
 		description='generate a random color')
-	async def slash_color(self,ctx) -> None:
+	async def slash_color(self,ctx:ApplicationContext) -> None:
 		color = hex(randint(0,16777215)).upper()
 		res = [f'#{color[2:]}']
 		res.append(f'R: {int(color[2:4],16)}')
@@ -97,6 +102,7 @@ class fun_commands(Cog):
 				B: {int(color[6:8],16)}""",
 				color=int(color,16)),
 			ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'color':color})
 
 	@slash_command(
 		name='random',
@@ -109,6 +115,7 @@ class fun_commands(Cog):
 		if ping and not ctx.author.guild_permissions.mention_everyone: return
 		result = choice(role.members)
 		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'choice':str(result)})
 
 	@slash_command(
 		name='bees',

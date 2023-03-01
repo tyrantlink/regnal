@@ -168,6 +168,7 @@ class tts_cog(Cog):
 			title='joined!',
 			description=f'joined {ctx.author.voice.channel.mention}\nby default, i\'ll only read your messages if you\'re muted\nyou can change this with </config:{self.client.get_application_command("config").id}>\nprepend messages with "-" and i won\'t read them, regardless of config',
 			color=await self.client.embed_color(ctx)),ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'channel':ctx.author.voice.channel.name})
 
 	@tts.command(
 		name='leave',

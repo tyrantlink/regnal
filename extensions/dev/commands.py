@@ -39,6 +39,7 @@ class dev_commands(Cog):
 			description=f'[view the thread here](<{thread.jump_url}>)\n[join the development server](<https://discord.gg/4mteVXBDW7>)',
 			color=await self.client.embed_color(ctx)),
 			ephemeral=True)
+		ctx.output.update({'title':modal.children[0].value,'details':modal.children[1].value if len(modal.children) == 2 else None})
 
 	@slash_command(
 		name='dev',

@@ -107,4 +107,4 @@ class AutoResponse:
 class ApplicationContext(AppContext):
 	def __init__(self,*args,**kwargs):
 		super().__init__(*args,**kwargs)
-		self.output = {}
+		self.output:dict

@@ -81,7 +81,9 @@ class commands_commands(Cog):
 		options=[
 			option(str,name='type',description='type',choices=['insult','excuse'])])
 	async def slash_generate_insult(self,ctx:ApplicationContext,type:str) -> None:
-		await ctx.response.send_message(' '.join([choice(v) for v in generate_options.get(type,{}).values()]),ephemeral=await self.client.hide(ctx))
+		result = ' '.join([choice(v) for v in generate_options.get(type,{}).values()])
+		await ctx.response.send_message(result,ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'result':result})
 
 	@leaderboard.command(
 		name='messages',

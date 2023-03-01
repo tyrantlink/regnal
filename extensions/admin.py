@@ -45,6 +45,7 @@ class admin_commands(Cog):
 				ephemeral=await self.client.hide(ctx))
 				return
 		await ctx.followup.send(embed=Embed(title=f'successfully purged {len(purged)} messages',color=await self.client.embed_color(ctx)),ephemeral=await self.client.hide(ctx))
+		ctx.output.update({'purged':len(purged)})
 
 def setup(client:Client) -> None:
 	client._extloaded()
