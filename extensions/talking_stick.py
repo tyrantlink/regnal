@@ -2,7 +2,7 @@ from discord import Embed,Guild,Permissions,Member
 from discord.commands import SlashCommandGroup
 from utils.tyrantlib import ApplicationContext
 from datetime import datetime,time as dtime
-from utils.tyrantlib import MakeshiftClass
+from utils.classes import MakeshiftClass
 from discord.ext.commands import Cog
 from discord.errors import NotFound
 from discord.ext.tasks import loop
