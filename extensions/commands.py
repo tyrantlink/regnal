@@ -62,6 +62,7 @@ class commands_commands(Cog):
 			channels: {len(ctx.guild.channels)}
 			roles: {len(ctx.guild.roles)}
 			tts usage: {guild_data.get('tts',{}).get('usage')}
+			unique auto responses: {len([v for v in self.client.au.values() if v.get('guild',None) == str(ctx.guild.id)])}
 			custom auto responses: {len(guild_data.get('auto_responses',{}).get('custom'))}""")
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 

@@ -170,11 +170,12 @@ class base_commands(Cog):
 		embed.add_field(name='line count',value=f'{self.client.lines} lines',inline=True)
 		embed.add_field(name='commands',value=len([cmd for cmd in self.client.walk_application_commands() if not isinstance(cmd,SlashCommandGroup)]),inline=True)
 		if self.client.au:
-			auto_response_count = len([v for v in self.client.au.values() if v.get('guild',None) is None])
+			auto_response_count = str(len([v for v in self.client.au.values() if v.get('guild',None) is None]))
 			if ctx.guild:
-				g_au = await self.client.db.guild(ctx.guild.id).data.auto_responses.custom.read()
-				if g_au_count:=len(g_au):
-					auto_response_count = f'{auto_response_count}(+{g_au_count})'
+				if g_au:=[str(i) for i in [
+					len([v for v in self.client.au.values() if v.get('guild',None) == str(ctx.guild.id)]),
+					len(await self.client.db.guild(ctx.guild.id).data.auto_responses.custom.read())] if i]:
+						auto_response_count += f'({"+" if len(g_au) == 1 else ""}{"+".join(g_au)})'
 			embed.add_field(name='auto responses',value=auto_response_count,inline=True)
 		lifetime_stats = await self.client.db.status_log(1).stats.read()
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
