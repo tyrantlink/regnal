@@ -1,4 +1,4 @@
-from regex import sub,search,split,fullmatch,escape,IGNORECASE
+from regex import sub,search,split,fullmatch,escape,IGNORECASE,finditer
 from discord.errors import Forbidden,HTTPException
 from client import Client,MixedUser,AutoResponse
 from asyncio import sleep,create_task
@@ -155,21 +155,19 @@ class auto_response_listeners(Cog):
 	async def listener_dad_bot(self,message:Message,user:MixedUser) -> None:
 		response = ''
 		input = sub(r"""<(@!|@|@&)\d{10,25}>|@everyone|@here|(https?:\/\/[^\s]+.)""",'[REDACTED]',sub(r'\*|\_|\~|\`|\|','',message.content))
-		for p_splitter in ["i'm",'im','i am','i will be',"i've",'ive']:
-			s = search(p_splitter,input,IGNORECASE)
-
+		splitters = "i'm|im|i am|i will be|i've|ive"
+		for s in finditer(splitters,input,IGNORECASE):
 			if (s is None or
 				(s.span()[0] != 0 and input[s.span()[0]-1] != ' ') or
-				(s.span()[0]+(len(p_splitter)) < len(input) and input[s.span()[0]+(len(p_splitter))] != ' ')): continue
-
-			p_response = split(p_splitter,input,1,IGNORECASE)[1:]
-			if len(response) < len(''.join(p_response)): response,splitter = ''.join(p_response),p_splitter
+				(s.span()[1] < len(input) and input[s.span()[1]] != ' ')): continue
+			p_response = split(s.captures()[0],input,1,IGNORECASE)[1:]
+			response,splitter = ''.join(p_response),s.captures()[0].lower()
 
 		if response == '': return
 		name = self.rand_name(message,splitter)
 
 		if message.id not in self.timeouts: return False
-		try: await message.channel.send(f'hi{split("[,.]",response)[0]}, {splitter} {name}')
+		try: await message.channel.send(f'hi{split("[,.;]",response)[0]}, {splitter} {name}')
 		except Forbidden: return False
 		except HTTPException: await message.channel.send(f'hi{response.split(".")[0][:1936]} (character limit), {splitter} {name}')
 
