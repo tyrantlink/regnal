@@ -95,13 +95,13 @@ class auto_response_listeners(Cog):
 		for au in responses:
 			match au.method:
 				case 'exact':
-					if fullmatch(au.trigger if au.regex else escape(au.trigger),message,0 if au.case_sensitive else IGNORECASE):
+					if fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)?',message,0 if au.case_sensitive else IGNORECASE):
 						return au
 				case 'contains':
 					s = search(au.trigger if au.regex else escape(au.trigger),message,0 if au.case_sensitive else IGNORECASE)
 					if (s is None or
 							(s.span()[0] != 0 and message[s.span()[0]-1] != ' ') or
-							(s.span()[0]+(len(au.trigger)) < len(message) and message[s.span()[0]+(len(au.trigger))] != ' ')): continue
+							(sum(s.span()) < len(message) and message[sum(s.span())] not in ' .?!')): continue
 					return au
 				case _: raise ValueError(f'improper method in auto response `{au.trigger}`')
 		return None
@@ -109,7 +109,7 @@ class auto_response_listeners(Cog):
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
 		for responses in [self.guild_responses[message.guild.id],self.base_responses]:
-			au = self.au_check(responses,content[:-1] if content[-1] in ['.','?','!'] else content)
+			au = self.au_check(responses,content)
 			if au is not None: break
 		else: return False
 
