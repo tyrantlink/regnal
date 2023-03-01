@@ -160,8 +160,7 @@ class auto_response_listeners(Cog):
 			if (s is None or
 				(s.span()[0] != 0 and input[s.span()[0]-1] != ' ') or
 				(s.span()[1] < len(input) and input[s.span()[1]] != ' ')): continue
-			p_response = split(s.captures()[0],input,1,IGNORECASE)[1:]
-			response,splitter = ''.join(p_response),s.captures()[0].lower()
+			response,splitter = ''.join(split(s.captures()[0],input,1,IGNORECASE)[1:]),s.captures()[0].lower()
 
 		if response == '': return
 		name = self.rand_name(message,splitter)
