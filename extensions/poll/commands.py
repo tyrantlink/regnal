@@ -1,7 +1,8 @@
 from .views import poll_published_view,poll_view
-from discord import Embed,ApplicationContext
+from utils.classes import ApplicationContext
 from discord.commands import slash_command
 from discord.ext.commands import Cog
+from discord import Embed
 from client import Client
 
 

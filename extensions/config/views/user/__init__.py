@@ -1,9 +1,10 @@
 from discord import Interaction,Embed,SelectOption,User,Member as DiscordMember
 from discord.ui import Button,button,Select,string_select,InputText
 from extensions._shared_vars import config_info,valid_voices
-from client import Client,EmptyView,CustomModal,MixedUser
+from utils.classes import EmptyView,CustomModal,MixedUser
 from utils.pluralkit import Member as PKMember
 from asyncio import create_task
+from client import Client
 
 class user_config(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,user:User,embed_color:int=None) -> None:

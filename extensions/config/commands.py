@@ -1,5 +1,5 @@
+from utils.classes import ApplicationContext
 from discord.commands import slash_command
-from discord import ApplicationContext
 from .views.guild import guild_config
 from discord.ext.commands import Cog
 from .views.user import user_config

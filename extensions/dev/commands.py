@@ -1,9 +1,10 @@
-from discord import ApplicationContext,InputTextStyle,Embed,ForumChannel
+from utils.classes import CustomModal,ApplicationContext
+from discord import InputTextStyle,Embed,ForumChannel
 from discord.ext.commands import Cog,slash_command
-from client import Client,CustomModal
 from utils.tyrantlib import dev_only
 from .views.home import home_view
 from discord.ui import InputText
+from client import Client
 
 
 class dev_commands(Cog):

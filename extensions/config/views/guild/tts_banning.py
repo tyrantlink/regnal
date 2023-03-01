@@ -1,6 +1,7 @@
 from discord.ui import Button,button,Item,user_select,Select
 from discord import Interaction,Embed,Guild,Member
-from client import Client,EmptyView
+from utils.classes import EmptyView
+from client import Client
 
 
 class tts_banning_view(EmptyView):

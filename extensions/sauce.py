@@ -1,12 +1,13 @@
 from discord.commands import Option as option,slash_command,message_command
-from discord import Embed,ApplicationContext,Message,Guild
+from utils.classes import ApplicationContext
+from discord import Embed,Message,Guild
 from aiofiles import open as aio_open
 from discord.ext.commands import Cog
 from aiohttp import ClientSession
 from urllib.parse import quote
 from secrets import token_hex
-from client import Client
 from asyncio import sleep
+from client import Client
 
 
 class art_services:

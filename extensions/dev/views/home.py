@@ -1,8 +1,9 @@
 from discord.ui import Button,button,Select,string_select,InputText
 from discord import Interaction,Embed,SelectOption,InputTextStyle
-from client import Client,EmptyView,CustomModal
+from utils.classes import EmptyView,CustomModal
 from .commit import commit_view
 from asyncio import sleep
+from client import Client
 
 class home_view(EmptyView):
 	def __init__(self,client:Client,embed_color:int=None) -> None:

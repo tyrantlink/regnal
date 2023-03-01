@@ -1,9 +1,10 @@
 from discord.ext.commands import Cog,message_command,slash_command
-from discord import File,ApplicationContext,Message
 from discord.commands import Option as option
+from utils.classes import ApplicationContext
 from pyqrcode import create as qr_create
 from base64 import b64encode,b64decode
 from ._shared_vars import algo_list
+from discord import File,Message
 from client import Client
 from io import BytesIO
 

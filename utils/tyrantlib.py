@@ -72,9 +72,3 @@ def get_line_count(input_path:str,excluded_dirs:list=None,excluded_files:list=No
 def split_list(lst:list,size:int) -> list:
 	for i in range(0,len(lst),size):
 		yield lst[i:i+size]
-
-class MakeshiftClass:
-	def __init__(self,**kwargs) -> None:
-		"""attr=value will be set"""
-		for k,v in kwargs.items():
-			setattr(self,k,v)

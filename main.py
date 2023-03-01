@@ -1,12 +1,12 @@
 #!./venv/bin/python3.10
 from time import perf_counter,time
 st = perf_counter()
-from discord import Activity,ActivityType,Embed,ApplicationContext,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents,File
+from discord import Activity,ActivityType,Embed,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents,File
 from utils.tyrantlib import convert_time,format_bytes,get_line_count
+from utils.classes import MixedUser,Env,ApplicationContext
 from discord.ext.commands import Cog,slash_command
 from traceback import format_exc,format_tb
 from discord.errors import CheckFailure
-from client import Client,MixedUser,Env
 from utils.updater import UpdateHandler
 from utils.pluralkit import PluralKit
 from asyncio import sleep,create_task
@@ -18,6 +18,7 @@ from utils.nsfw import nsfw
 from os.path import exists
 from inspect import stack
 from utils.log import log
+from client import Client
 from io import StringIO
 from json import loads
 from os import _exit
@@ -120,7 +121,7 @@ class client_cls(Client):
 	async def on_application_command_completion(self,ctx:ApplicationContext) -> None:
 		if ctx.command.qualified_name.startswith('test '): return
 		options = {} if ctx.selected_options is None else {i['name']:i['value'] for i in ctx.selected_options}
-		await self.log.command(ctx,command=ctx.command.qualified_name,options=options)
+		await self.log.command(ctx,command=ctx.command.qualified_name,options=options,output=getattr(ctx,'output',{}))
 
 	async def on_unknown_application_command(self,interaction:Interaction) -> None:
 		await interaction.response.send_message('u wot m8?',ephemeral=True)

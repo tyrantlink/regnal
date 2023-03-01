@@ -1,10 +1,10 @@
 from discord.ui import Button,button,Select,string_select,InputText,channel_select
+from utils.classes import EmptyView,MakeshiftClass,CustomModal
 from discord import Interaction,Embed,SelectOption
 from extensions._shared_vars import config_info
-from client import Client,EmptyView,CustomModal
-from utils.tyrantlib import MakeshiftClass
 from ..guild import guild_config
 from ..user import user_config
+from client import Client
 
 class dev_menu(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,embed_color:int=None) -> None:

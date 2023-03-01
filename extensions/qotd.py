@@ -1,11 +1,11 @@
-from discord import Embed,ApplicationContext,Permissions,Guild,Message,Thread,User
+from discord import Embed,Permissions,Guild,Message,Thread,User
 from discord.commands import Option as option,SlashCommandGroup
+from utils.classes import MakeshiftClass,ApplicationContext
 from datetime import datetime,time as dtime,timedelta
-from utils.tyrantlib import MakeshiftClass
 from discord.errors import Forbidden
 from discord.ext.commands import Cog
-from discord.ext.tasks import loop
 from ._shared_vars import questions
+from discord.ext.tasks import loop
 from client import Client
 from random import choice
 from time import time

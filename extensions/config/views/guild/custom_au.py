@@ -1,6 +1,7 @@
 from discord.ui import Button,button,Select,string_select,user_select,InputText
 from discord import Interaction,Embed,SelectOption,InputTextStyle,Guild,Member
-from client import Client,EmptyView,CustomModal,AutoResponse
+from utils.classes import EmptyView,CustomModal,AutoResponse
+from client import Client
 
 
 class custom_au_view(EmptyView):

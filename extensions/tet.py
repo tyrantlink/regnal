@@ -1,7 +1,7 @@
-from discord import slash_command,ApplicationContext,Embed,RawReactionActionEvent,Message,Member
-from pymongo.collection import Collection
-from discord.errors import Forbidden
+from discord import slash_command,Embed,RawReactionActionEvent,Member
+from utils.classes import ApplicationContext
 from discord.ext.commands import Cog
+from discord.errors import Forbidden
 from client import Client
 
 """hardcoded garbage because i don't wanna remake the role menu"""

@@ -1,11 +1,12 @@
-from regex import sub,search,split,fullmatch,escape,IGNORECASE,finditer
+from regex import sub,search,split,fullmatch,escape,finditer,IGNORECASE
 from discord.errors import Forbidden,HTTPException
-from client import Client,MixedUser,AutoResponse
+from utils.classes import MixedUser,AutoResponse
 from asyncio import sleep,create_task
 from discord.ext.commands import Cog
 from discord import Message,Thread
 from urllib.parse import quote
 from random import choices
+from client import Client
 from time import time
 from re import split
 

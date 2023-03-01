@@ -1,5 +1,5 @@
+from utils.classes import ApplicationContext
 from statcord import Client as Statcord
-from discord import ApplicationContext
 from discord.ext.commands import Cog
 from client import Client
 

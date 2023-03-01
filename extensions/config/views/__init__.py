@@ -1,9 +1,10 @@
 from discord import Interaction,Embed,SelectOption,Member,User,Guild
 from discord.ui import Select,string_select
-from client import Client,EmptyView
+from utils.classes import EmptyView
 from .guild import guild_config
 from .user import user_config
 from .dev import dev_menu
+from client import Client
 
 class config_view(EmptyView):
 	def __init__(self,client:Client,user:Member|User,guild:Guild,dev_bypass:bool,embed_color:int) -> None:

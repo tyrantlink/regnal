@@ -1,6 +1,7 @@
-from discord import Embed,ApplicationContext
+from utils.classes import ApplicationContext
 from discord.commands import slash_command
 from discord.ext.commands import Cog
+from discord import Embed
 from client import Client
 
 class help_commands(Cog):

@@ -1,5 +1,6 @@
 from discord.commands import SlashCommandGroup,Option as option,slash_command,user_command
-from discord import Embed,User,ApplicationContext,SlashCommand,File
+from discord import Embed,User,SlashCommand,File
+from utils.classes import ApplicationContext
 from ._shared_vars import generate_options
 from discord.ext.commands import Cog
 from client import Client

@@ -1,12 +1,13 @@
 from discord.ui import Button,button,Select,string_select,channel_select,role_select,InputText
 from discord import Interaction,Embed,SelectOption,Guild,Member,CategoryChannel
 from extensions._shared_vars import config_info
-from client import Client,EmptyView,CustomModal
+from utils.classes import EmptyView,CustomModal
 from .configure_list import configure_list_view
 from .tts_banning import tts_banning_view
 from .custom_au import custom_au_view
 from discord.abc import GuildChannel
 from asyncio import create_task
+from client import Client
 
 class guild_config(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,user:Member,guild:Guild,embed_color:int=None) -> None:

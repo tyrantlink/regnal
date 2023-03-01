@@ -1,7 +1,8 @@
-from discord import Message,Member,FFmpegOpusAudio,VoiceClient,VoiceState,SlashCommandGroup,ApplicationContext,Embed
 from google.cloud.texttospeech import TextToSpeechAsyncClient,AudioConfig,VoiceSelectionParams,SynthesisInput
+from discord import Message,Member,FFmpegOpusAudio,VoiceClient,VoiceState,SlashCommandGroup,Embed
 from asyncio import Queue,create_task,CancelledError,Event
 from google.api_core.exceptions import InvalidArgument
+from utils.classes import ApplicationContext
 from re import sub,error as RegexError
 from discord.ext.commands import Cog
 from os import remove as rm,scandir
