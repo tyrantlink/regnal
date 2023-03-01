@@ -63,7 +63,7 @@ class user_config(EmptyView):
 			case 'no_track' if self.category == 'general':
 				if value:
 					await self.client.db.user(self.user.id).messages.write(None)
-					await self.client.db.user(self.user.id).data.au.write({'contains':[],'exact':[],'exact_cs':[]})
+					await self.client.db.user(self.user.id).data.au.write([])
 					for guild in self.discord_user.mutual_guilds:
 						await self.client.db.guild(guild.id).data.leaderboards.messages.unset([str(self.user.id)])
 						await self.client.db.guild(guild.id).data.leaderboards.sticks.unset([str(self.user.id)])
