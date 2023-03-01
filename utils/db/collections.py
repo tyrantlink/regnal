@@ -17,10 +17,10 @@ class INF(MongoObject):
 		"""dict[str,bool]\n\nenable / disable extensions"""
 		self.transcription = MongoObject(db,col,_id,['transcription'])
 		"""dict[str,str]\n\ntts transcription"""
+		self.auto_responses = MongoObject(db,col,_id,['auto_responses'])
+		"""dict[str,dict]\n\nauto responses"""
 		self.config = self.___config(db,col,_id,['config'])
 		"""dict[str,bool|int|list]\n\ndev config options"""
-		self.auto_responses = self.___auto_responses(db,col,_id,['auto_responses'])
-		"""dict[str,dict]\n\nauto responses"""
 
 	class ___config(MongoObject):
 		def __init__(self,db,col,_id,path) -> None:
@@ -35,16 +35,6 @@ class INF(MongoObject):
 			"""int"""
 			self.donation_roles = MongoObject(db,col,_id,['config','donation_roles'])
 			"""list[int]"""
-
-	class ___auto_responses(MongoObject):
-		def __init__(self,db,col,_id,path) -> None:
-			super().__init__(db,col,_id,path)
-			self.contains = MongoObject(db,col,_id,['auto_responses','contains'])
-			"""dict[str,dict]"""
-			self.exact = MongoObject(db,col,_id,['auto_responses','exact'])
-			"""dict[str,dict]"""
-			self.exact_cs = MongoObject(db,col,_id,['auto_responses','exact_cs'])
-			"""dict[str,dict]"""
 
 class Guild(MongoObject):
 	def __init__(self,db,col:Collection,_id) -> None:
@@ -240,18 +230,8 @@ class Guild(MongoObject):
 				"""list[int]"""
 				self.blacklist = MongoObject(db,col,_id,['data','auto_responses','blacklist'])
 				"""list[int]"""
-				self.custom = self.___custom(db,col,_id,['data','auto_responses','custom'])
+				self.custom = MongoObject(db,col,_id,['data','auto_responses','custom'])
 				"""dict[str,dict]"""
-
-			class ___custom(MongoObject):
-				def __init__(self,db,col,_id,path) -> None:
-					super().__init__(db,col,_id,path)
-					self.contains = MongoObject(db,col,_id,['data','auto_responses','custom','contains'])
-					"""dict[str,dict]"""
-					self.exact = MongoObject(db,col,_id,['data','auto_responses','custom','exact'])
-					"""dict[str,dict]"""
-					self.exact_cs = MongoObject(db,col,_id,['data','auto_responses','custom','exact_cs'])
-					"""dict[str,dict]"""
 
 		class ___dad_bot(MongoObject):
 			def __init__(self,db,col,_id,path) -> None:
@@ -440,15 +420,5 @@ class User(MongoObject):
 	class ___data(MongoObject):
 		def __init__(self,db,col,_id,path) -> None:
 			super().__init__(db,col,_id,path)
-			self.au = self.___au(db,col,_id,['data','au'])
+			self.au = MongoObject(db,col,_id,['data','au'])
 			"""dict[str,dict]\n\ndata found auto responses"""
-
-		class ___au(MongoObject):
-			def __init__(self,db,col,_id,path) -> None:
-				super().__init__(db,col,_id,path)
-				self.contains = MongoObject(db,col,_id,['data','au','mode'])
-				"""list[str]\n\ncontains category"""
-				self.exact = MongoObject(db,col,_id,['data','au','exact'])
-				"""list[str]\n\ncontains category"""
-				self.exact_cs = MongoObject(db,col,_id,['data','au','exact_cs'])
-				"""list[str]\n\ncontains category"""
