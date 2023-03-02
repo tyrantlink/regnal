@@ -56,8 +56,7 @@ class auto_response_listeners(Cog):
 		if user is None: user = message.author
 
 		try:
-			if (
-				user.bot or
+			if (user.bot or
 				await self.client.db.user(user.id).config.general.ignored.read() or
 				user.id in await self.client.db.inf('/reg/nal').banned_users.read()):
 					return
