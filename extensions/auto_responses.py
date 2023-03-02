@@ -114,7 +114,7 @@ class auto_response_listeners(Cog):
 			if au is not None: break
 		else: return False
 
-		response = choices(au.response,au.multi_weights)[0] if au.multi else au.response
+		response = choices([au.response]+au.alt_responses,au.alt_weights)[0] if au.alt_responses else au.response
 		if response is None or response.lower() == '{none}': return False
 		if au.nsfw and not message.channel.nsfw: return False
 		if au.user is not None and str(message.author.id) != au.user: return False
