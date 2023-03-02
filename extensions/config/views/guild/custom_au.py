@@ -158,7 +158,7 @@ class custom_au_view(EmptyView):
 	async def set_button(self,button:Button,interaction:Interaction) -> None:
 		modal = CustomModal(self,'add custom auto response',[
 			InputText(label='trigger message',placeholder='cannot start with $ or contain a .',min_length=1,max_length=100,style=InputTextStyle.short,value=self.selected_au.trigger),
-			InputText(label='response',placeholder='"{none}" to give no response (used for disabling a default auto response)',min_length=1,max_length=500,style=InputTextStyle.long,value=self.selected_au.response)])
+			InputText(label='response',placeholder='"{none}" to give no response (used for disabling a default auto response)',min_length=0,max_length=500,style=InputTextStyle.long,required=False,value=self.selected_au.response)])
 
 		await interaction.response.send_modal(modal)
 		await modal.wait()
@@ -168,7 +168,7 @@ class custom_au_view(EmptyView):
 			await modal.interaction.response.send_message(embed=embed,ephemeral=self.client.hide(interaction))
 			return
 		self.selected_au.trigger = modal.children[0].value
-		self.selected_au.response = modal.children[1].value
+		self.selected_au.response = modal.children[1].value if modal.children[1].value else None
 		self.embed_au()
 		if self.selected_au.method is not None:
 			self.get_item('save_button').disabled = False
