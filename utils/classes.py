@@ -73,17 +73,17 @@ class MixedUser:
 
 class AutoResponse:
 	def __init__(self,trigger:str,**kwargs) -> None:
-		self.trigger:str = trigger
-		self.method:str  = kwargs.get('method')
-		self.regex:bool  = kwargs.get('regex',False)
-		self.nsfw:bool   = kwargs.get('nsfw',False)
-		self.file:bool   = kwargs.get('file',False)
-		self.user:str    = kwargs.get('user',None)
-		self.guild:str   = kwargs.get('guild',None)
-		self.multi:bool  = kwargs.get('multi',False)
-		self.response:str|list[str] = kwargs.get('response',None)
+		self.trigger:str  = trigger
+		self.method:str   = kwargs.get('method')
+		self.regex:bool   = kwargs.get('regex',False)
+		self.nsfw:bool    = kwargs.get('nsfw',False)
+		self.file:bool    = kwargs.get('file',False)
+		self.user:str     = kwargs.get('user',None)
+		self.guild:str    = kwargs.get('guild',None)
+		self.response:str = kwargs.get('response',None)
+		self.alt_responses:list[str] = kwargs.get('alt_responses',[])
 		self.case_sensitive:bool = kwargs.get('case_sensitive',False)
-		self.multi_weights:list[float] = kwargs.get('multi_weights',None)
+		self.alt_weights:list[float] = kwargs.get('multi_weights',None)
 		self.followups:list[tuple[float,str]] = kwargs.get('followups',[])
 
 	def to_dict(self,guild_only:bool=True,include_trigger:bool=False) -> dict:
@@ -99,8 +99,8 @@ class AutoResponse:
 		res.update({
 			'file':self.file,
 			'guild':self.guild,
-			'multi':self.multi,
-			'multi_weights':self.multi_weights,
+			'alt_responses':self.alt_responses,
+			'alt_weights':self.alt_weights,
 			'followups':self.followups})
 		return res
 
