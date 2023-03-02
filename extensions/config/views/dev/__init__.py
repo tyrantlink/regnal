@@ -2,9 +2,11 @@ from discord.ui import Button,button,Select,string_select,InputText,channel_sele
 from utils.classes import EmptyView,MakeshiftClass,CustomModal
 from discord import Interaction,Embed,SelectOption
 from extensions._shared_vars import config_info
+from ....dev.views.home import home_view
 from ..guild import guild_config
 from ..user import user_config
 from client import Client
+
 
 class dev_menu(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,embed_color:int=None) -> None:
@@ -16,7 +18,7 @@ class dev_menu(EmptyView):
 		self.category     = None
 		self.embed.set_author(name=self.client.user.name,icon_url=self.client.user.avatar.url)
 		if back_view is not None: self.add_item(self.back_button)
-		self.add_items(self.category_select)
+		self.add_items(self.category_select,self.dev_menu_button)
 
 	@property
 	def config_type(self) -> str|None:
@@ -75,11 +77,18 @@ class dev_menu(EmptyView):
 		self.add_item(self.category_select)
 		await interaction.response.edit_message(view=self,embed=self.embed)
 
+	@button(
+		label='dev menu',style=1,
+		custom_id='dev_menu_button',row=2)
+	async def dev_menu_button(self,button:Button,interaction:Interaction) -> None:
+		self.embed.title = 'dev menu'
+		await interaction.response.edit_message(view=home_view(self.client,self.embed.color),embed=self.embed.copy())
+		self.stop()
+
 	@string_select(
 		placeholder='select a config category',
 		custom_id='category_select',row=0,options=[
 			SelectOption(label='general'),
-			# SelectOption(label='extensions'),
 			# SelectOption(label='auto responses'),
 			SelectOption(label='user config'),
 			SelectOption(label='guild config')])
@@ -92,7 +101,6 @@ class dev_menu(EmptyView):
 				await self.reload_config()
 				self.reload_embed()
 				view = self
-			# case 'extensions': view = None
 			# case 'auto responses': view = None
 			case 'user config'|'guild config': view,interaction = await self.impersonate(select.values[0].split()[0],interaction)
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')

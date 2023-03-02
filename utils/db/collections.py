@@ -19,6 +19,8 @@ class INF(MongoObject):
 		"""dict[str,str]\n\ntts transcription"""
 		self.auto_responses = MongoObject(db,col,_id,['auto_responses'])
 		"""dict[str,dict]\n\nauto responses"""
+		self.banned_users = MongoObject(db,col,_id,['banned_users'])
+		"""list[int]\n\nlist of banned user ids"""
 		self.config = self.___config(db,col,_id,['config'])
 		"""dict[str,bool|int|list]\n\ndev config options"""
 

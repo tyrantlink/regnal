@@ -1,6 +1,7 @@
 from discord.ui import Button,button,Select,string_select,InputText
 from discord import Interaction,Embed,SelectOption,InputTextStyle
 from utils.classes import EmptyView,CustomModal
+from .banning import dev_banning_view
 from .commit import commit_view
 from asyncio import sleep
 from client import Client
@@ -8,8 +9,8 @@ from client import Client
 class home_view(EmptyView):
 	def __init__(self,client:Client,embed_color:int=None) -> None:
 		super().__init__(timeout=0)
-		self.client      = client
-		self.embed       = Embed(title='dev menu',color=embed_color)
+		self.client = client
+		self.embed  = Embed(title='dev menu',color=embed_color)
 		self.embed.set_author(name=self.client.user.name,icon_url=self.client.user.avatar.url)
 		self.add_items(
 			self.option_select,
@@ -38,14 +39,16 @@ class home_view(EmptyView):
 		placeholder='select a menu option',
 		custom_id='option_select',row=0,options=[
 			SelectOption(label='commit'),
+			SelectOption(label='banning')
 			# SelectOption(label='logs')
 			])
 	async def option_select(self,select:Select,interaction:Interaction) -> None:
 		self.reboot_confirmation = False
 		db = await self.client.db.inf('/reg/nal').read()
 		match select.values[0]:
-			case 'commit': view = commit_view(self,self.client,interaction.user,db.get('version'),self.embed.color)
-			case 'logs':   view = None
+			case 'commit':  view = commit_view(self,self.client,interaction.user,db.get('version'),self.embed.color)
+			case 'banning': view = dev_banning_view(self,interaction.user,self.client,self.embed.copy())
+			# case 'logs':    view = None
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
 		await view.start(guild=self.client.get_guild(db.get('config',{}).get('guild')))
 		await interaction.response.edit_message(view=view,embed=view.embed)
