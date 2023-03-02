@@ -2,6 +2,7 @@ from discord import Embed,Permissions,Guild,Message,Thread,User
 from discord.commands import Option as option,SlashCommandGroup
 from utils.classes import MakeshiftClass,ApplicationContext
 from datetime import datetime,time as dtime,timedelta
+from utils.tyrantlib import dev_banned
 from discord.errors import Forbidden
 from discord.ext.commands import Cog
 from ._shared_vars import questions
@@ -101,6 +102,7 @@ class qotd_commands(Cog):
 			option(str,name='type',description='ask as next question or add to question pool?',
 				choices=['add as next question','add as next question, then add to pool','add to question pool']),
 			option(str,name='question',description='question to be asked',max_length=1024)])
+	@dev_banned()
 	async def slash_qotd_add_question(self,ctx:ApplicationContext,type:str,question:str) -> None:
 		embed = Embed(title='successfully added a qotd question',color=await self.client.embed_color(ctx))
 		match type:

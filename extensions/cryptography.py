@@ -2,6 +2,7 @@ from discord.ext.commands import Cog,message_command,slash_command
 from discord.commands import Option as option
 from utils.classes import ApplicationContext
 from pyqrcode import create as qr_create
+from utils.tyrantlib import dev_banned
 from base64 import b64encode,b64decode
 from ._shared_vars import algo_list
 from discord import File,Message
@@ -46,6 +47,7 @@ class cryptography_commands(Cog):
 
 	@message_command(
 		name='QR Code')
+	@dev_banned()
 	async def message_qr_code(self,ctx:ApplicationContext,message:Message) -> None:
 		if message.content == '':
 			await ctx.response.send_message('failed to create QR code. no message content.',ephemeral=await self.client.hide(ctx))

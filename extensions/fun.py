@@ -1,6 +1,7 @@
 from discord.commands import Option as option,slash_command
 from utils.classes import ApplicationContext
 from ._shared_vars import bees,eightball
+from utils.tyrantlib import dev_banned
 from discord.ext.commands import Cog
 from random import randint,choice
 from discord import Embed,Role
@@ -17,6 +18,7 @@ class fun_commands(Cog):
 	@slash_command(
 		name='hello',
 		description='say hello to /reg/nal?')
+	@dev_banned()
 	async def slash_hello(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(
 			f'https://regn.al/{"regnal" if randint(0,100) else "erglud"}.png',
@@ -67,6 +69,7 @@ class fun_commands(Cog):
 	@slash_command(
 		name='time',
 		description='/reg/nal can tell time.')
+	@dev_banned()
 	async def slash_time(self,ctx:ApplicationContext) -> None:
 		t = datetime.now().strftime("%H:%M:%S.%f")
 		await ctx.response.send_message(t,ephemeral=await self.client.hide(ctx))
@@ -77,6 +80,7 @@ class fun_commands(Cog):
 		description='ask the 8ball a question',
 		options=[
 			option(str,name='question',description='question to ask',max_length=256)])
+	@dev_banned()
 	async def slash_eightball(self,ctx:ApplicationContext,question:str) -> None:
 		answer = choice(eightball)
 		embed = Embed(title=question,description=f'**{answer}**',color=await self.client.embed_color(ctx))
@@ -87,6 +91,7 @@ class fun_commands(Cog):
 	@slash_command(
 		name='color',
 		description='generate a random color')
+	@dev_banned()
 	async def slash_color(self,ctx:ApplicationContext) -> None:
 		color = hex(randint(0,16777215)).upper()
 		res = [f'#{color[2:]}']
@@ -121,6 +126,7 @@ class fun_commands(Cog):
 		name='bees',
 		description='bees.',
 		guild_only=True)
+	@dev_banned()
 	async def slash_bees(self,ctx:ApplicationContext) -> None:
 		if ctx.channel.name != 'spam':
 			await ctx.response.send_message('bees are not allowed here.',ephemeral=await self.client.hide(ctx))

@@ -1,6 +1,7 @@
-from discord import ApplicationContext
+from utils.classes import ApplicationContext
 from discord.ext.commands import check
 from collections.abc import Mapping
+from discord import Embed
 from os.path import isdir
 from os import walk
 from re import sub
@@ -47,7 +48,15 @@ def dev_only(ctx:ApplicationContext=None) -> bool:
 	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT THIS HAS TO BE AWAITED
 	async def perms(ctx:ApplicationContext,respond=True) -> bool:
 		if ctx.author.id in ctx.bot.owner_ids: return True
-		if respond: await ctx.response.send_message('you must be the bot developer to run this command.',ephemeral=True)
+		if respond: await ctx.response.send_message(embed=Embed(title='ERROR!',description='you must be the bot developer to run this command.',color=0xff6969),ephemeral=True)
+		return False
+	return check(perms) if not ctx else perms(ctx,False)
+
+def dev_banned(ctx:ApplicationContext=None) -> bool:
+	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT THIS HAS TO BE AWAITED
+	async def perms(ctx:ApplicationContext,respond=True) -> bool:
+		if ctx.author.id not in await ctx.bot.db.inf('/reg/nal').banned_users.read(): return True
+		if respond: await ctx.response.send_message(embed=Embed(title='ERROR!',description='banned users are not allowed to run this command!',color=0xff6969),ephemeral=True)
 		return False
 	return check(perms) if not ctx else perms(ctx,False)
 

@@ -3,6 +3,7 @@ from discord.commands import SlashCommandGroup
 from utils.tyrantlib import ApplicationContext
 from datetime import datetime,time as dtime
 from utils.classes import MakeshiftClass
+from utils.tyrantlib import dev_banned
 from discord.ext.commands import Cog
 from discord.errors import NotFound
 from discord.ext.tasks import loop
@@ -27,6 +28,7 @@ class talking_stick_commands(Cog):
 		name='reroll',
 		description='force reroll the talking stick',
 		guild_only=True,default_member_permissions=Permissions(manage_guild=True,manage_roles=True))
+	@dev_banned()
 	async def slash_stick_reroll(self,ctx:ApplicationContext) -> None:
 		if not await self.check(ctx): return
 		await ctx.defer(ephemeral=await self.client.hide(ctx))
