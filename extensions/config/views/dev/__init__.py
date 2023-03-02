@@ -2,7 +2,7 @@ from discord.ui import Button,button,Select,string_select,InputText,channel_sele
 from utils.classes import EmptyView,MakeshiftClass,CustomModal
 from discord import Interaction,Embed,SelectOption
 from extensions._shared_vars import config_info
-from ....dev.views.home import home_view
+from .dev_menu.views.home import home_view
 from ..guild import guild_config
 from ..user import user_config
 from client import Client
@@ -81,9 +81,8 @@ class dev_menu(EmptyView):
 		label='dev menu',style=1,
 		custom_id='dev_menu_button',row=2)
 	async def dev_menu_button(self,button:Button,interaction:Interaction) -> None:
-		self.embed.title = 'dev menu'
-		await interaction.response.edit_message(view=home_view(self.client,self.embed.color),embed=self.embed.copy())
-		self.stop()
+		view = home_view(self,self.client,self.embed.color)
+		await interaction.response.edit_message(view=view,embed=view.embed)
 
 	@string_select(
 		placeholder='select a config category',

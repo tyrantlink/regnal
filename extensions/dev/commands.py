@@ -1,8 +1,6 @@
 from utils.classes import CustomModal,ApplicationContext
 from discord import InputTextStyle,Embed,ForumChannel
 from discord.ext.commands import Cog,slash_command
-from utils.tyrantlib import dev_only
-from .views.home import home_view
 from discord.ui import InputText
 from client import Client
 
@@ -40,17 +38,6 @@ class dev_commands(Cog):
 			color=await self.client.embed_color(ctx)),
 			ephemeral=True)
 		ctx.output.update({'title':modal.children[0].value,'details':modal.children[1].value if len(modal.children) == 2 else None})
-
-	@slash_command(
-		name='dev',
-		description='primary dev menu')
-	@dev_only()
-	async def slash_dev(self,ctx:ApplicationContext) -> None:
-		embed_color = await self.client.embed_color(ctx)
-		view = home_view(
-			client=self.client,
-			embed_color=embed_color)
-		await ctx.response.send_message(embed=view.embed,view=view,ephemeral=True)
 
 	@slash_command(
 		name='suggest',
