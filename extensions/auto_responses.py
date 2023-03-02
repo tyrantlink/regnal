@@ -59,7 +59,7 @@ class auto_response_listeners(Cog):
 			if (
 				user.bot or
 				await self.client.db.user(user.id).config.general.ignored.read() or
-				await self.client.db.inf('/reg/nal').banned_users.read()):
+				user.id in await self.client.db.inf('/reg/nal').banned_users.read()):
 					return
 		except: return
 
