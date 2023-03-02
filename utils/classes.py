@@ -37,7 +37,8 @@ class EmptyView(View):
 			setattr(self,func.__name__,item)
 
 	def add_items(self,*items:Item) -> None:
-		for item in items: self.add_item(item)
+		for item in items:
+			if item not in self.children: self.add_item(item)
 
 	async def on_error(self,error:Exception,item:Item,interaction:Interaction) -> None:
 		embed = Embed(title='an error has occurred!',color=0xff6969)
