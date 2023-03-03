@@ -35,6 +35,10 @@ class INF(MongoObject):
 			"""int"""
 			self.support = MongoObject(db,col,_id,['config','support'])
 			"""int"""
+			self.error_wh = MongoObject(db,col,_id,['config','error_wh'])
+			"""str"""
+			self.support_wh = MongoObject(db,col,_id,['config','support_wh'])
+			"""str"""
 			self.donation_roles = MongoObject(db,col,_id,['config','donation_roles'])
 			"""list[int]"""
 
