@@ -200,6 +200,17 @@ class base_commands(Cog):
 	async def slash_ping(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(f'pong! {round(self.client.latency*100,1)}ms',ephemeral=await self.client.hide(ctx))
 
+	@slash_command(
+		name='donate',
+		description='pls donate am broke')
+	async def slash_donate(self,ctx:ApplicationContext) -> None:
+		embed = Embed(
+			description='uhhh, this is for donations, i refuse to lock any features behind a paywall, at best you can donate so i\'ll get something done faster, but that feature will be public for everyone.\n\nif your server is big enough, i might do a unique spin off that uses the same backend as /reg/nal, but with a different name and icon, just shoot me a dm from the [development server](<https://discord.gg/4mteVXBDW7>)\n\nanywho, no need to donate, it just helps me uh, live, i guess.',
+			color=await self.client.embed_color(ctx))
+		embed.set_author(name='donation',icon_url='https://cdn.tyrant.link/blurple_tyrantlink.png')
+		embed.add_field(name='Monero (XMR)',value='OpenAlias: xmr.tyrant.link, xmr.regn.al\n899YLWhurE1d4rMnNEbLUChXvRtQ6uiwbUCwEcy9gdSaDgJkHE5EWQPT31YKrATtcoRVUa1regt4mKLhhEhi38Kh1WjVNuz')
+		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
+
 	@loop(minutes=5)
 	async def uptime_loop(self) -> None:
 		await sleep(5)
