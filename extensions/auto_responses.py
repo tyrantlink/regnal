@@ -109,7 +109,8 @@ class auto_response_listeners(Cog):
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
-		br = [au for au in self.base_responses if au.trigger not in [self.guild_responses[message.guild.id]]]
+		g_triggers = [a.trigger for a in self.guild_responses[message.guild.id]]
+		br = [au for au in self.base_responses if au.trigger not in g_triggers]
 		for responses in [self.guild_responses[message.guild.id],br]:
 			au = self.au_check(responses,content)
 			if au is not None: break
