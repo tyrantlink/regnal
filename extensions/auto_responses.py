@@ -109,7 +109,8 @@ class auto_response_listeners(Cog):
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
-		for responses in [self.guild_responses[message.guild.id],self.base_responses]:
+		br = [au for au in self.base_responses if au.trigger not in [self.guild_responses[message.guild.id]]]
+		for responses in [self.guild_responses[message.guild.id],br]:
 			au = self.au_check(responses,content)
 			if au is not None: break
 		else: return False
@@ -136,7 +137,7 @@ class auto_response_listeners(Cog):
 				await sleep(delay)
 			await message.channel.send(followup)
 
-		if responses == self.base_responses and au.guild is None:
+		if au in self.base_responses:
 			user_data = await self.client.db.user(user.id).read()
 			if au.trigger not in user_data.get('data',{}).get('au') and not user_data.get('config',{}).get('general',{}).get('no_track',True):
 				await self.client.db.user(user.id).data.au.append(au.trigger)
