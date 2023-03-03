@@ -158,7 +158,7 @@ class custom_au_view(EmptyView):
 	async def set_button(self,button:Button,interaction:Interaction) -> None:
 		modal = CustomModal(self,'add custom auto response',[
 			InputText(label='trigger message',placeholder='cannot start with $ or contain a .',min_length=1,max_length=100,style=InputTextStyle.short,value=self.selected_au.trigger),
-			InputText(label='response',placeholder='"{none}" to give no response (used for disabling a default auto response)',min_length=0,max_length=500,style=InputTextStyle.long,required=False,value=self.selected_au.response)])
+			InputText(label='response',placeholder='leave blank to give no response (used for disabling a default auto response)',min_length=0,max_length=500,style=InputTextStyle.long,required=False,value=self.selected_au.response)])
 
 		await interaction.response.send_modal(modal)
 		await modal.wait()
