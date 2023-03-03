@@ -47,7 +47,7 @@ class custom_au_view(EmptyView):
 
 	def update_select(self):
 		select = self.get_item('custom_au_select')
-		if (options:=[SelectOption(label=k,description=v.get('response','').split('\n')[0][:100]) for k,v in self.custom_au.items()]):
+		if (options:=[SelectOption(label=k,description=None if v.get('response',None) is None else v.get('response','').split('\n')[0][:100]) for k,v in self.custom_au.items()]):
 			select.options = options
 			select.placeholder = 'select an auto response'
 			select.disabled = False
@@ -147,7 +147,7 @@ class custom_au_view(EmptyView):
 	async def method_select(self,select:Select,interaction:Interaction) -> None:
 		self.selected_au.method = select.values[0]
 		for option in select.options: option.default = option.label == self.selected_au.method
-		if self.selected_au.trigger is not None and self.selected_au.response is not None:
+		if self.selected_au.trigger is not None:
 			self.get_item('save_button').disabled = False
 		self.embed_au()
 		await interaction.response.edit_message(embed=self.embed,view=self)
