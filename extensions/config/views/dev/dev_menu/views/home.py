@@ -3,9 +3,9 @@ from discord import Interaction,Embed,SelectOption,InputTextStyle
 from utils.classes import EmptyView,CustomModal
 from .banning import dev_banning_view
 from .commit import commit_view
+from ....au import au_view
 from asyncio import sleep
 from client import Client
-from .au import au_view
 
 class home_view(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,embed_color:int=None) -> None:
@@ -51,8 +51,8 @@ class home_view(EmptyView):
 		match select.values[0]:
 			case 'commit':  view = commit_view(self,self.client,interaction.user,db.get('version'),self.embed.color)
 			case 'banning': view = dev_banning_view(self,interaction.user,self.client,self.embed.copy())
-			case 'auto responses': view = au_view(self,interaction.user,self.client,
-				Embed(title=f'auto responses',color=self.embed.color),await self.client.db.inf('/reg/nal').auto_responses.read())
+			case 'auto responses': view = au_view(self,interaction.user,interaction.guild,self.client,
+				Embed(title=f'auto responses',color=self.embed.color),await self.client.db.inf('/reg/nal').auto_responses.read(),True)
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
 		await view.start(guild=self.client.get_guild(db.get('config',{}).get('guild')))
 		await interaction.response.edit_message(view=view,embed=view.embed)

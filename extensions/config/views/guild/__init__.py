@@ -4,10 +4,10 @@ from extensions._shared_vars import config_info
 from utils.classes import EmptyView,CustomModal
 from .configure_list import configure_list_view
 from .tts_banning import tts_banning_view
-from .custom_au import custom_au_view
 from discord.abc import GuildChannel
 from asyncio import create_task
 from client import Client
+from ..au import au_view
 
 class guild_config(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,user:Member,guild:Guild,embed_color:int=None) -> None:
@@ -273,7 +273,7 @@ class guild_config(EmptyView):
 		custom_id='custom_au_button')
 	async def custom_au_button(self,button:Button,interaction:Interaction) -> None:
 		embed = Embed(title=f'custom auto responses',color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=custom_au_view(self,self.user,self.guild,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read()))
+		await interaction.response.edit_message(embed=embed,view=au_view(self,self.user,self.guild,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read(),False))
 
 	@button(
 		label='ban users',style=1,row=2,
