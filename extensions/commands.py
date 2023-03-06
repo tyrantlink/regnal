@@ -30,7 +30,7 @@ class commands_commands(Cog):
 			value=f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			display name: {user.display_name}
 			seen messages: {user_doc.get('messages',0)}
-			auto responses found: {len(user_doc.get('data',{}).get('au',{}))}/{len([v for v in self.client.au.values() if v.get('guild',None) is None and v.get('user',str(user.id)) == str(user.id)])}""")
+			auto responses found: {len(user_doc.get('data',{}).get('au',{}))}/{len([v for v in self.client.au.values() if v.get('guild',None) is None and v.get('user',str(user.id)) == str(user.id)])}""".replace('	',''))
 		return embed
 
 	@profile.command(
@@ -64,7 +64,7 @@ class commands_commands(Cog):
 			roles: {len(ctx.guild.roles)}
 			tts usage: {guild_data.get('tts',{}).get('usage')}
 			unique auto responses: {len([v for v in self.client.au.values() if v.get('guild',None) == str(ctx.guild.id)])}
-			custom auto responses: {len(guild_data.get('auto_responses',{}).get('custom'))}""")
+			custom auto responses: {len(guild_data.get('auto_responses',{}).get('custom'))}""".replace('	',''))
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@slash_command(
