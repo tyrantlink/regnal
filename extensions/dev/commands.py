@@ -1,6 +1,7 @@
+from discord import InputTextStyle,Embed,ForumChannel,Webhook
 from utils.classes import CustomModal,ApplicationContext
-from discord import InputTextStyle,Embed,ForumChannel
 from discord.ext.commands import Cog,slash_command
+from aiohttp import ClientSession
 from discord.ui import InputText
 from client import Client
 
@@ -18,23 +19,20 @@ class dev_commands(Cog):
 				title = 'report an issue'
 				response = 'thank you for reporting this issue'
 			case _: raise
-		channel = await self.client.db.inf('/reg/nal').config.support.read()
-		channel:ForumChannel = self.client.get_channel(channel) or await self.client.fetch_channel(channel)
 		modal = CustomModal(None,title,[
-			InputText(label='title',placeholder=f'title of {mode}'),
+			InputText(label='title',placeholder=f'title of {mode}',max_length=100),
 			InputText(label='details',placeholder=f'details of {mode}',style=InputTextStyle.long,required=False)])
 		await ctx.response.send_modal(modal)
 		await modal.wait()
-		embed = Embed(
-			title=modal.children[0].value,
-			description=modal.children[1].value if len(modal.children) == 2 else None,
-			color=await self.client.embed_color(ctx))
-		embed.set_author(name=str(ctx.user),url=ctx.user.jump_url,icon_url=ctx.user.avatar.url)
-		thread = await channel.create_thread(name=modal.children[0].value,embed=embed,
-			applied_tags=[tag for tag in channel.available_tags if tag.name in [mode,'open']])
+		async with ClientSession() as session:
+			message = await Webhook.from_url(f'https://discord.com/api/webhooks/{await self.client.db.inf("/reg/nal").config.support_wh.read()}',session=session
+			).send(wait=True,username=ctx.author.name,avatar_url=ctx.author.avatar.url,thread_name=modal.children[0].value,embed=Embed(
+				title=modal.children[0].value,
+				description=modal.children[1].value if len(modal.children) == 2 else None,
+				color=await self.client.embed_color(ctx)))
 		await modal.interaction.response.send_message(embed=Embed(
 			title=response,
-			description=f'[view the thread here](<{thread.jump_url}>)\n[join the development server](<https://discord.gg/4mteVXBDW7>)',
+			description=f'[view the thread here](<{message.jump_url}>)\n[join the development server](<https://discord.gg/4mteVXBDW7>)',
 			color=await self.client.embed_color(ctx)),
 			ephemeral=True)
 		ctx.output.update({'title':modal.children[0].value,'details':modal.children[1].value if len(modal.children) == 2 else None})

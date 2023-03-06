@@ -7,12 +7,13 @@ from .dev import dev_menu
 from client import Client
 
 class config_view(EmptyView):
-	def __init__(self,client:Client,user:Member|User,guild:Guild,dev_bypass:bool,embed_color:int) -> None:
+	def __init__(self,client:Client,user:Member|User,guild:Guild,dev_bypass:bool,moderator_role:int|None,embed_color:int) -> None:
 		super().__init__(timeout=0)
 		self.client = client
 		self.user   = user
 		self.guild  = guild
 		self.dev_bypass = dev_bypass
+		self.moderator_role = moderator_role
 		self.embed = Embed(title='config',color=embed_color)
 		self.add_item(self.option_select)
 		self.populate_options()
@@ -20,11 +21,11 @@ class config_view(EmptyView):
 	def populate_options(self) -> None:
 		self.options = [SelectOption(label='user',description='user specific options')]
 		if self.guild is not None:
-			if self.user.guild_permissions.manage_guild:
+			if (self.user.guild_permissions.manage_guild or
+				self.dev_bypass or
+				(self.user.get_role(self.moderator_role) if self.moderator_role else False)):
 				self.options.append(SelectOption(label='guild',description='guild config menu'))
 		if self.user.id == self.client.owner_id:
-			if len(self.options) == 1 and self.dev_bypass:
-				self.options.append(SelectOption(label='guild',description='guild config menu'))
 			self.options.append(SelectOption(label='dev',description='dev options'))
 		self.get_item('option_select').options = self.options
 

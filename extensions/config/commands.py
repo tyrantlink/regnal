@@ -22,6 +22,7 @@ class config_commands(Cog):
 			user=ctx.author,
 			guild=ctx.guild,
 			dev_bypass=await self.client.db.inf('/reg/nal').config.bypass_permissions.read(),
+			moderator_role=await self.client.db.guild(ctx.guild.id).config.general.moderator_role.read() if ctx.guild else None or None,
 			embed_color=embed_color)
 		if len(view.options) == 1:
 			match view.options[0].label:

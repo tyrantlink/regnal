@@ -86,6 +86,8 @@ class Guild(MongoObject):
 				"""int"""
 				self.pluralkit = MongoObject(db,col,_id,['config','general','pluralkit'])
 				"""bool"""
+				self.moderator_role = MongoObject(db,col,_id,['config','general','moderator_role'])
+				"""int"""
 
 		class ___logging(MongoObject):
 			def __init__(self,db,col,_id,path) -> None:

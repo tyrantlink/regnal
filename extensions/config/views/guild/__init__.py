@@ -23,17 +23,14 @@ class guild_config(EmptyView):
 		self.embed.set_author(name=self.guild.name,icon_url=self.guild.icon.url if self.guild.icon else 'https://regn.al/discord.png')
 		if back_view is not None: self.add_item(self.back_button)
 		self.add_items(self.category_select)
-		options = [SelectOption(label='general',description='general options')]
-		if user.id == self.client.owner_id or user.guild_permissions.view_audit_log:
-			options.append(SelectOption(label='logging',description='logging config'))
-		options.append(SelectOption(label='tts',description='text-to-speech config'))
-		if user.id == self.client.owner_id or user.guild_permissions.manage_channels:
-			options.append(SelectOption(label='qotd',description='qotd config'))
-			options.append(SelectOption(label='talking_stick',description='talking stick config'))
-		if user.id == self.client.owner_id or user.guild_permissions.manage_messages:
-			options.append(SelectOption(label='auto_responses',description='auto response config'))
-			options.append(SelectOption(label='dad_bot',description='dad bot config'))
-		self.get_item('category_select').options = options
+		self.get_item('category_select').options = [
+			SelectOption(label='general',description='general options'),
+			SelectOption(label='logging',description='logging config'),
+			SelectOption(label='tts',description='text-to-speech config'),
+			SelectOption(label='auto_responses',description='auto response config'),
+			SelectOption(label='dad_bot',description='dad bot config'),
+			SelectOption(label='qotd',description='qotd config'),
+			SelectOption(label='talking_stick',description='talking stick config')]
 
 	@property
 	def config_type(self) -> str|None:
@@ -53,7 +50,14 @@ class guild_config(EmptyView):
 
 	async def reload_config(self) -> None:
 		self.config = await self.client.db.guild(self.guild.id).config.read([self.category])
-		options = [SelectOption(label=k,description=v.get('description','').split('\n')[0][:100]) for k,v in config_info.get('guild',{}).get(self.category,{}).items()]
+		options = [SelectOption(label=k,description=v.get('description','').split('\n')[0][:100]) for k,v in config_info.get('guild',{}).get(self.category,{}).items() if v.get('required_permissions',None) is None or self.user.id == self.client.owner_id or getattr(self.user.guild_permissions,v.get('required_permissions'),False)]
+		if not options:
+			options = [SelectOption(label='None',description='None')]
+			self.get_item('option_select').placeholder = 'you do not have permission'
+			self.get_item('option_select').disabled = True
+		else:
+			self.get_item('option_select').disabled = False
+			self.get_item('option_select').placeholder = 'select an option'
 		for option in options: option.default = option.label == self.selected
 		self.get_item('option_select').options = options
 
@@ -87,16 +91,17 @@ class guild_config(EmptyView):
 					return False
 		return True
 
-	async def write_config(self,value,interaction:Interaction=None) -> None:
-		match self.selected:
-			case 'embed_color': 
+	async def write_config(self,value,interaction:Interaction) -> None:
+		match f'{self.category}.{self.selected}':
+			case 'general.embed_color': 
 				value = value.replace('#','')
 				self.embed.color = int(value,16)
-			case 'max_roll':
+			case 'general.max_roll':
 				value = int(value)
 				if not (16384 > value > 2): raise
-			case 'cooldown': value = int(value)
-			case 'enabled' if self.category == 'logging' and value and interaction is not None:
+			case 'auto_responses.cooldown'|'dad_bot.cooldown': value = int(value)
+			case 'general.moderator_role': pass
+			case 'logging.enabled' if value and interaction is not None:
 				if channels:=[channel.mention for channel in self.guild.channels if not (channel.permissions_for(self.guild.me).view_channel or isinstance(channel,CategoryChannel))]:
 					if len(channels) > 100:
 						channels = channels[:100]
@@ -182,19 +187,19 @@ class guild_config(EmptyView):
 		custom_id='channel_select',row=1,min_values=0)
 	async def channel_select(self,select:Select,interaction:Interaction) -> None:
 		if not select.values:
-			await self.write_config(None)
+			await self.write_config(None,interaction)
 			await interaction.response.edit_message(embed=self.embed,view=self)
 			return
 		channel = select.values[0]
 		if not await self.validate_channel(channel,interaction): return None
-		await self.write_config(channel.id)
+		await self.write_config(channel.id,interaction)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@role_select(
 		placeholder='select a role',
 		custom_id='role_select',row=1,min_values=0)
 	async def role_select(self,select:Select,interaction:Interaction) -> None:
-		await self.write_config(select.values[0].id if select.values else None)
+		await self.write_config(select.values[0].id if select.values else None,interaction)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -202,7 +207,7 @@ class guild_config(EmptyView):
 		custom_id='enable_button',row=2)
 	async def enable_button(self,button:Button,interaction:Interaction) -> None:
 		match self.config_type:
-			case 'ewbd': await self.write_config('enabled')
+			case 'ewbd': await self.write_config('enabled',interaction)
 			case 'bool': await self.write_config(True,interaction)
 			case _     : raise
 		self.remove_item(self.configure_list_button)
@@ -214,7 +219,7 @@ class guild_config(EmptyView):
 	async def whitelist_button(self,button:Button,interaction:Interaction) -> None:
 		if self.get_item('configure_list_button') is None: self.add_item(self.configure_list_button)
 		self.get_item('configure_list_button').label = f'configure whitelist'
-		await self.write_config('whitelist')
+		await self.write_config('whitelist',interaction)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -223,7 +228,7 @@ class guild_config(EmptyView):
 	async def blacklist_button(self,button:Button,interaction:Interaction) -> None:
 		if self.get_item('configure_list_button') is None: self.add_item(self.configure_list_button)
 		self.get_item('configure_list_button').label = f'configure blacklist'
-		await self.write_config('blacklist')
+		await self.write_config('blacklist',interaction)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -231,8 +236,8 @@ class guild_config(EmptyView):
 		custom_id='disable_button',row=2)
 	async def disable_button(self,button:Button,interaction:Interaction) -> None:
 		match self.config_type:
-			case 'ewbd': await self.write_config('disabled')
-			case 'bool': await self.write_config(False)
+			case 'ewbd': await self.write_config('disabled',interaction)
+			case 'bool': await self.write_config(False,interaction)
 			case _     : raise
 		self.remove_item(self.configure_list_button)
 		await interaction.response.edit_message(embed=self.embed,view=self)
@@ -245,14 +250,14 @@ class guild_config(EmptyView):
 			[InputText(label=self.selected,**config_info.get('guild',{}).get(self.category,{}).get(self.selected,{}).get('kwargs',{}))])
 		await interaction.response.send_modal(modal)
 		await modal.wait()
-		await self.write_config(modal.children[0].value)
+		await self.write_config(modal.children[0].value,interaction)
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
 		label='reset to default',style=4,
 		custom_id='reset_button',row=3)
 	async def reset_button(self,button:Button,interaction:Interaction) -> None:
-		await self.write_config(config_info.get('guild',{}).get(self.category,{}).get(self.selected,{}).get('default',None))
+		await self.write_config(config_info.get('guild',{}).get(self.category,{}).get(self.selected,{}).get('default',None),interaction)
 		await interaction.response.edit_message(view=self,embed=self.embed)
 
 	@button(

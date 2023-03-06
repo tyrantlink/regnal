@@ -204,12 +204,14 @@ config_info = {
 			"hide_commands":
 			{
 				"description": "ignore user config and force all user commands to be hidden",
+        "required_permissions":None,
 				"default": "disabled",
 				"type": "ewbd"
 			},
 			"embed_color":
 			{
 				"description": "the color of all embeds\nformat: #69ff69 or ff69ff",
+        "required_permissions":None,
 				"default": "69FF69",
 				"type": "modal",
 				"kwargs":{"max_length":7}
@@ -217,6 +219,7 @@ config_info = {
 			"max_roll":
 			{
 				"description": "the max number you can roll with /roll\nnumber of both dice and sides",
+        "required_permissions":None,
 				"default": 8192,
 				"type": "modal",
 				"kwargs":{"max_length":5,"placeholder":"min 2; max 16384"}
@@ -224,8 +227,16 @@ config_info = {
       "pluralkit":
       {
 				"description": "enable full pluralkit support\nwarning: this will make auto responses and dad bot slower",
+        "required_permissions":None,
 				"default": False,
 				"type": "bool"
+			},
+			"moderator_role":
+			{
+				"description": "users with this role can access guild config menu, this is just so you can allow access to this menu without giving the `Manage Server` permission.\nNOTE:\nlogging options still require `View Audit Log`\nauto_responses and dad_bot options still require `Manage Messages`\nqotd and talking stick still require `Manage Channels`",
+        "required_permissions":'administrator',
+				"default": None,
+				"type": "role"
 			}
 		},
 		"logging":
@@ -233,54 +244,56 @@ config_info = {
 			"enabled":
 			{
 				"description": "enable or disable logging",
+        "required_permissions":'administrator',
 				"default": False,
 				"type": "bool"
 			},
 			"channel":
 			{
 				"description": "channel where logged messages will be sent",
+        "required_permissions":'manage_channels',
 				"default": None,
 				"type": "channel"
 			},
 			"log_all_messages":
 			{
 				"description": "creates a log entry for every message sent, this ensures that every state of a message will be logged, and will also be useful in preventing caching issues. mostly useful for deletes and bulk deletes",
+				"required_permissions":'manage_messages',
 				"default": False,
 				"type": "bool"
 			},
 			"deleted_messages":
 			{
 				"description": "announce deleted messages to the logging channel",
+				"required_permissions":'manage_messages',
 				"default": True,
 				"type": "bool"
 			},
 			"edited_messages":
 			{
 				"description": "announce edited messages to the logging channel",
+				"required_permissions":'manage_messages',
 				"default": False,
-				"type": "bool"
-			},
-			"filtered_messages":
-			{
-				"description": "announce filtered messages to the logging channel",
-				"default": True,
 				"type": "bool"
 			},
 			"member_join":
 			{
 				"description": "announce member joins to the logging channel",
+				"required_permissions":'manage_messages',
 				"default": False,
 				"type": "bool"
 			},
 			"member_leave":
 			{
 				"description": "announce member leaves to the logging channel",
+				"required_permissions":'manage_messages',
 				"default": False,
 				"type": "bool"
 			},
 			"log_bots":
 			{
 				"description": "log bot messages",
+				"required_permissions":'manage_messages',
 				"default": False,
 				"type": "bool"
 			}
@@ -290,18 +303,21 @@ config_info = {
       "channel":
       {
         "description": "text channel where messages will be read aloud\ntts will always read messages sent in the active voice-text channel",
-				"default": None,
+				"required_permissions":'manage_channels',
+        "default": None,
 				"type": "channel"
       },
       "auto_join":
 			{
 				"description": "automatically join when a message is sent in the voice channel or set text channel",
+        "required_permissions":None,
 				"default": False,
 				"type": "bool"
 			},
       "max_message_length":
       {
         "description": "max time to read a message (in seconds)",
+        "required_permissions":None,
 				"default": 30,
 				"type": "modal",
 				"kwargs":{"max_length":2,"placeholder":"min 1; max 59"}
@@ -309,13 +325,15 @@ config_info = {
       "read_name":
       {
         "description": "read a username before reading their message\ne.g. `/reg/nal said: {message text}`",
+        "required_permissions":None,
 				"default": True,
 				"type": "bool"
       },
       "voice":
       {
         "description": "voice used by the tts\nfind and test voices [here](<https://cloud.google.com/text-to-speech#section-2>)\nthe voice is the option in the \"Voice Name\" section\ne.g. \"en-US-Neural2-H\" or \"de-DE-Neural2-D\"",
-				"default": 'en-US-Neural2-H',
+				"required_permissions":None,
+        "default": 'en-US-Neural2-H',
 				"type": "modal"
       }
     },
@@ -324,12 +342,14 @@ config_info = {
 			"enabled":
 			{
 				"description": "enable or disable question of the day\n\nonce per day at <t:61200:t> your time, a random question will be asked in the selected channel.",
-				"default": False,
+				"required_permissions":'manage_guild',
+        "default": False,
 				"type": "bool"
 			},
 			"channel":
 			{
 				"description": "channel where questions will be asked",
+        "required_permissions":'manage_channels',
 				"default": None,
 				"type": "channel"
 			}
@@ -339,24 +359,28 @@ config_info = {
 			"enabled":
 			{
 				"description": "enable or disable the talking stick\n\nonce per day at <t:61200:t> your time, a random active user will get the selected role.\nthis is typically used to allow the user to talk in a specific channel, but you could use it for anything.",
-				"default": False,
+				"required_permissions":'manage_guild',
+        "default": False,
 				"type": "bool"
 			},
 			"channel":
 			{
 				"description": "channel to announce who has the talking stick",
+        "required_permissions":'manage_channels',
 				"default": None,
 				"type": "channel"
 			},
 			"role":
 			{
 				"description": "role to be given out",
+        "required_permissions":'manage_roles',
 				"default": None,
 				"type": "role"
 			},
 			"limit":
 			{
 				"description": "seperate role required to be eligible for the talking stick",
+        "required_permissions":'manage_roles',
 				"default": None,
 				"type": "role"
 			}
@@ -366,19 +390,22 @@ config_info = {
 			"enabled":
 			{
 				"description": "automatic responses to certain words or phrases",
+        "required_permissions":'manage_messages',
 				"default": "enabled",
 				"type": "ewbd"
 			},
 			"cooldown":
 			{
 				"description": "time (in seconds) after sending an auto response where another one will not be sent",
+        "required_permissions":'manage_messages',
 				"default": 0,
 				"type": "modal",
-				"max_length":3
+				"kwargs":{"max_length":3}
 			},
 			"cooldown_per_user":
 			{
 				"description": "if true, the set cooldown will be on a per user basis,\nif false, the cooldown will be on a per channel basis",
+        "required_permissions":'manage_messages',
 				"default": False,
 				"type": "bool"
 			}
@@ -388,20 +415,23 @@ config_info = {
 			"enabled":
 			{
 				"description": "it's just dad bot",
+        "required_permissions":'manage_messages',
 				"default": "disabled",
 				"type": "ewbd"
 			},
 			"cooldown":
 			{
 				"description": "time (in seconds) after sending a dad bot message where another one will not be sent",
-				"default": 0,
+				"required_permissions":'manage_messages',
+        "default": 0,
 				"type": "modal",
-				"max_length":3
+				"kwargs":{"max_length":3}
 			},
 			"cooldown_per_user":
 			{
 				"description": "if true, the set cooldown will be on a per user basis,\nif false, the cooldown will be on a per channel basis",
-				"default": False,
+				"required_permissions":'manage_messages',
+        "default": False,
 				"type": "bool"
 			}
 		}
