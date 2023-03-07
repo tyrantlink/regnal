@@ -99,11 +99,8 @@ class auto_response_listeners(Cog):
 					if fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)?',message,0 if au.case_sensitive else IGNORECASE):
 						return au
 				case 'contains':
-					s = search(au.trigger if au.regex else escape(au.trigger),message,0 if au.case_sensitive else IGNORECASE)
-					if (s is None or
-							(s.span()[0] != 0 and message[s.span()[0]-1] != ' ') or
-							(sum(s.span()) < len(message) and message[sum(s.span())] not in ' .?!')): continue
-					return au
+					if search(au.trigger if au.regex else rf'(^|\s){escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.case_sensitive else IGNORECASE):
+						return au
 				case _: raise ValueError(f'improper method in auto response `{au.trigger}`')
 		return None
 
