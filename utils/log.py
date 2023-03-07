@@ -12,7 +12,7 @@ class log:
 		self.MODE = MODE
 
 	def print(self,message:str,tag:str,format:bool=True):
-		print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}]{f" [{self.MODE.upper()}] " if self.MODE != "/reg/nal" else " "}[{tag.upper()}] {message}' if format else message)
+		print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}] [{self.MODE.upper()}] [{tag.upper()}] {message}' if format else message)
 
 	async def _submit(self,tag:str,message:str,ctx:ApplicationContext=None,do_print:bool=True,**kwargs) -> None:
 		if ctx:
