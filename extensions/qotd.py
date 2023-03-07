@@ -23,6 +23,9 @@ class qotd_new_log_view(EmptyView):
 		label='remove',style=4,
 		custom_id='remove_button')
 	async def remove_button(self,button:Button,interaction:Interaction) -> None:
+		if not interaction.user.guild_permissions.manage_messages:
+			await interaction.response.send_message(embed=Embed(title='ERROR!',description='removing a question requires the `Manage Messages` permission',color=0xff6969))
+			return
 		embed_data = interaction.message.embeds[0].fields[0].to_dict()
 		category,question = embed_data.get('name',None),embed_data.get('value',None)
 		match category:
