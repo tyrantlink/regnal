@@ -429,4 +429,4 @@ class User(MongoObject):
 		def __init__(self,db,col,_id,path) -> None:
 			super().__init__(db,col,_id,path)
 			self.au = MongoObject(db,col,_id,['data','au'])
-			"""dict[str,dict]\n\ndata found auto responses"""
+			"""list[str]\n\ndata found auto responses"""
