@@ -166,5 +166,3 @@ class qotd_commands(Cog):
 def setup(client:Client) -> None:
 	client._extloaded()
 	client.add_cog(qotd_commands(client))
-
-# async def teardown(client:Client) -> None:
