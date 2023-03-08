@@ -7,6 +7,7 @@ from datetime import datetime,timedelta
 from discord.ext.commands import Cog
 from client import Client
 from .utils import utils
+from time import time
 
 
 class logging_listeners(Cog):
@@ -134,7 +135,12 @@ class logging_listeners(Cog):
 		if payload.cached_message is None:
 			try: log = await self.client.db.message(int(payload.message_id)).read()
 			except ReadPathError: return
-			if log is None: return
+			if log is None:
+				embed = Embed(color=0xff6969,description=f'message by Unknown User was deleted in <#{message.channel.id}>')
+				embed.set_author(name='Unknown User') 
+				embed.add_field(name=f'DELETED <t:{int(time())}:t>',value='!!this message was too old and it wasn\'t in my cache, to always see all message details, set `logging.log_all_messages` to `True`!!')
+				if channel: await channel.send(embed=embed)
+				return
 			await self.client.db.message(int(payload.message_id)).logs.append([int(datetime.now().timestamp()),'deleted',log.get('logs',[[None]])[-1][-1]])
 		else:
 			await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
