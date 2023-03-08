@@ -101,7 +101,7 @@ class auto_response_listeners(Cog):
 				case 'contains':
 					if search(au.trigger if au.regex else rf'(^|\s){escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.case_sensitive else IGNORECASE):
 						return au
-				case _: raise ValueError(f'improper method in auto response `{au.trigger}`')
+				case _: continue
 		return None
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
