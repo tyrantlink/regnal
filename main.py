@@ -4,6 +4,7 @@ st = perf_counter()
 from discord import Activity,ActivityType,Embed,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents,File
 from utils.tyrantlib import convert_time,format_bytes,get_line_count
 from utils.classes import MixedUser,Env,ApplicationContext
+from pymongo.errors import ServerSelectionTimeoutError
 from discord.ext.commands import Cog,slash_command
 from traceback import format_exc,format_tb
 from discord.errors import CheckFailure
@@ -287,7 +288,8 @@ class message_handler(Cog):
 async def start():
 	global client
 	with open('mongo') as mongo:
-		db = MongoDatabase(mongo.read())
+		try: db = MongoDatabase(mongo.read())
+		except ServerSelectionTimeoutError: _exit()
 	doc = await db.inf('/reg/nal').read()
 	extensions = doc['extensions']
 
