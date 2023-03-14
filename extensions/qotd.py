@@ -46,6 +46,7 @@ class qotd_commands(Cog):
 		self.client = client
 		if 'DEV' in self.client.flags.keys():
 			self.qotd_loop.change_interval(time=(datetime.now()+timedelta(seconds=20)).astimezone(datetime.now().astimezone().tzinfo).timetz())
+		self.last = {}
 		self.qotd_loop.start()
 		self.client.add_view(qotd_new_log_view(self.client))
 
@@ -81,7 +82,7 @@ class qotd_commands(Cog):
 		channel = guild.get_channel(config.get('channel',None))
 		roles = [i for i in guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]
 		role = roles[0].mention if roles else None
-
+		if time()-self.last.get(guild.id,0) < 82800: return
 		match str(channel.type):
 			case 'text': msg = await channel.send(role,embed=embed)
 			case 'forum':
@@ -102,6 +103,7 @@ class qotd_commands(Cog):
 			case _:
 				await self._dm_error(guild.owner,'channel error!',f'the QOTD channel must be set to either a text channel or a forum channel,\nit is a currently set to a {channel.type} channel')
 				return
+		self.last.update({guild.id:time()})
 		await self.client.db.guild(guild.id).data.qotd.last.write([int(time()),msg.id])
 		await self.client.db.guild(guild.id).data.qotd.asked.append(question)
 		return msg
