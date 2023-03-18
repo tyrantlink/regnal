@@ -76,7 +76,7 @@ class qotd_commands(Cog):
 				pool = questions+data.get('pool',[])
 				await self.client.db.guild(guild.id).data.qotd.asked.write([])
 			question = choice(pool)
-			if question in data.get('pool',[]): embed.set_footer(text='custom')
+			if question in data.get('pool',[]): embed.set_footer(text='custom',icon_url=self.client.user.display_avatar.url)
 		embed.description = question
 		channel = guild.get_channel(config.get('channel',None))
 		roles = [i for i in guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]
