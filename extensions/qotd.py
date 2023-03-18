@@ -39,7 +39,6 @@ class qotd_new_log_view(EmptyView):
 		new_embed = interaction.message.embeds[0]
 		new_embed.description = f'**REMOVED BY {interaction.user.mention}**'
 		await interaction.response.edit_message(embed=new_embed,view=None)
-		await interaction.followup.send('successfully removed question',ephemeral=True)
 
 class qotd_commands(Cog):
 	def __init__(self,client:Client) -> None:
