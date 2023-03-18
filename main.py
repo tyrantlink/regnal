@@ -77,7 +77,7 @@ class client_cls(Client):
 			extension = ext[0].replace('.py','')
 		else: extension = ext[0]
 		if extension in self._raw_loaded_extensions: return
-		self.log.info(f'[EXT_LOAD] {extension}',to_db=False)
+		self.log.log('EXT_LOAD',extension,to_db=False)
 		self._raw_loaded_extensions.append(extension)
 
 	async def embed_color(self,ctx:ApplicationContext|Interaction) -> int:
