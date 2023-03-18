@@ -38,6 +38,7 @@ class qotd_new_log_view(EmptyView):
 				await self.client.db.guild(interaction.guild.id).data.qotd.pool.remove(question)
 		new_embed = interaction.message.embeds[0]
 		new_embed.description = f'**REMOVED BY {interaction.user.mention}**'
+		new_embed.color = 0xff6969
 		await interaction.response.edit_message(embed=new_embed,view=None)
 
 class qotd_commands(Cog):
