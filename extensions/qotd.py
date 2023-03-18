@@ -64,9 +64,11 @@ class qotd_commands(Cog):
 		data:dict   = doc.get('data',{}).get('qotd',None)
 		config:dict = doc.get('config',{}).get('qotd',None)
 		if not config.get('enabled',False) or not config.get('channel',None): return None
+		embed =  Embed(title='❓❔ Question of the Day ❔❓',color=await self.client.embed_color(MakeshiftClass(guild=guild)))
 		if next:=data.get('nextup',[]):
 			question = next[0]
 			await self.client.db.guild(guild.id).data.qotd.nextup.pop(1)
+			embed.set_footer(text='custom',icon_url=self.client.user.display_avatar.url)
 		else:
 			asked = data.get('asked',[])
 			pool = [q for q in questions+data.get('pool',[]) if q not in asked]
@@ -74,11 +76,8 @@ class qotd_commands(Cog):
 				pool = questions+data.get('pool',[])
 				await self.client.db.guild(guild.id).data.qotd.asked.write([])
 			question = choice(pool)
-
-		embed = Embed(
-			title='❓❔ Question of the Day ❔❓',
-			description=question,
-			color=await self.client.embed_color(MakeshiftClass(guild=guild)))
+			if question in data.get('pool',[]): embed.set_footer(text='custom')
+		embed.description = question
 		channel = guild.get_channel(config.get('channel',None))
 		roles = [i for i in guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]
 		role = roles[0].mention if roles else None
