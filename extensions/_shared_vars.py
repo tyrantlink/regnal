@@ -3075,7 +3075,7 @@ questions = [
   "Would you ever try space tourism, if you had the money for it?",
   "What's the most annoying machine you must deal with regularly?",
   "What are you grateful for?",
-  "What hobby would you be a lot of fun to get into?",
+  "What hobby would be a lot of fun to get into?",
   "What do you resent paying for most?",
   "What pets did you have growing up?",
   "What's the best or worst prank you've played on someone?",
