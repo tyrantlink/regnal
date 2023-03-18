@@ -27,15 +27,9 @@ class qotd_new_log_view(EmptyView):
 			await interaction.response.send_message(embed=Embed(title='ERROR!',description='removing a question requires the `Manage Messages` permission',color=0xff6969))
 			return
 		embed_data = interaction.message.embeds[0].fields[0].to_dict()
-		category,question = embed_data.get('name',None),embed_data.get('value',None)
-		match category:
-			case 'added as next question, then discarded':
-				await self.client.db.guild(interaction.guild.id).data.qotd.nextup.remove(question)
-			case 'added as next question, then added to pool':
-				await self.client.db.guild(interaction.guild.id).data.qotd.nextup.remove(question)
-				await self.client.db.guild(interaction.guild.id).data.qotd.pool.remove(question)
-			case 'added to question pool':
-				await self.client.db.guild(interaction.guild.id).data.qotd.pool.remove(question)
+		category,question = embed_data.get('name',''),embed_data.get('value',None)
+		if 'next' in category: await self.client.db.guild(interaction.guild.id).data.qotd.nextup.remove(question)
+		if 'pool' in category: await self.client.db.guild(interaction.guild.id).data.qotd.pool.remove(question)
 		new_embed = interaction.message.embeds[0]
 		new_embed.description = f'**REMOVED BY {interaction.user.mention}**'
 		new_embed.color = 0xff6969
