@@ -139,6 +139,7 @@ class logging_listeners(Cog):
 				embed = Embed(color=0xff6969,description=f'message by Unknown User was deleted in <#{message.channel.id}>')
 				embed.set_author(name='Unknown User') 
 				embed.add_field(name=f'DELETED <t:{int(time())}:t>',value='!!this message was too old and it wasn\'t in my cache, to always see all message details, set `logging.log_all_messages` to `True`!!')
+				embed.set_footer(text=f'message id: {payload.message_id}')
 				if channel: await channel.send(embed=embed)
 				return
 			await self.client.db.message(int(payload.message_id)).logs.append([int(datetime.now().timestamp()),'deleted',log.get('logs',[[None]])[-1][-1]])
