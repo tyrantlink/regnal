@@ -62,7 +62,6 @@ class qotd_commands(Cog):
 		if next:=data.get('nextup',[]):
 			question = next[0]
 			await self.client.db.guild(guild.id).data.qotd.nextup.pop(1)
-			embed.set_footer(text='custom',icon_url=self.client.user.display_avatar.url)
 		else:
 			asked = data.get('asked',[])
 			pool = [q for q in questions+data.get('pool',[]) if q not in asked]
@@ -70,7 +69,9 @@ class qotd_commands(Cog):
 				pool = questions+data.get('pool',[])
 				await self.client.db.guild(guild.id).data.qotd.asked.write([])
 			question = choice(pool)
-			if question in data.get('pool',[]): embed.set_footer(text='custom',icon_url=self.client.user.display_avatar.url)
+		if isinstance(question,dict):
+			embed.set_footer(text=f'custom question by {question.get("author")}',icon_url=question.get('icon'))
+			question = question.get('question')
 		embed.description = question
 		channel = guild.get_channel(config.get('channel',None))
 		roles = [i for i in guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]
@@ -131,14 +132,15 @@ class qotd_commands(Cog):
 	async def slash_qotd_add_question(self,ctx:ApplicationContext,type:str,question:str) -> None:
 		embed = Embed(title='successfully added a qotd question',color=await self.client.embed_color(ctx))
 		log_embed = Embed(color=await self.client.embed_color(ctx))
+		question_data = {'icon':ctx.author.display_avatar.url,'author':ctx.author.display_name,'question':question}
 		match type:
 			case 'add as next question':
-				await self.client.db.guild(ctx.guild.id).data.qotd.nextup.append(question)
+				await self.client.db.guild(ctx.guild.id).data.qotd.nextup.append(question_data)
 				embed.add_field(name='added as next question, then discarded',value=question)
 				log_embed.add_field(name='added as next question, then discarded',value=question)
 			case 'add as next question, then add to pool':
-				await self.client.db.guild(ctx.guild.id).data.qotd.nextup.append(question)
-				await self.client.db.guild(ctx.guild.id).data.qotd.pool.append(question)
+				await self.client.db.guild(ctx.guild.id).data.qotd.nextup.append(question_data)
+				await self.client.db.guild(ctx.guild.id).data.qotd.pool.append(question_data)
 				embed.add_field(name='added as next question, then added to pool',value=question)
 				log_embed.add_field(name='added as next question, then added to pool',value=question)
 			case 'add to question pool':
