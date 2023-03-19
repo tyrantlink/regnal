@@ -4,6 +4,7 @@ from discord.errors import NotFound,Forbidden
 from utils.classes import MakeshiftClass
 from discord.utils import snowflake_time
 from datetime import datetime,timedelta
+from asyncio import create_task,sleep
 from discord.ext.commands import Cog
 from client import Client
 from .utils import utils
@@ -15,6 +16,12 @@ class logging_listeners(Cog):
 		self.client = client
 		self.utils = utils(client)
 		self.cached_counts = {}
+		self.weird_fake_messages = []
+
+	async def weird_fake_message_handler(self,message_id:int):
+		await sleep(30)
+		try: self.weird_fake_messages.remove(message_id)
+		except ValueError: pass
 
 	async def log(
 		self,
@@ -89,6 +96,9 @@ class logging_listeners(Cog):
 
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
+		if message.author == self.client.user and message.content == '':
+			self.weird_fake_messages.append(message.id)
+			create_task(self.weird_fake_message_handler(message.id))
 		if not (await self.log_check(message,'log_all_messages'))[0]: return
 		await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
 			message.reference.message_id if message.reference else None,None,
@@ -123,6 +133,7 @@ class logging_listeners(Cog):
 
 	@Cog.listener()
 	async def on_raw_message_delete(self,payload:RawMessageDeleteEvent) -> None:
+		if payload.message_id in self.weird_fake_messages: return
 		if payload.guild_id is None: return
 		message = payload.cached_message or MakeshiftClass(
 			guild=self.client.get_guild(int(payload.guild_id)) or await self.client.fetch_guild(int(payload.guild_id)),
