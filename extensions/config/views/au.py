@@ -139,6 +139,7 @@ class au_view(EmptyView):
 				trigger=self.selected_au.trigger)
 			self.set_au_reload_flag()
 			self.page = 'main'
+			if self.base: await self.client.db.user(0)._col.update_many({'data.au':self.selected_au.trigger},{'$pull':{'data.au':self.selected_au.trigger}})
 		else:
 			self.embed.description = 'are you sure you want to remove this auto response?\nclick remove again to remove it.'
 			self.remove_confirmed = True
