@@ -94,13 +94,15 @@ class home_view(EmptyView):
 		modal = CustomModal(self,f'echo message',[
 			InputText(label='message',max_length=2000,style=InputTextStyle.long),
 			InputText(label='reply',placeholder='prepend with "p" to ping',required=False),
-			InputText(label='delay',value='0')])
+			InputText(label='delay',value='0'),
+			InputText(label='channel',placeholder='if empty, current channel will be used',required=False)])
 		await interaction.response.send_modal(modal)
 		await modal.wait()
 		await modal.interaction.response.defer(invisible=True)
+		channel = interaction.channel if modal.children[3].value == '' else (self.client.get_channel(int(modal.children[3].value)) or await self.client.fetch_channel(int(modal.children[3].value)))
 		await sleep(int(modal.children[2].value))
-		reply = None if (ref:=modal.children[1].value) == '' else await interaction.channel.fetch_message(int(ref[1:] if ref[0] == 'p' else ref))
-		await interaction.channel.send(modal.children[0].value,reference=reply,mention_author=False if ref == '' else ref[0] == 'p')
+		reply = None if (ref:=modal.children[1].value) == '' else await channel.fetch_message(int(ref[1:] if ref[0] == 'p' else ref))
+		await channel.send(modal.children[0].value,reference=reply,mention_author=False if ref == '' else ref[0] == 'p')
 
 	@button(
 		label='reload au',style=1,
