@@ -1,8 +1,8 @@
 from regex import sub,search,split,fullmatch,escape,finditer,IGNORECASE
-from discord.errors import Forbidden,HTTPException
 from utils.classes import MixedUser,AutoResponse
 from asyncio import sleep,create_task
 from discord.ext.commands import Cog
+from discord.errors import Forbidden
 from discord import Message,Thread
 from urllib.parse import quote
 from random import choices
@@ -113,6 +113,7 @@ class auto_response_listeners(Cog):
 			if au is not None: break
 		else: return False
 
+		if au.trigger in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): return False
 		response = choices([au.response]+au.alt_responses,[1-sum(au.alt_weights)]+au.alt_weights if au.alt_weights else None)[0] if au.alt_responses else au.response
 		if response is None: return False
 		if au.nsfw and not message.channel.nsfw: return False

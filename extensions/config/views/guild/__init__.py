@@ -4,10 +4,12 @@ from extensions._shared_vars import config_info
 from utils.classes import EmptyView,CustomModal
 from .configure_list import configure_list_view
 from .tts_banning import tts_banning_view
+from .au_disable import au_disable_view
 from discord.abc import GuildChannel
 from asyncio import create_task
 from client import Client
 from ..au import au_view
+
 
 class guild_config(EmptyView):
 	def __init__(self,back_view:EmptyView,client:Client,user:Member,guild:Guild,embed_color:int=None) -> None:
@@ -143,7 +145,7 @@ class guild_config(EmptyView):
 		self.clear_items()
 		self.add_items(self.back_button,self.option_select)
 		match self.category:
-			case 'auto_responses': self.add_item(self.custom_au_button)
+			case 'auto_responses': self.add_items(self.custom_au_button,self.disable_au_button)
 			case 'tts': self.add_item(self.tts_banning_button)
 		await self.reload_config()
 		self.reload_embed()
@@ -178,7 +180,7 @@ class guild_config(EmptyView):
 			self.add_items(self.back_button,self.option_select)
 			for option in select.options: option.default = False
 			match self.category:
-				case 'auto_responses': self.add_item(self.custom_au_button)
+				case 'auto_responses': self.add_items(self.custom_au_button,self.disable_au_button)
 				case 'tts': self.add_item(self.tts_banning_button)
 		await interaction.response.edit_message(view=self,embed=self.embed)
 
@@ -279,6 +281,15 @@ class guild_config(EmptyView):
 	async def custom_au_button(self,button:Button,interaction:Interaction) -> None:
 		embed = Embed(title=f'custom auto responses',color=self.embed.color)
 		await interaction.response.edit_message(embed=embed,view=au_view(self,self.user,self.guild,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read(),False))
+
+	@button(
+		label='disable auto responses',style=1,row=2,
+		custom_id='disable_au_button')
+	async def disable_au_button(self,button:Button,interaction:Interaction) -> None:
+		embed = Embed(title=f'disable auto responses',color=self.embed.color)
+		view = au_disable_view(self,self.user,self.guild,self.client,embed)
+		await view.start()
+		await interaction.response.edit_message(embed=embed,view=view)
 
 	@button(
 		label='ban users',style=1,row=2,
