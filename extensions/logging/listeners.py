@@ -52,6 +52,7 @@ class logging_listeners(Cog):
 
 	async def send_embed(self,message_id:int,channel:TextChannel,limit:int=25) -> None:
 		embed = await self.utils.gen_embed(channel.guild,message_id,limit)
+		if not embed: return
 		log_message = await channel.send(embed=embed)
 		await self.client.db.message(message_id).log_messages.append(log_message.id)
 
