@@ -1,4 +1,4 @@
-from discord import Message,Member,Embed,TextChannel,RawMessageUpdateEvent,RawMessageDeleteEvent,RawBulkMessageDeleteEvent
+from discord import Message,Member,Embed,TextChannel,RawMessageUpdateEvent,RawMessageDeleteEvent,RawBulkMessageDeleteEvent,Guild,User
 from utils.db.mongo_object import ReadPathError
 from discord.errors import NotFound,Forbidden
 from utils.classes import MakeshiftClass
@@ -55,17 +55,20 @@ class logging_listeners(Cog):
 		log_message = await channel.send(embed=embed)
 		await self.client.db.message(message_id).log_messages.append(log_message.id)
 
-	async def log_check(self,message:Message|Member,mode:str) -> tuple[int,TextChannel|None]:
-		if message.guild is None: return (0,None)
-		config:dict = await self.client.db.guild(message.guild.id).config.logging.read()
+	async def log_check(self,mode:str,message:Message=None,guild:Guild=None,user:User|Member=None) -> tuple[int,TextChannel|None]:
+		if message is None and guild is None and user is None: return (0,None)
+		if guild is None: guild = user.guild if message is None else message.guild
+		if user is None: user = message.author
+		if guild is None: return (0,None)
+		config:dict = await self.client.db.guild(guild.id).config.logging.read()
 		if not config.get('enabled') or not config.get(mode,False): return (0,None)
-		if (config.get('log_bots') and message.author.bot): return (0,None)
+		if (config.get('log_bots') and user.bot): return (0,None)
 		if (channel:=config.get('channel',None)) is not None:
-			try: channel = message.guild.get_channel(channel) or await message.guild.fetch_channel(channel)
+			try: channel = guild.get_channel(channel) or await guild.fetch_channel(channel)
 			except (NotFound,Forbidden): channel = None
 		if channel is None: return (1,None)
 		if isinstance(message,Message):
-			if message.author.id == self.client.user.id and channel.id == message.channel.id: return (1,None)
+			if user.id == self.client.user.id and channel.id == message.channel.id: return (1,None)
 		return (2,channel)
 
 	async def find_deleter(self,message:Message) -> Member|None:
@@ -80,6 +83,16 @@ class logging_listeners(Cog):
 				self.cached_counts.update({f'{message.channel.id}{log.target.id}':log.extra.count})
 				return log.user
 		return message.author
+	
+	async def find_ban(self,guild:Guild,user:User|Member,mode:str='ban') -> Member|None:
+		if not guild.me.guild_permissions.view_audit_log: return None
+		async for log in guild.audit_logs(after=datetime.now()-timedelta(minutes=6),oldest_first=False):
+			if (log.action.name == mode and
+					log.target.id == user.id and
+					datetime.now().timestamp()-log.created_at.timestamp()<300
+				):
+				return log.user
+		return None
 
 	async def from_raw(self,data:dict) -> Message:
 		_guild = self.client.get_guild(data.get('guild_id')) or await self.client.fetch_guild(data.get('guild_id'))
@@ -99,7 +112,7 @@ class logging_listeners(Cog):
 		if message.author == self.client.user and message.content == '':
 			self.weird_fake_messages.append(message.id)
 			create_task(self.weird_fake_message_handler(message.id))
-		if not (await self.log_check(message,'log_all_messages'))[0]: return
+		if not (await self.log_check('log_all_messages',message=message))[0]: return
 		await self.log(message.id,message.author.id,message.guild.id,message.channel.id,
 			message.reference.message_id if message.reference else None,None,
 			[int(message.created_at.timestamp()),'original',message.content],
@@ -114,7 +127,7 @@ class logging_listeners(Cog):
 		if before is None or after is None:
 			await self.client.log.debug('raw message edit error',payload=dict(payload.data))
 			return
-		check,channel = await self.log_check(before or after,'edited_messages')
+		check,channel = await self.log_check('edited_messages',message=before or after)
 		if not check: return
 		if before is not None:
 			if before.content == after.content: return
@@ -139,7 +152,7 @@ class logging_listeners(Cog):
 			guild=self.client.get_guild(int(payload.guild_id)) or await self.client.fetch_guild(int(payload.guild_id)),
 			channel=MakeshiftClass(id=int(payload.channel_id)),
 			author=MakeshiftClass(id=None,bot=False))
-		check,channel = await self.log_check(message,'deleted_messages')
+		check,channel = await self.log_check('deleted_messages',message=message)
 		if not check: return
 		if await self.client.db.guild(int(payload.guild_id)).config.general.pluralkit.read():
 			if await self.client.pk.get_message(int(payload.message_id),5,False) is not None: check = 1
@@ -165,10 +178,10 @@ class logging_listeners(Cog):
 
 	@Cog.listener()
 	async def on_raw_bulk_message_delete(self,payload:RawBulkMessageDeleteEvent) -> None:
-		check,channel = await self.log_check(MakeshiftClass(
+		check,channel = await self.log_check('deleted_messages',
+			message=MakeshiftClass(channel=MakeshiftClass(id=int(payload.channel_id))),
 			guild=self.client.get_guild(int(payload.guild_id)) or await self.client.fetch_guild(int(payload.guild_id)),
-			channel=MakeshiftClass(id=int(payload.channel_id)),
-			author=MakeshiftClass(id=None,bot=False)),'deleted_messages')
+			user=MakeshiftClass(id=None,bot=False))
 		if not check: return
 		deleted_at = int(datetime.now().timestamp())
 		m_ids = list(payload.message_ids)
@@ -183,22 +196,50 @@ class logging_listeners(Cog):
 
 	@Cog.listener()
 	async def on_member_join(self,member:Member) -> None:
-		check,channel = await self.log_check(member,'member_join')
+		check,channel = await self.log_check('member_join',user=member)
 		if check <= 1: return
-		embed = Embed(title=f'{member.name} joined the server',color=0x69ff69)
+		embed = Embed(description=f'{member.mention} joined the server',color=0x69ff69)
 		embed.add_field(name='id',value=member.id,inline=False)
 		embed.add_field(name='username',value=member.name,inline=False)
 		embed.add_field(name='discriminator',value=member.discriminator,inline=False)
-		embed.set_thumbnail(url=member.display_avatar.with_size(512).with_format('png').url)
+		embed.set_thumbnail(url=member.display_avatar.url)
 		await channel.send(embed=embed)
 
 	@Cog.listener()
 	async def on_member_remove(self,member:Member) -> None:
-		check,channel = await self.log_check(member,'member_leave')
+		check,channel = await self.log_check('member_leave',user=member)
 		if check <= 1: return
-		embed = Embed(title=f'{member.name} left the server',color=0xff6969)
+		embed = Embed(description=f'{member.mention} left the server',color=0xff6969)
 		embed.add_field(name='id',value=member.id,inline=False)
 		embed.add_field(name='username',value=member.name,inline=False)
 		embed.add_field(name='discriminator',value=member.discriminator,inline=False)
-		embed.set_thumbnail(url=member.display_avatar.with_size(512).with_format('png').url)
+		embed.set_thumbnail(url=member.display_avatar.url)
+		await channel.send(embed=embed)
+
+	@Cog.listener()
+	async def on_member_ban(self,guild:Guild,user:User|Member) -> None:
+		check,channel = await self.log_check('member_ban',guild=guild,user=user)
+		if check <= 1: return
+		embed = Embed(description=f'{user.mention} was banned',color=0xff6969)
+		if (banner:=await self.find_ban(guild,user,'ban')) is not None:
+			embed.description += f' by {banner.mention}'
+			embed.set_author(name=banner.display_name,icon_url=banner.display_avatar.url)
+		embed.add_field(name='id',value=user.id,inline=False)
+		embed.add_field(name='username',value=user.name,inline=False)
+		embed.add_field(name='discriminator',value=user.discriminator,inline=False)
+		embed.set_thumbnail(url=user.display_avatar.url)
+		await channel.send(embed=embed)
+
+	@Cog.listener()
+	async def on_member_unban(self,guild:Guild,user:User|Member) -> None:
+		check,channel = await self.log_check('member_unban',guild=guild,user=user)
+		if check <= 1: return
+		embed = Embed(description=f'{user.mention} was unbanned',color=0x69ff69)
+		if (banner:=await self.find_ban(guild,user,'unban')) is not None:
+			embed.description += f' by {banner.mention}'
+			embed.set_author(name=banner.display_name,icon_url=banner.display_avatar.url)
+		embed.add_field(name='id',value=user.id,inline=False)
+		embed.add_field(name='username',value=user.name,inline=False)
+		embed.add_field(name='discriminator',value=user.discriminator,inline=False)
+		embed.set_thumbnail(url=user.display_avatar.url)
 		await channel.send(embed=embed)

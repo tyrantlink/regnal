@@ -290,6 +290,20 @@ config_info = {
 				"default": False,
 				"type": "bool"
 			},
+      "member_ban":
+      {
+        "description": "announce member bans to the logging channel",
+        "required_permissions":'manage_messages',
+        "default": False,
+        "type": "bool"
+      },
+      "member_unban":
+      {
+        "description": "announce member unbans to the logging channel",
+        "required_permissions":'manage_messages',
+        "default": False,
+        "type": "bool"
+      },
 			"log_bots":
 			{
 				"description": "log bot messages",
