@@ -1,7 +1,7 @@
 #!./venv/bin/python3.10
 from time import perf_counter,time
 st = perf_counter()
-from discord import Activity,ActivityType,Embed,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents,File
+from discord import Activity,ActivityType,Embed,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents,File,ApplicationContext as ApplicationContextBase
 from utils.tyrantlib import convert_time,format_bytes,get_line_count
 from utils.classes import MixedUser,Env,ApplicationContext
 from pymongo.errors import ServerSelectionTimeoutError
@@ -92,7 +92,7 @@ class client_cls(Client):
 				case 'blacklist' if ctx.channel.id not in guild['data']['hide_commands']['blacklist']: return True
 				case 'disabled': pass
 		try:
-			if isinstance(ctx,ApplicationContext): return await self.db.user(ctx.author.id).config.general.hide_commands.read()
+			if isinstance(ctx,ApplicationContext|ApplicationContextBase): return await self.db.user(ctx.author.id).config.general.hide_commands.read()
 			if isinstance(ctx,Interaction): return await self.db.user(ctx.user.id).config.general.hide_commands.read()
 		except Exception: pass
 		return True
