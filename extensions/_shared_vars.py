@@ -203,7 +203,7 @@ config_info = {
 		{
 			"hide_commands":
 			{
-				"description": "ignore user config and force all user commands to be hidden",
+				"description": "ignore user config and force all user commands to be hidden\n\nwhitelist: commands will be hidden in selected channels\nblacklist: commands will be hidden in all channels except selected",
         "required_permissions":None,
 				"default": "disabled",
 				"type": "ewbd"
