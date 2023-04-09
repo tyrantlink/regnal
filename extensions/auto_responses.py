@@ -167,7 +167,8 @@ class auto_response_listeners(Cog):
 		name = self.rand_name(message,splitter)
 
 		if message.id not in self.timeouts: return False
-		out_message = f'hi{split("[,.;\n]",response)[0]}, {splitter} {name}'
+		nl = '\n'
+		out_message = f'hi{split("[,.;{nl}]",response)[0]}, {splitter} {name}'
 		if len(out_message) > 2000: out_message = f'hi{response.split(".")[0][:1936]} (character limit), {splitter} {name}'
 		try: await message.channel.send(out_message)
 		except Forbidden: return False
