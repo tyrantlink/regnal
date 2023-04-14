@@ -121,7 +121,7 @@ class tts_cog(Cog):
 			message.author.id in await self.client.db.guild(message.guild.id).data.tts.banned_users.read()): return
 		match await self.client.db.user(message.author.id).config.tts.mode.read():
 			case 'every message': pass
-			case 'only when muted' if message.author.voice.self_mute or message.author.voice.mute: pass
+			case 'only when muted' if message.author.voice.self_mute: pass
 			case 'never'|_: return
 		guild_config = await self.client.db.guild(message.guild.id).config.tts.read()
 		if message.channel.id not in [message.author.voice.channel.id,guild_config.get('channel')]: return
