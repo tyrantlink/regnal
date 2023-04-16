@@ -99,7 +99,7 @@ class auto_response_listeners(Cog):
 					if fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)?',message,0 if au.case_sensitive else IGNORECASE):
 						return au
 				case 'contains':
-					if search(au.trigger if au.regex else rf'(^|\s){escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.case_sensitive else IGNORECASE):
+					if search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.case_sensitive else IGNORECASE):
 						return au
 				case _: continue
 		return None
