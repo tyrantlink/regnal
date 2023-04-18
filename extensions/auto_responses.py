@@ -96,7 +96,7 @@ class auto_response_listeners(Cog):
 		for au in responses:
 			match au.method:
 				case 'exact':
-					if fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)?',message,0 if au.case_sensitive else IGNORECASE):
+					if fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.case_sensitive else IGNORECASE):
 						return au
 				case 'contains':
 					if search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.case_sensitive else IGNORECASE):
