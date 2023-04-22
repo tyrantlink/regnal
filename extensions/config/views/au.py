@@ -88,7 +88,7 @@ class au_view(EmptyView):
 		self.embed.description = None
 		if self.au.get(select.values[0],None) is None: raise ValueError(f'invalid selection `{select.values[0]}`')
 		self.selected_au = AutoResponse(select.values[0],**self.au.get(select.values[0]))
-		self.past_au = self.selected_au
+		self.past_au = AutoResponse(select.values[0],**self.au.get(select.values[0]))
 		self.add_items(self.edit_button,self.remove_button)
 		self.embed_au()
 		await interaction.response.edit_message(embed=self.embed,view=self)
@@ -109,6 +109,7 @@ class au_view(EmptyView):
 		custom_id='new_button')
 	async def new_button(self,button:Button,interaction:Interaction) -> None:
 		self.selected_au = AutoResponse(None,method=None)
+		self.past_au = AutoResponse(None,method=None)
 		self.page = 'new'
 		self.embed_au()
 		self.get_item('save_button').disabled = True
@@ -264,6 +265,9 @@ class au_view(EmptyView):
 		label='save',style=3,row=4,
 		custom_id='save_button',disabled=True)
 	async def save_button(self,button:Button,interaction:Interaction) -> None:
+		print(self.selected_au.trigger)
+		print(self.past_au.trigger)
+		return
 		if self.selected_au.trigger != self.past_au.trigger: self.au.pop(self.past_au.trigger)
 		self.au[self.selected_au.trigger] = self.selected_au.to_dict()
 		if self.base: await self.client.db.inf('/reg/nal').auto_responses.write(self.selected_au.to_dict(False),[self.selected_au.trigger])
