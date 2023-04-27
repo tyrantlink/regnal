@@ -114,7 +114,9 @@ class auto_response_listeners(Cog):
 		else: return False
 
 		if au.trigger in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): return False
-		response = choices([au.response]+au.alt_responses,[1-sum(au.alt_weights)]+au.alt_weights if au.alt_weights else None)[0] if au.alt_responses else au.response
+		weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
+		auto_weight = (100-sum(filter(None,weights)))/weights.count(None)
+		response = choices(responses,[w or auto_weight for w in weights])[0]
 		if response is None: return False
 		if au.nsfw and not message.channel.nsfw: return False
 		if au.user is not None and str(message.author.id) != au.user: return False
