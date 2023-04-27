@@ -1,6 +1,7 @@
 from discord.ui import Button,button,Select,string_select,user_select,InputText
 from discord import Interaction,Embed,SelectOption,InputTextStyle,Guild,Member
 from utils.classes import EmptyView,CustomModal,AutoResponse
+from .alt_responses import alt_responses_view
 from client import Client
 
 
@@ -253,7 +254,8 @@ class au_view(EmptyView):
 		label='alt responses',style=1,row=3,
 		custom_id='alt_responses_button')
 	async def alt_responses_button(self,button:Button,interaction:Interaction) -> None:
-		await interaction.response.edit_message(embed=self.embed,view=self)
+		view = alt_responses_view(self)
+		await interaction.response.edit_message(embed=view.embed,view=view)
 
 	@button(
 		label='followups',style=1,row=3,
