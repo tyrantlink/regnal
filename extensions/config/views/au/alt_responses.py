@@ -32,7 +32,7 @@ class alt_responses_view(EmptyView):
 		all_weights = [w for w,r in self.au.alt_responses]
 		weight_sum = sum(filter(None,all_weights))+(0.01*len(all_weights))
 		await modal.wait()
-		if modal.children[1].value in [self.au.response]+[r for w,r in self.au.alt_responses]:
+		if modal.children[1].value in [self.au.response]+[r for w,r in self.au.alt_responses] and not edit:
 			await modal.interaction.response.defer()
 			raise ValueError('that message is already a response!')
 		if modal.children[0].value:
