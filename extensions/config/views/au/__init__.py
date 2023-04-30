@@ -2,6 +2,7 @@ from discord.ui import Button,button,Select,string_select,user_select,InputText
 from discord import Interaction,Embed,SelectOption,InputTextStyle,Guild,Member
 from utils.classes import EmptyView,CustomModal,AutoResponse
 from .alt_responses import alt_responses_view
+from .followups import followups_view
 from client import Client
 
 
@@ -44,12 +45,14 @@ class au_view(EmptyView):
 				else: self.get_item('new_button').disabled = len(self.au.keys()) >= 25
 				self.update_select()
 			case 'new':
-				self.add_items(self.method_select,self.limit_user_select,self.back_button,self.set_button,self.regex_button,self.nsfw_button,self.case_sensitive_button,self.save_button)
-				if self.base: self.add_items(self.file_button,self.alt_responses_button,self.followups_button)
+				self.add_items(self.method_select,self.limit_user_select,self.back_button,self.set_button,self.regex_button,self.nsfw_button,self.case_sensitive_button,self.save_button,self.alt_responses_button,self.followups_button)
+				if self.base: self.add_items(self.file_button)
 				if self.selected_au:
 					options = self.get_item('method_select').options
 					for option in options: option.default = option.label == self.selected_au.method
 					self.get_item('method_select').options = options
+					self.get_item('alt_responses_button').disabled = bool(self.selected_au.followups)
+					self.get_item('followups_button').disabled = bool(self.selected_au.alt_responses)
 			case _: raise
 		self._page = value
 
@@ -77,9 +80,7 @@ class au_view(EmptyView):
 		if self.base: self.embed.add_field(name='file',value=self.selected_au.file)
 		self.embed.add_field(name='trigger',value=self.selected_au.trigger,inline=False)
 		self.embed.add_field(name='response',value=self.selected_au.response,inline=False)
-		if self.base:
-			self.embed.add_field(name='has alt responses',value=bool(self.selected_au.alt_responses))
-			self.embed.add_field(name='has followups',value=bool(self.selected_au.followups))
+		self.embed.add_field(name='has alt responses or followups',value='alt responses' if bool(self.selected_au.alt_responses) else 'followups' if bool(self.selected_au.followups) else 'No',inline=False)		
 
 	@string_select(
 		custom_id='au_select',row=0,
@@ -261,7 +262,8 @@ class au_view(EmptyView):
 		label='followups',style=1,row=3,
 		custom_id='followups_button')
 	async def followups_button(self,button:Button,interaction:Interaction) -> None:
-		await interaction.response.edit_message(embed=self.embed,view=self)
+		view = followups_view(self)
+		await interaction.response.edit_message(embed=view.embed,view=view)
 
 	@button(
 		label='save',style=3,row=4,
@@ -275,5 +277,6 @@ class au_view(EmptyView):
 			author=self.user.id,
 			trigger=self.selected_au.trigger)
 		self.set_au_reload_flag()
+		self.au = await self.client.db.inf('/reg/nal').auto_responses.read()
 		self.page = 'main'
 		await interaction.response.edit_message(embed=self.embed,view=self)
