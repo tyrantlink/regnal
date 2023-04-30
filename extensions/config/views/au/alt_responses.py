@@ -80,10 +80,9 @@ class alt_responses_view(EmptyView):
 		label='edit',style=1,row=1,
 		custom_id='edit_button')
 	async def edit_button(self,button:Button,interaction:Interaction) -> None:
-		old_alt_response = [(w,r) for w,r in self.au.alt_responses if r == self.selected][0]
-		modal_interaction,alt_response = await self.modify_modal(interaction,old_alt_response)
-		self.au.alt_responses.remove(old_alt_response)
-		self.au.alt_responses.append(alt_response)
+		old_alt_response_index = self.au.alt_responses.index([(w,r) for w,r in self.au.alt_responses if r == self.selected][0])
+		modal_interaction,alt_response = await self.modify_modal(interaction,self.au.alt_responses[old_alt_response_index])
+		self.au.alt_responses[old_alt_response_index] = alt_response
 		self.update()
 		await modal_interaction.response.edit_message(embed=self.embed,view=self)
 
