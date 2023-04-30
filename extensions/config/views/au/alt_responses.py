@@ -36,7 +36,10 @@ class alt_responses_view(EmptyView):
 			await modal.interaction.response.defer()
 			raise ValueError('that message is already a response!')
 		if modal.children[0].value:
-			weight = float(modal.children[0].value)
+			try: weight = float(modal.children[0].value)
+			except ValueError:
+				await modal.interaction.response.defer()
+				raise ValueError('weight must be a number')
 			if not 0.01 <= weight <= 99.99:
 				await modal.interaction.response.defer()
 				raise ValueError('weight must be between 0.01 and 99.99 inclusive')
