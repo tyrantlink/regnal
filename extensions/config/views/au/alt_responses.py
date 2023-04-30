@@ -53,6 +53,7 @@ class alt_responses_view(EmptyView):
 		custom_id='back_button')
 	async def back_button(self,button:Button,interaction:Interaction) -> None:
 		self.back_view.selected_au = self.au
+		self.back_view.page = 'new'
 		self.back_view.embed_au()
 		await interaction.response.edit_message(embed=self.back_view.embed,view=self.back_view)
 		self.stop()
