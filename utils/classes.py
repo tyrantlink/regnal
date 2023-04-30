@@ -84,7 +84,7 @@ class AutoResponse:
 		self.response:str = kwargs.get('response',None)
 		self.alt_responses:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('alt_responses',[])]
 		self.case_sensitive:bool = kwargs.get('case_sensitive',False)
-		self.followups:list[tuple[float|int,str]] = kwargs.get('followups',[])
+		self.followups:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('followups',[])]
 
 	def to_dict(self,guild_only:bool=True,include_trigger:bool=False) -> dict:
 		res = {'trigger':self.trigger} if include_trigger else {}
@@ -100,7 +100,7 @@ class AutoResponse:
 			'file':self.file,
 			'guild':self.guild,
 			'alt_responses':[[w,r] for w,r in self.alt_responses],
-			'followups':self.followups})
+			'followups':[[w,r] for w,r in self.followups]})
 		return res
 
 class ApplicationContext(AppContext):
