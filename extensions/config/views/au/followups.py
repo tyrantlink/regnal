@@ -19,6 +19,7 @@ class followups_view(EmptyView):
 		select_options = [SelectOption(label=f,default=f==self.selected) for f in followups[1:]]
 		self.get_item('response_select').options = select_options or [SelectOption(label='None')]
 		self.get_item('response_select').disabled = not bool(select_options)
+		self.get_item('add_button').disabled = len(followups) >= 25
 		for delay,followup in zip(delays,followups):
 			self.embed.add_field(name=f'{delay} seconds',value=followup,inline=False)
 

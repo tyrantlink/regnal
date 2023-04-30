@@ -20,6 +20,7 @@ class alt_responses_view(EmptyView):
 		select_options = [SelectOption(label=r,default=r==self.selected) for r in responses[1:]]
 		self.get_item('response_select').options = select_options or [SelectOption(label='None')]
 		self.get_item('response_select').disabled = not bool(select_options)
+		self.get_item('add_button').disabled = len(responses) >= 25
 		for weight,response in zip(weights,responses):
 			self.embed.add_field(name=f'{weight or f"(auto) {round(auto_weight,2)}"}%',value=response,inline=False)
 
