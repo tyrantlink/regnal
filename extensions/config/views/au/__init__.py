@@ -269,7 +269,7 @@ class au_view(EmptyView):
 		label='save',style=3,row=4,
 		custom_id='save_button',disabled=True)
 	async def save_button(self,button:Button,interaction:Interaction) -> None:
-		if self.selected_au.trigger != self.past_au.trigger: self.au.pop(self.past_au.trigger)
+		if self.past_au.trigger is not None and self.selected_au.trigger != self.past_au.trigger: self.au.pop(self.past_au.trigger)
 		self.au[self.selected_au.trigger] = self.selected_au.to_dict()
 		if self.base: await self.client.db.inf('/reg/nal').auto_responses.write(self.selected_au.to_dict(False),[self.selected_au.trigger])
 		else: await self.client.db.guild(self.guild.id).data.auto_responses.custom.write(self.selected_au.to_dict(),[self.selected_au.trigger])
