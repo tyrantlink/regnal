@@ -28,6 +28,11 @@ class au_view(EmptyView):
 		if self.base and 'base' not in self.client.flags.get('RELOAD_AU'): self.client.flags['RELOAD_AU'].append('base')
 		elif self.guild.id not in self.client.flags.get('RELOAD_AU'): self.client.flags['RELOAD_AU'].append(self.guild.id)
 
+	def set_done(self,bool:bool) -> None:
+		self.get_item('save_button').disabled = bool
+		self.get_item('alt_responses_button').disabled = bool
+		self.get_item('followups_button').disabled = bool
+
 	@property
 	def page(self) -> str:
 		return self._page
@@ -114,7 +119,7 @@ class au_view(EmptyView):
 		self.past_au = AutoResponse(None,method=None)
 		self.page = 'new'
 		self.embed_au()
-		self.get_item('save_button').disabled = True
+		self.set_done(True)
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
@@ -123,7 +128,7 @@ class au_view(EmptyView):
 	async def edit_button(self,button:Button,interaction:Interaction) -> None:
 		self.page = 'new'
 		self.embed_au()
-		self.get_item('save_button').disabled = False
+		self.set_done(False)
 		self.get_item('regex_button').style = 3 if self.selected_au.regex else 4
 		self.get_item('nsfw_button').style = 3 if self.selected_au.nsfw else 4
 		self.get_item('case_sensitive_button').style = 3 if self.selected_au.case_sensitive else 4
@@ -188,7 +193,7 @@ class au_view(EmptyView):
 		self.selected_au.method = select.values[0]
 		for option in select.options: option.default = option.label == self.selected_au.method
 		if self.selected_au.trigger is not None and self.selected_au.response is not None:
-			self.get_item('save_button').disabled = False
+			self.set_done(False)
 		self.embed_au()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
@@ -212,7 +217,7 @@ class au_view(EmptyView):
 		if self.base: self.selected_au.guild = modal.children[2].value if modal.children[2].value else None
 		self.embed_au()
 		if self.selected_au.method is not None:
-			self.get_item('save_button').disabled = False
+			self.set_done(False)
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
