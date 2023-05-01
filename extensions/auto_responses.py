@@ -145,7 +145,7 @@ class auto_response_listeners(Cog):
 				await self.client.db.user(user.id).data.au.append(au.trigger)
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
-		await self.client.log.listener(message,category=au.method,trigger=au.trigger,original_deleted=original_deleted)
+		await self.client.log.listener(message,category=au.method,trigger=au.trigger,response=response,original_deleted=original_deleted)
 		return True
 
 	def rand_name(self,message:Message,splitter:str) -> str:
