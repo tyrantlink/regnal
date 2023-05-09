@@ -3,6 +3,7 @@ from regex import search,fullmatch,escape,IGNORECASE
 from discord.ui import View,Item,Modal,InputText
 from utils.pluralkit import Member as PKMember
 from utils.db.mongo_object import MongoObject
+from pymongo.collection import Collection
 from functools import partial
 
 class Env:
@@ -114,9 +115,13 @@ class AutoResponse:
 		await db.new(_id or self._id or '+1',data)
 
 class AutoResponses:
-	def __init__(self,raw_au:list) -> None:
-		self.raw_au = raw_au
-		self.au:list[AutoResponse] = [AutoResponse(**au) for au in raw_au]
+	def __init__(self,db:Collection) -> None:
+		self.db:Collection = db
+		self.raw_au:list[dict] = []
+		self.au:list[AutoResponse] = []
+
+	async def reload_au(self) -> None:
+		self.raw_au = [d async for d in self.db.find({'_id':{'$ne':0}})]
 
 	def find(self,attrs:dict,limit:int) -> AutoResponse|None:
 		out = []
