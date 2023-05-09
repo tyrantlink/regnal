@@ -117,7 +117,18 @@ class AutoResponses:
 	def __init__(self,raw_au:list) -> None:
 		self.raw_au = raw_au
 		self.au:list[AutoResponse] = [AutoResponse(**au) for au in raw_au]
-	
+
+	def find(self,attrs:dict,limit:int) -> AutoResponse|None:
+		out = []
+		for au in self.au:
+			if all(getattr(au,k) == v for k,v in attrs.items()):
+				out.append(au)
+				if limit is not None and len(out) >= limit: break
+		return out
+
+	def get(self,_id:int) -> AutoResponse|None:
+		return self.find({'_id':_id},1)[0]
+
 	def match(self,message:str,limit:dict=None) -> AutoResponse|None:
 		out = (5000,None)
 		for au in list(filter(lambda d: all(d[k] == v for k,v in (limit or {}).items()),self.au)):
