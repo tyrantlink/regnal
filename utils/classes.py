@@ -1,4 +1,5 @@
 from discord import ApplicationContext as AppContext,Interaction,Embed,User,Member as DiscordMember
+from regex import search,fullmatch,escape,IGNORECASE
 from discord.ui import View,Item,Modal,InputText
 from utils.pluralkit import Member as PKMember
 from utils.db.mongo_object import MongoObject
@@ -111,6 +112,24 @@ class AutoResponse:
 		data = self.to_dict()
 		data.pop('_id')
 		await db.new(_id or self._id or '+1',data)
+
+class AutoResponses:
+	def __init__(self,raw_au:list) -> None:
+		self.raw_au = raw_au
+		self.au:list[AutoResponse] = [AutoResponse(**au) for au in raw_au]
+	
+	def match(self,message:str,limit:dict=None) -> AutoResponse|None:
+		out = (5000,None)
+		for au in list(filter(lambda d: all(d[k] == v for k,v in (limit or {}).items()),self.au)):
+			match au.method:
+				case 'exact':
+					if match:=fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE):
+						if match.span()[0] < out[0]: out = (match.span()[0],au)
+				case 'contains':
+					if match:=search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE):
+						if match.span()[0] < out[0]: out = (match.span()[0],au)
+				case _: continue
+		return out[1]
 
 class ApplicationContext(AppContext):
 	def __init__(self,*args,**kwargs):
