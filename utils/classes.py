@@ -123,7 +123,8 @@ class AutoResponses:
 	async def reload_au(self) -> None:
 		self.raw_au = [d async for d in self.db.find({'_id':{'$ne':0}})]
 
-	def find(self,attrs:dict,limit:int) -> AutoResponse|None:
+	def find(self,attrs:dict,limit:int=None) -> list[AutoResponse]|None:
+		if limit is None: limit = -1
 		out = []
 		for au in self.au:
 			if all(getattr(au,k) == v for k,v in attrs.items()):
