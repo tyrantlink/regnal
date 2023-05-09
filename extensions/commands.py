@@ -21,7 +21,7 @@ class commands_commands(Cog):
 			title=f'{user.name}\'s profile',
 			description=f"""id: {user.id}
 			username: {user.name}
-			discriminator: {user.discriminator}""",
+			discriminator: {user.discriminator}""".replace('	',''),
 			color=await self.client.embed_color(ctx))
 		embed.set_thumbnail(url=user.display_avatar.with_size(512).with_format('png').url)
 		user_doc = await self.client.db.user(user.id).read()
