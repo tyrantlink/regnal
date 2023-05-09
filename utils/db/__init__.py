@@ -1,4 +1,4 @@
-from .collections import INF,Guild,Log,Message,Poll,RoleMenu,StatusLog,User
+from .collections import INF,AutoResponse,Guild,Log,Message,Poll,RoleMenu,StatusLog,User
 from motor.motor_asyncio import AsyncIOMotorClient
 
 
