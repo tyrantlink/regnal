@@ -82,6 +82,7 @@ class AutoResponse:
 		self.user:str     = kwargs.get('user',None)
 		self.guild:str    = kwargs.get('guild',None)
 		self.response:str = kwargs.get('response',None)
+		self.source:str   = kwargs.get('source',None)
 		self.alt_responses:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('alt_responses',[])]
 		self.case_sensitive:bool = kwargs.get('case_sensitive',False)
 		self.followups:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('followups',[])]
