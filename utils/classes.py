@@ -1,6 +1,7 @@
 from discord import ApplicationContext as AppContext,Interaction,Embed,User,Member as DiscordMember
 from discord.ui import View,Item,Modal,InputText
 from utils.pluralkit import Member as PKMember
+from utils.db.mongo_object import MongoObject
 from functools import partial
 
 class Env:
@@ -73,36 +74,43 @@ class MixedUser:
 			setattr(self,k,v)
 
 class AutoResponse:
-	def __init__(self,trigger:str,**kwargs) -> None:
+	def __init__(self,_id:int,trigger:str,**kwargs) -> None:
+		self._id          = _id
 		self.trigger:str  = trigger
 		self.method:str   = kwargs.get('method')
+		self.response:str = kwargs.get('response',None)
+		self.custom:bool  = kwargs.get('custom',False)
 		self.regex:bool   = kwargs.get('regex',False)
 		self.nsfw:bool    = kwargs.get('nsfw',False)
 		self.file:bool    = kwargs.get('file',False)
+		self.cs:bool      = kwargs.get('cs',False)
 		self.user:str     = kwargs.get('user',None)
 		self.guild:str    = kwargs.get('guild',None)
-		self.response:str = kwargs.get('response',None)
 		self.source:str   = kwargs.get('source',None)
 		self.alt_responses:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('alt_responses',[])]
-		self.case_sensitive:bool = kwargs.get('case_sensitive',False)
 		self.followups:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('followups',[])]
 
-	def to_dict(self,guild_only:bool=True,include_trigger:bool=False) -> dict:
-		res = {'trigger':self.trigger} if include_trigger else {}
-		res.update({
+	def to_dict(self) -> dict:
+		return {
+			'_id':self._id,
+			'trigger':self.trigger,
 			'method':self.method,
 			'response':self.response,
+			'custom':self.custom,
 			'regex':self.regex,
 			'nsfw':self.nsfw,
-			'user':self.user,
-			'case_sensitive':self.case_sensitive,})
-		if guild_only: return res
-		res.update({
 			'file':self.file,
+			'case_sensitive':self.cs,
+			'user':self.user,
 			'guild':self.guild,
+			'source':self.source,
 			'alt_responses':[[w,r] for w,r in self.alt_responses],
-			'followups':[[w,r] for w,r in self.followups]})
-		return res
+			'followups':[[w,r] for w,r in self.followups]}
+	
+	async def to_mongo(self,db:MongoObject,_id:int=None) -> None:
+		data = self.to_dict()
+		data.pop('_id')
+		await db.new(_id or self._id or '+1',data)
 
 class ApplicationContext(AppContext):
 	def __init__(self,*args,**kwargs):
