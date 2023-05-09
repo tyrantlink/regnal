@@ -135,17 +135,18 @@ class AutoResponses:
 	def get(self,_id:int) -> AutoResponse|None:
 		return self.find({'_id':_id},1)[0]
 
-	def match(self,message:str,limit:dict=None) -> AutoResponse|None:
-		out = (5000,None)
-		for au in list(filter(lambda d: all(d[k] == v for k,v in (limit or {}).items()),self.au)):
+	def match(self,message:str,attrs:dict=None) -> AutoResponse|None:
+		out = (None,None)
+		for au in list(filter(lambda d: all(d[k] == v for k,v in (attrs or {}).items()),self.au)):
 			match au.method:
-				case 'exact':
-					if match:=fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE):
-						if match.span()[0] < out[0]: out = (match.span()[0],au)
-				case 'contains':
-					if match:=search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE):
-						if match.span()[0] < out[0]: out = (match.span()[0],au)
-				case _: continue
+				case 'exact': match = fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE)
+				case 'contains': match = search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE)
+				case _:
+					match = None
+					continue
+			if match:
+				if out[0] is None or match.span()[0] < out[0]: out = (match.span()[0],au)
+				if out[0] == 0: break
 		return out[1]
 
 class ApplicationContext(AppContext):
