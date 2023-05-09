@@ -125,7 +125,6 @@ class AutoResponses:
 		self.au = [AutoResponse(**i) for i in self.raw_au]
 
 	def find(self,attrs:dict,limit:int=None) -> list[AutoResponse]|None:
-		if limit is None: limit = -1
 		out = []
 		for au in self.au:
 			if all(getattr(au,k) == v for k,v in attrs.items()):
