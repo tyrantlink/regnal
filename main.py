@@ -176,7 +176,7 @@ class base_commands(Cog):
 		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
 		embed.add_field(name='line count',value=f'{self.client.lines} lines',inline=True)
 		embed.add_field(name='commands',value=len([cmd for cmd in self.client.walk_application_commands() if not isinstance(cmd,SlashCommandGroup)]),inline=True)
-		auto_response_count = str(len(v for v in self.client.au.find({'guild':None,'user':None})))
+		auto_response_count = str(len(self.client.au.find({'guild':None,'user':None})))
 		if ctx.guild:
 			if g_au:=[str(i) for i in [
 				len(self.client.au.find({'custom':False,'guild':str(ctx.guild.id)})),
