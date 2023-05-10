@@ -137,7 +137,7 @@ class AutoResponses:
 
 	def match(self,message:str,attrs:dict=None) -> AutoResponse|None:
 		out = (None,None)
-		for au in list(filter(lambda d: all(d[k] == v for k,v in (attrs or {}).items()),self.au)):
+		for au in list(filter(lambda d: all(getattr(d,k) == v for k,v in (attrs or {}).items()),self.au)):
 			match au.method:
 				case 'exact': match = fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE)
 				case 'contains': match = search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE)
