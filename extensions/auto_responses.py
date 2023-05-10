@@ -14,8 +14,6 @@ from re import split
 class auto_response_listeners(Cog):
 	def __init__(self,client:Client) -> None:
 		self.client = client
-		self.base_responses = None
-		self.guild_responses = {}
 		self.cooldowns = {'au':{},'db':{}}
 		self.timeouts = []
 
@@ -24,14 +22,6 @@ class auto_response_listeners(Cog):
 		await sleep(5)
 		try: self.timeouts.remove(message_id)
 		except ValueError: pass
-
-	async def load_au(self,guild_id) -> None:
-		if guild_id == 'base':
-			self.client.au = await self.client.db.inf('/reg/nal').auto_responses.read()
-			self.base_responses = [AutoResponse(trigger,**au) for trigger,au in self.client.au.items()]
-			return
-		guild_au = await self.client.db.guild(guild_id).data.auto_responses.custom.read()
-		self.guild_responses[guild_id] = [AutoResponse(trigger,**au) for trigger,au in guild_au.items()]
 
 	@Cog.listener()
 	async def on_message(self,message:Message,user:MixedUser=None) -> None:
@@ -62,15 +52,10 @@ class auto_response_listeners(Cog):
 					return
 		except: return
 
+		if message.content is None: return
 		if message.guild is None:
 			await message.channel.send('https://regn.al/dm.png')
 			return
-
-		if message.content is None: return
-		if (reload:=self.client.flags.pop('RELOAD_AU',None)) is not None:
-			for guild_id in reload: await self.load_au(guild_id)
-		if self.base_responses is None: await self.load_au('base')
-		if self.guild_responses.get(message.guild.id,None) is None: await self.load_au(message.guild.id)
 
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
 		if time()-self.cooldowns['au'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
@@ -106,12 +91,10 @@ class auto_response_listeners(Cog):
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
-		g_triggers = [a.trigger for a in self.guild_responses[message.guild.id]]
-		br = [au for au in self.base_responses if au.trigger not in g_triggers]
-		for responses in [self.guild_responses[message.guild.id],br]:
-			au = self.au_check(responses,content)
-			if au is not None: break
-		else: return False
+		au = (self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}) or
+			self.client.au.match(content,{'custom':False,'guild':str(message.guild.id)}) or
+			self.client.au.match(content,{'custom':False,'guild':None}))
+		if au is None: return False
 
 		if au.trigger in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): return False
 		weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
@@ -120,9 +103,7 @@ class auto_response_listeners(Cog):
 		if response is None: return False
 		if au.nsfw and not message.channel.nsfw: return False
 		if au.user is not None and str(message.author.id) != au.user: return False
-		if au.guild is not None and str(message.guild.id) != au.guild: return False
-		if au.guild and au.file: response = f'https://regn.al/gau/{message.guild.id}/{quote(response)}'
-		elif au.file: response = f'https://regn.al/au/{quote(response)}'
+		if au.file: response = (f'https://regn.al/gau/{message.guild.id}/' if au.guild else 'https://regn.al/au/')+quote(response)
 
 		if message.id not in self.timeouts: return False
 		try: await message.channel.send(response)
@@ -139,13 +120,13 @@ class auto_response_listeners(Cog):
 				await sleep(delay)
 			await message.channel.send(followup)
 
-		if au in self.base_responses:
+		if not au.custom:
 			user_data = await self.client.db.user(user.id).read()
-			if au.trigger not in user_data.get('data',{}).get('au') and not user_data.get('config',{}).get('general',{}).get('no_track',True):
-				await self.client.db.user(user.id).data.au.append(au.trigger)
+			if au._id not in user_data.get('data',{}).get('au') and not user_data.get('config',{}).get('general',{}).get('no_track',True):
+				await self.client.db.user(user.id).data.au.append(au._id)
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
-		await self.client.log.listener(message,category=au.method,trigger=au.trigger,response=response,original_deleted=original_deleted)
+		await self.client.log.listener(message,id=au._id,category=au.method,trigger=au.trigger,response=response,original_deleted=original_deleted)
 		return True
 
 	def rand_name(self,message:Message,splitter:str) -> str:
