@@ -120,7 +120,7 @@ class auto_response_listeners(Cog):
 				await sleep(delay)
 			await message.channel.send(followup)
 
-		if not au.custom:
+		if False:#not au.custom: disabled until porting to the new system is finished
 			user_data = await self.client.db.user(user.id).read()
 			if au._id not in user_data.get('data',{}).get('au') and not user_data.get('config',{}).get('general',{}).get('no_track',True):
 				await self.client.db.user(user.id).data.au.append(au._id)
