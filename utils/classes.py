@@ -127,7 +127,7 @@ class AutoResponses:
 		self.raw_au = [d async for d in self.db.find(self.filter)]
 		self.au = [AutoResponse(**i) for i in self.raw_au]
 
-	def find(self,attrs:dict=None,limit:int=None) -> list[AutoResponse]|None:
+	def find(self,attrs:dict=None,limit:int=None) -> list[AutoResponse]:
 		if attrs is None: return self.au
 		out = []
 		for au in self.au:
