@@ -1,5 +1,5 @@
+from utils.classes import Env,ApplicationContext,AutoResponses
 from discord import Interaction,ApplicationCommandInvokeError
-from utils.classes import Env,ApplicationContext
 from discord.ext.commands import AutoShardedBot
 from utils.pluralkit import PluralKit
 from utils.db import MongoDatabase
@@ -16,7 +16,7 @@ class Client(AutoShardedBot):
 		super().__init__(*args,**kwargs)
 		self.db:MongoDatabase
 		self.flags:dict
-		self.au:dict|None
+		self.au:AutoResponses
 		self.MODE:str
 		self.env:Env
 		self.log:log

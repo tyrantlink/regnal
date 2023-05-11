@@ -1,4 +1,4 @@
-from .collections import INF,Guild,Log,Message,Poll,RoleMenu,StatusLog,User
+from .collections import INF,AutoResponse,Guild,Log,Message,Poll,RoleMenu,StatusLog,User
 from motor.motor_asyncio import AsyncIOMotorClient
 
 
@@ -14,6 +14,10 @@ class MongoDatabase:
 	def inf(self,_id:str) -> INF:
 		"""infrequently read documents"""
 		return INF(self,self._client.INF,_id)
+	
+	def auto_response(self,_id:int) -> AutoResponse:
+		"""auto response documents"""
+		return AutoResponse(self,self._client.auto_responses,_id)
 
 	def guild(self,_id:int) -> Guild:
 		"""guild documents"""

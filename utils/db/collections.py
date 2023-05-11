@@ -42,6 +42,39 @@ class INF(MongoObject):
 			self.donation_roles = MongoObject(db,col,_id,['config','donation_roles'])
 			"""list[int]"""
 
+class AutoResponse(MongoObject):
+	def __init__(self,db,col:Collection,_id) -> None:
+		super().__init__(db,col,_id,[])
+		"""Collection\n\nraw mongodb collection"""
+		self._id = MongoObject(db,col,_id,['_id'])
+		"""int|str\n\ndiscord guild id"""
+		self.trigger = MongoObject(db,col,_id,['trigger'])
+		"""str\n\ntrigger message"""
+		self.method = MongoObject(db,col,_id,['method'])
+		"""str\n\nresponse method"""
+		self.response = MongoObject(db,col,_id,['response'])
+		"""str\n\nresponse message"""
+		self.custom = MongoObject(db,col,_id,['custom'])
+		"""bool\n\nis custom auto response"""
+		self.regex = MongoObject(db,col,_id,['regex'])
+		"""bool\n\nis matched with regex"""
+		self.nsfw = MongoObject(db,col,_id,['nsfw'])
+		"""bool\n\nis nsfw"""
+		self.file = MongoObject(db,col,_id,['file'])
+		"""bool\n\nis file"""
+		self.case_sensitive = MongoObject(db,col,_id,['case_sensitive'])
+		"""bool\n\nis case sensitive"""
+		self.user = MongoObject(db,col,_id,['user'])
+		"""str\n\nuser id"""
+		self.guild = MongoObject(db,col,_id,['guild'])
+		"""str\n\nguild id"""
+		self.source = MongoObject(db,col,_id,['source'])
+		"""str\n\nsource description"""
+		self.alt_responses = MongoObject(db,col,_id,['alt_responses'])
+		"""list[list[float|int,str]]\n\nalternative responses"""
+		self.followups = MongoObject(db,col,_id,['followups'])
+		"""list[list[float|int,str]]\n\nfollowup responses"""
+
 class Guild(MongoObject):
 	def __init__(self,db,col:Collection,_id) -> None:
 		super().__init__(db,col,_id,[])

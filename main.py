@@ -2,8 +2,8 @@
 from time import perf_counter,time
 st = perf_counter()
 from discord import Activity,ActivityType,Embed,Message,Guild,Interaction,ApplicationCommandInvokeError,SlashCommandGroup,Intents,File,ApplicationContext as ApplicationContextBase
+from utils.classes import MixedUser,Env,ApplicationContext,AutoResponses
 from utils.tyrantlib import convert_time,format_bytes,get_line_count
-from utils.classes import MixedUser,Env,ApplicationContext
 from pymongo.errors import ServerSelectionTimeoutError
 from discord.ext.commands import Cog,slash_command
 from traceback import format_exc,format_tb
@@ -33,7 +33,7 @@ class client_cls(Client):
 		self.db = db
 		self.flags = {}
 		self.env = env
-		self.au:dict = None
+		self.au:AutoResponses = AutoResponses(self.db.auto_response(0)._col)
 		self.MODE = MODE
 		self.git_hash()
 		if 'clear' in argv: return
@@ -117,7 +117,7 @@ class client_cls(Client):
 		await self._owner_init()
 		if MODE in ['/reg/nal','tet']: await self.sync_commands()
 		elif 'sync' in argv: await self.sync_commands()
-		self.au = await self.db.inf('/reg/nal').auto_responses.read()
+		await self.au.reload_au()
 		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-st,2)} seconds with {self.shard_count} shard{"s" if self.shard_count != 1 else ""}',to_db=False)
 
 	async def on_application_command(self,ctx:ApplicationContext) -> None:
@@ -176,14 +176,13 @@ class base_commands(Cog):
 		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
 		embed.add_field(name='line count',value=f'{self.client.lines} lines',inline=True)
 		embed.add_field(name='commands',value=len([cmd for cmd in self.client.walk_application_commands() if not isinstance(cmd,SlashCommandGroup)]),inline=True)
-		if self.client.au:
-			auto_response_count = str(len([v for v in self.client.au.values() if v.get('guild',None) is None and v.get('user',None) is None]))
-			if ctx.guild:
-				if g_au:=[str(i) for i in [
-					len([v for v in self.client.au.values() if v.get('guild',None) == str(ctx.guild.id)]),
-					len(await self.client.db.guild(ctx.guild.id).data.auto_responses.custom.read())] if i]:
-						auto_response_count += f'({"+" if len(g_au) == 1 else ""}{"+".join(g_au)})'
-			embed.add_field(name='auto responses',value=auto_response_count,inline=True)
+		auto_response_count = str(len(self.client.au.find({'guild':None,'user':None})))
+		if ctx.guild:
+			if g_au:=[str(i) for i in [
+				len(self.client.au.find({'custom':False,'guild':str(ctx.guild.id)})),
+				len(self.client.au.find({'custom':True,'guild':str(ctx.guild.id)}))] if i]:
+					auto_response_count += f'({"+" if len(g_au) == 1 else ""}{"+".join(g_au)})'
+		embed.add_field(name='auto responses',value=auto_response_count,inline=True)
 		lifetime_stats = await self.client.db.status_log(1).stats.read()
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			lifetime.append(f'{name}: {"{:,}".format(lifetime_stats.get(name)+self.client.db.session_stats.get(name))}')
