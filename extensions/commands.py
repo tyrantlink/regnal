@@ -30,7 +30,7 @@ class commands_commands(Cog):
 			value=f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			display name: {user.display_name}
 			seen messages: {user_doc.get('messages',0)}
-			auto responses found: {len(user_doc.get('data',{}).get('au',{}))}/{len(self.client.au.find({'custom':False,'user':None})+self.client.au.find({'custom':False,'user':str(user.id)}))}""".replace('	',''))
+			auto responses found: {len(user_doc.get('data',{}).get('au',{}))}/{len(self.client.au.find({'custom':False,'user':None,'guild':None})+self.client.au.find({'custom':False,'user':str(user.id),'guild':None}))}""".replace('	',''))
 		return embed
 
 	@profile.command(
