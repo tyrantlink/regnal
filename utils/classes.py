@@ -112,7 +112,9 @@ class AutoResponse:
 	async def to_mongo(self,db:MongoObject,_id:int=None) -> None:
 		data = self.to_dict()
 		data.pop('_id')
-		await db.new(_id or self._id or '+1',data,update=True)
+		successful,new_id = await db.new(_id or self._id or '+1',data,update=True)
+		if successful: self._id = new_id
+		else: raise Exception(f'failed to write to mongo: {self.to_dict()}')
 
 class AutoResponses:
 	def __init__(self,db:Collection,filter:dict=None) -> None:
