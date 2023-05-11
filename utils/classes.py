@@ -85,7 +85,7 @@ class AutoResponse:
 		self.regex:bool   = kwargs.get('regex',False)
 		self.nsfw:bool    = kwargs.get('nsfw',False)
 		self.file:bool    = kwargs.get('file',False)
-		self.cs:bool      = kwargs.get('cs',False)
+		self.cs:bool      = kwargs.get('case_sensitive',False)
 		self.user:str     = kwargs.get('user',None)
 		self.guild:str    = kwargs.get('guild',None)
 		self.source:str   = kwargs.get('source',None)
@@ -112,7 +112,9 @@ class AutoResponse:
 	async def to_mongo(self,db:MongoObject,_id:int=None) -> None:
 		data = self.to_dict()
 		data.pop('_id')
-		await db.new(_id or self._id or '+1',data,update=True)
+		successful,new_id = await db.new(_id or self._id or '+1',data,update=True)
+		if successful: self._id = new_id
+		else: raise Exception(f'failed to write to mongo: {self.to_dict()}')
 
 class AutoResponses:
 	def __init__(self,db:Collection,filter:dict=None) -> None:
@@ -127,7 +129,7 @@ class AutoResponses:
 		self.raw_au = [d async for d in self.db.find(self.filter)]
 		self.au = [AutoResponse(**i) for i in self.raw_au]
 
-	def find(self,attrs:dict=None,limit:int=None) -> list[AutoResponse]|None:
+	def find(self,attrs:dict=None,limit:int=None) -> list[AutoResponse]:
 		if attrs is None: return self.au
 		out = []
 		for au in self.au:
