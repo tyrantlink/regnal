@@ -74,7 +74,7 @@ class MongoObject:
 		self.__db.session_stats['db_writes'] += 1
 		return True
 
-	async def new(self,id:int|str,doc:dict|None=None) -> bool:
+	async def new(self,id:int|str,doc:dict|None=None,update:bool=False) -> bool:
 		"""create a new document by duplicating the current doc"""
 		if isinstance(id,str):
 			if id[0] == '+': id = (await self._col.find_one({},sort=[('_id',-1)])).get('_id')+int(id[1:])
@@ -82,7 +82,9 @@ class MongoObject:
 		else: new = doc
 		if new.get('_id',self.__id) == self.__id: new.update({'_id':id})
 		try: await self._col.insert_one(new)
-		except DuplicateKeyError: return False
+		except DuplicateKeyError:
+			if not update: return False
+			await self._col.replace_one({'_id':id},new)
 		self.__db.session_stats['db_reads'] += 2
 		self.__db.session_stats['db_writes'] += 1
 		return True
