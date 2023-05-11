@@ -115,13 +115,16 @@ class AutoResponse:
 		await db.new(_id or self._id or '+1',data,update=True)
 
 class AutoResponses:
-	def __init__(self,db:Collection) -> None:
+	def __init__(self,db:Collection,filter:dict=None) -> None:
 		self.db:Collection = db
 		self.raw_au:list[dict] = []
 		self.au:list[AutoResponse] = []
+		self.custom_filter = filter is not None
+		self.filter = {'_id':{'$ne':0}}
+		if self.custom_filter: self.filter.update(filter)
 
 	async def reload_au(self) -> None:
-		self.raw_au = [d async for d in self.db.find({'_id':{'$ne':0}})]
+		self.raw_au = [d async for d in self.db.find(self.filter)]
 		self.au = [AutoResponse(**i) for i in self.raw_au]
 
 	def find(self,attrs:dict,limit:int=None) -> list[AutoResponse]|None:
