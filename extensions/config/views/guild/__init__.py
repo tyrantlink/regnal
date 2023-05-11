@@ -1,7 +1,7 @@
 from discord.ui import Button,button,Select,string_select,channel_select,role_select,InputText
 from discord import Interaction,Embed,SelectOption,Guild,Member,CategoryChannel
+from utils.classes import EmptyView,CustomModal,AutoResponses
 from extensions._shared_vars import config_info
-from utils.classes import EmptyView,CustomModal
 from .configure_list import configure_list_view
 from .tts_banning import tts_banning_view
 from .au_disable import au_disable_view
@@ -280,7 +280,9 @@ class guild_config(EmptyView):
 		custom_id='custom_au_button')
 	async def custom_au_button(self,button:Button,interaction:Interaction) -> None:
 		embed = Embed(title=f'custom auto responses',color=self.embed.color)
-		await interaction.response.edit_message(embed=embed,view=au_view(self,self.user,self.guild,self.client,embed,await self.client.db.guild(self.guild.id).data.auto_responses.custom.read(),False))
+		au = AutoResponses(self.client.db.auto_response(0)._col,{'custom':True,'guild':str(self.guild.id)})
+		await au.reload_au()
+		await interaction.response.edit_message(embed=embed,view=au_view(self,self.user,self.guild,self.client,embed,au,True))
 
 	@button(
 		label='disable auto responses',style=1,row=2,

@@ -1,6 +1,6 @@
 from discord.ui import Button,button,Select,string_select,InputText
 from discord import Interaction,Embed,SelectOption,InputTextStyle
-from utils.classes import EmptyView,CustomModal
+from utils.classes import EmptyView,CustomModal,AutoResponses
 from .banning import dev_banning_view
 from .commit import commit_view
 from ....au import au_view
@@ -51,8 +51,11 @@ class home_view(EmptyView):
 		match select.values[0]:
 			case 'commit':  view = commit_view(self,self.client,interaction.user,db.get('version'),self.embed.color)
 			case 'banning': view = dev_banning_view(self,interaction.user,self.client,self.embed.copy())
-			case 'auto responses': view = au_view(self,interaction.user,interaction.guild,self.client,
-				Embed(title=f'auto responses',color=self.embed.color),await self.client.db.inf('/reg/nal').auto_responses.read(),True)
+			case 'auto responses':
+				au = AutoResponses(self.client.db.auto_response(0)._col,{'custom':False})
+				await au.reload_au()
+				view = au_view(self,interaction.user,interaction.guild,self.client,
+				Embed(title=f'auto responses',color=self.embed.color),au,False)
 			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
 		await view.start(guild=self.client.get_guild(db.get('config',{}).get('guild')))
 		await interaction.response.edit_message(view=view,embed=view.embed)
