@@ -77,18 +77,6 @@ class auto_response_listeners(Cog):
 					if await self.listener_dad_bot(message,user): return
 				case 'disabled': pass
 
-	def au_check(self,responses:list[AutoResponse],message:str) -> AutoResponse|None:
-		for au in responses:
-			match au.method:
-				case 'exact':
-					if fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.case_sensitive else IGNORECASE):
-						return au
-				case 'contains':
-					if search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.case_sensitive else IGNORECASE):
-						return au
-				case _: continue
-		return None
-
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
 		au = (self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}) or
