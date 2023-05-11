@@ -112,7 +112,7 @@ class AutoResponse:
 	async def to_mongo(self,db:MongoObject,_id:int=None) -> None:
 		data = self.to_dict()
 		data.pop('_id')
-		await db.new(_id or self._id or '+1',data)
+		await db.new(_id or self._id or '+1',data,update=True)
 
 class AutoResponses:
 	def __init__(self,db:Collection) -> None:
