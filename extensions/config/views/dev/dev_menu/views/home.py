@@ -112,10 +112,7 @@ class home_view(EmptyView):
 		custom_id='reload_au_button')
 	async def reload_au_button(self,button:Button,interaction:Interaction) -> None:
 		self.reboot_confirmation = False
-		if (reload:=self.client.flags.get('RELOAD_AU',None)) is not None and 'base' not in reload:
-			self.client.flags['RELOAD_AU'].append('base')
-		else:
-			self.client.flags.update({'RELOAD_AU':['base']})
+		await self.client.au.reload_au()
 		await interaction.response.defer(invisible=True)
 
 	@button(
