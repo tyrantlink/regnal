@@ -142,7 +142,7 @@ class au_view(EmptyView):
 				author=self.user.id,
 				id=self.selected_au._id,
 				trigger=self.selected_au.trigger)
-			self.au.reload_au()
+			await self.au.reload_au()
 			self.page = 'main'
 			if not self.custom: await self.client.db.user(0)._col.update_many({'data.au':{'$regex':fr'^{self.selected_au._id}:\d{"{1,2}"}'}},{'$pull':{'data.au':{'$regex':fr'^{self.selected_au._id}:\d{"{1,2}"}'}}})
 		else:
