@@ -166,10 +166,11 @@ class ArgParser:
 		self.delete:bool  = False
 		self.alt:int|None = None
 		self.au:int|None  = None
+		self.force:bool   = False
 
 	def parse(self,message:str) -> str:
 		for loop in range(25):
-			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au \d+)$',message,IGNORECASE)
+			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au \d+|--force)$',message,IGNORECASE)
 			if s is None: break
 			message = s.group(1)
 			try:
@@ -177,5 +178,7 @@ class ArgParser:
 					case ['--delete']: self.delete = True
 					case ['--alt',a]: self.alt = int(a)
 					case ['--au',a]: self.au = int(a)
+					case ['--force']: self.force = True
+					case _: continue
 			except ValueError: continue
 		return message
