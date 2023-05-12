@@ -274,7 +274,7 @@ class Guild(MongoObject):
 				self.custom = MongoObject(db,col,_id,['data','auto_responses','custom'])
 				"""dict[str,dict]"""
 				self.disabled = MongoObject(db,col,_id,['data','auto_responses','disabled'])
-				"""list[str]"""
+				"""list[int]"""
 
 		class ___dad_bot(MongoObject):
 			def __init__(self,db,col,_id,path) -> None:
