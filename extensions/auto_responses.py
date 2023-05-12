@@ -91,7 +91,7 @@ class auto_response_listeners(Cog):
 			try: responses[args.alt]
 			except IndexError: args.alt = None
 			else: args.alt = args.alt if f'{au._id}:{args.alt}' in await self.client.db.user(user.id).data.au.read() else None
-		response_index = args.alt or choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
+		response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
 		response = responses[response_index]
 		if response is None: return False
 		if au.nsfw and not message.channel.nsfw: return False
