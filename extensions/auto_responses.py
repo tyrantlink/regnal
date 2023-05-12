@@ -87,7 +87,8 @@ class auto_response_listeners(Cog):
 		if au.trigger in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): return False
 		weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
 		auto_weight = (100-sum(filter(None,weights)))/weights.count(None)
-		response = choices(responses,[w or auto_weight for w in weights])[0]
+		response_index = choices([i for i in range(len(responses))],[w or auto_weight for w in weights])[0]
+		response = responses[response_index]
 		if response is None: return False
 		if au.nsfw and not message.channel.nsfw: return False
 		if au.user is not None and str(message.author.id) != au.user: return False
@@ -109,9 +110,10 @@ class auto_response_listeners(Cog):
 			await message.channel.send(followup)
 
 		if not au.custom and au.guild is None:
+			response_id = f'{au._id}:{response_index}'
 			user_data = await self.client.db.user(user.id).read()
-			if au._id not in user_data.get('data',{}).get('au') and not user_data.get('config',{}).get('general',{}).get('no_track',True):
-				await self.client.db.user(user.id).data.au.append(au._id)
+			if response_id not in user_data.get('data',{}).get('au') and not user_data.get('config',{}).get('general',{}).get('no_track',True):
+				await self.client.db.user(user.id).data.au.append(response_id)
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
 		await self.client.log.listener(message,id=au._id,category=au.method,trigger=au.trigger,response=response,original_deleted=original_deleted)

@@ -25,12 +25,14 @@ class commands_commands(Cog):
 			color=await self.client.embed_color(ctx))
 		embed.set_thumbnail(url=user.display_avatar.with_size(512).with_format('png').url)
 		user_doc = await self.client.db.user(user.id).read()
+		total_au = self.client.au.find({'custom':False,'user':None,'guild':None})+self.client.au.find({'custom':False,'user':str(user.id),'guild':None})
 		embed.add_field(
 			name='information:',
 			value=f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			display name: {user.display_name}
 			seen messages: {user_doc.get('messages',0)}
-			auto responses found: {len(user_doc.get('data',{}).get('au',{}))}/{len(self.client.au.find({'custom':False,'user':None,'guild':None})+self.client.au.find({'custom':False,'user':str(user.id),'guild':None}))}""".replace('	',''))
+			auto responses found: {len({i.split(':')[0] for i in user_doc.get('data',{}).get('au',{})})}/{len(total_au)}
+			alt auto responses found: {len([i for i in user_doc.get('data',{}).get('au',{}) if i.split(':')[1] != '0'])}/{len([r for au in total_au for r in au.alt_responses])}""".replace('	',''))
 		return embed
 
 	@profile.command(
