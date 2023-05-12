@@ -81,8 +81,8 @@ class auto_response_listeners(Cog):
 		args = ArgParser()
 		content = args.parse(message.content)
 		user_found = await self.client.db.user(user.id).data.au.read()
-		au = (self.client.au.get((args.au if args.au is not None and (any((search(f'{args.au}:\d+',s) for s in user_found)) or
-				(args.force and user.id in self.client.owner_ids)) else None)) or
+		args.force = args.force and user.id in self.client.owner_ids
+		au = (self.client.au.get((args.au if args.au is not None and (args.force or any((search(f'{args.au}:\d+',s) for s in user_found))) else None)) or
 			self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}) or
 			self.client.au.match(content,{'custom':False,'guild':str(message.guild.id)}) or
 			self.client.au.match(content,{'custom':False,'guild':None}))
@@ -93,12 +93,12 @@ class auto_response_listeners(Cog):
 		if args.alt is not None:
 			try: responses[args.alt]
 			except IndexError: args.alt = None
-			else: args.alt = args.alt if f'{au._id}:{args.alt}' in user_found or (args.force and user.id in self.client.owner_ids) else None
+			else: args.alt = args.alt if args.force or f'{au._id}:{args.alt}' in user_found else None
 		response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
 		response = responses[response_index]
 		if response is None: return False
 		if au.nsfw and not message.channel.nsfw: return False
-		if au.user is not None and str(message.author.id) != au.user: return False
+		if (au.user is not None and str(message.author.id) != au.user) or args.force: return False
 		if au.file: response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
 
 		if message.id not in self.timeouts: return False
