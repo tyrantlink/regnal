@@ -139,7 +139,8 @@ class AutoResponses:
 		return out
 
 	def get(self,_id:int) -> AutoResponse|None:
-		return self.find({'_id':_id},1)[0]
+		if res:= self.find({'_id':_id},1): return res[0]
+		return None
 
 	def match(self,message:str,attrs:dict=None) -> AutoResponse|None:
 		out = (None,None)
