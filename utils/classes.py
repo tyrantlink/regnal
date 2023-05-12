@@ -159,3 +159,18 @@ class ApplicationContext(AppContext):
 	def __init__(self,*args,**kwargs):
 		super().__init__(*args,**kwargs)
 		self.output:dict
+
+class ArgParser:
+	def __init__(self) -> None:
+		self.delete:bool  = False
+		self.alt:int|None = None
+
+	def parse(self,message:str) -> str:
+		for loop in range(25):
+			s = search(r'(.*)\s(--delete|--alt \d{1,2})$',message,IGNORECASE)
+			if s is None: break
+			message = s.group(1)
+			match s.group(2).split(' '):
+				case ['--delete']: self.delete = True
+				case ['--alt',a]: self.alt = int(a)
+		return message

@@ -1,5 +1,5 @@
-from regex import sub,search,split,fullmatch,escape,finditer,IGNORECASE
-from utils.classes import MixedUser,AutoResponse
+from regex import sub,split,finditer,IGNORECASE
+from utils.classes import MixedUser,ArgParser
 from asyncio import sleep,create_task
 from discord.ext.commands import Cog
 from discord.errors import Forbidden
@@ -78,7 +78,8 @@ class auto_response_listeners(Cog):
 				case 'disabled': pass
 
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
-		content = message.content[:-9] if (delete_original:=message.content.endswith(' --delete')) else message.content
+		args = ArgParser()
+		content = args.parse(message.content)
 		au = (self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}) or
 			self.client.au.match(content,{'custom':False,'guild':str(message.guild.id)}) or
 			self.client.au.match(content,{'custom':False,'guild':None}))
@@ -86,8 +87,11 @@ class auto_response_listeners(Cog):
 
 		if au.trigger in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): return False
 		weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
-		auto_weight = (100-sum(filter(None,weights)))/weights.count(None)
-		response_index = choices([i for i in range(len(responses))],[w or auto_weight for w in weights])[0]
+		if args.alt:
+			try: responses[args.alt]
+			except IndexError: args.alt = None
+			else: args.alt = args.alt if f'{au._id}:{args.alt}' in await self.client.db.user(user.id).data.au.read() else None
+		response_index = args.alt or choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
 		response = responses[response_index]
 		if response is None: return False
 		if au.nsfw and not message.channel.nsfw: return False
@@ -98,7 +102,7 @@ class auto_response_listeners(Cog):
 		try: await message.channel.send(response)
 		except Forbidden: return False
 		original_deleted = False
-		if delete_original and (content.lower() == au.trigger or au.regex) and au.file:
+		if args.delete and (content.lower() == au.trigger or au.regex) and au.file:
 			try: await message.delete(reason='auto response deletion')
 			except Forbidden: pass
 			else:
