@@ -173,12 +173,10 @@ class ArgParser:
 			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au \d+|--force)$',message,IGNORECASE)
 			if s is None: break
 			message = s.group(1)
-			try:
-				match s.group(2).split(' '):
-					case ['--delete']: self.delete = True
-					case ['--alt',a]: self.alt = int(a)
-					case ['--au',a]: self.au = int(a)
-					case ['--force']: self.force = True
-					case _: continue
-			except ValueError: continue
+			match s.group(2).split(' '):
+				case ['--delete']: self.delete = True
+				case ['--alt',a]: self.alt = int(a)
+				case ['--au',a]: self.au = int(a)
+				case ['--force']: self.force = True
+				case _: continue
 		return message
