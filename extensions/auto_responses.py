@@ -1,4 +1,4 @@
-from regex import sub,split,finditer,IGNORECASE
+from regex import sub,split,finditer,search,IGNORECASE
 from utils.classes import MixedUser,ArgParser
 from asyncio import sleep,create_task
 from discord.ext.commands import Cog
@@ -80,7 +80,9 @@ class auto_response_listeners(Cog):
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		args = ArgParser()
 		content = args.parse(message.content)
-		au = (self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}) or
+		user_found = await self.client.db.user(user.id).data.au.read()
+		au = (self.client.au.get((args.au if args.au is not None and any((search(f'{args.au}:\d+',s) for s in user_found)) else None)) or
+			self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}) or
 			self.client.au.match(content,{'custom':False,'guild':str(message.guild.id)}) or
 			self.client.au.match(content,{'custom':False,'guild':None}))
 		if au is None: return False
@@ -90,7 +92,7 @@ class auto_response_listeners(Cog):
 		if args.alt is not None:
 			try: responses[args.alt]
 			except IndexError: args.alt = None
-			else: args.alt = args.alt if f'{au._id}:{args.alt}' in await self.client.db.user(user.id).data.au.read() else None
+			else: args.alt = args.alt if f'{au._id}:{args.alt}' in user_found else None
 		response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
 		response = responses[response_index]
 		if response is None: return False
@@ -115,8 +117,7 @@ class auto_response_listeners(Cog):
 
 		if not au.custom and au.guild is None:
 			response_id = f'{au._id}:{response_index}'
-			user_data = await self.client.db.user(user.id).read()
-			if response_id not in user_data.get('data',{}).get('au') and not user_data.get('config',{}).get('general',{}).get('no_track',True):
+			if response_id not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
 				await self.client.db.user(user.id).data.au.append(response_id)
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
