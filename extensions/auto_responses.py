@@ -87,7 +87,7 @@ class auto_response_listeners(Cog):
 
 		if au.trigger in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): return False
 		weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
-		if args.alt:
+		if args.alt is not None:
 			try: responses[args.alt]
 			except IndexError: args.alt = None
 			else: args.alt = args.alt if f'{au._id}:{args.alt}' in await self.client.db.user(user.id).data.au.read() else None
