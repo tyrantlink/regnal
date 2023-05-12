@@ -169,7 +169,7 @@ class ArgParser:
 
 	def parse(self,message:str) -> str:
 		for loop in range(25):
-			s = search(r'(.*)\s(--delete|--alt \d+|--au \d+)$',message,IGNORECASE)
+			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au \d+)$',message,IGNORECASE)
 			if s is None: break
 			message = s.group(1)
 			try:
