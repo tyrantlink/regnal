@@ -98,7 +98,7 @@ class auto_response_listeners(Cog):
 		response = responses[response_index]
 		if response is None: return False
 		if au.nsfw and not message.channel.nsfw: return False
-		if (au.user is not None and str(message.author.id) != au.user) or args.force: return False
+		if au.user is not None and (str(message.author.id) != au.user and not args.force): return False
 		if au.file: response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
 
 		if message.id not in self.timeouts: return False
