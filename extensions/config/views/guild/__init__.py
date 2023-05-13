@@ -100,7 +100,7 @@ class guild_config(EmptyView):
 				self.embed.color = int(value,16)
 			case 'general.max_roll':
 				value = int(value)
-				if not (16384 > value > 2): raise
+				if not (16384 > value > 2): raise ValueError('max_roll must be between 2 and 16384')
 			case 'auto_responses.cooldown'|'dad_bot.cooldown': value = int(value)
 			case 'general.moderator_role': pass
 			case 'logging.enabled' if value and interaction is not None:
@@ -111,6 +111,9 @@ class guild_config(EmptyView):
 					create_task(interaction.followup.send(embed=Embed(
 						title='WARNING: i can\'t see into the following channels,\nthey will not be logged',
 						description='\n'.join(channels),color=0xffff69),ephemeral=True))
+			case 'tts.max_message_length':
+				value = int(value)
+				if not (60 > value > 0): raise ValueError('max_message_length must be between 0 and 60')
 		await self.client.db.guild(self.guild.id).config.write(value,[self.category,self.selected])
 		await self.client.log.info(f'{self.user.name} set guild config {self.category}/{self.selected} to {value} in {self.guild.name}',**{
 			'author':self.user.id,
