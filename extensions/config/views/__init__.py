@@ -22,7 +22,7 @@ class config_view(EmptyView):
 		self.options = [SelectOption(label='user',description='user specific options')]
 		if self.guild is not None:
 			if (self.user.guild_permissions.manage_guild or
-				self.dev_bypass or
+				(self.dev_bypass and self.user.id in self.client.owner_ids) or
 				(self.user.get_role(self.moderator_role) if self.moderator_role else False)):
 				self.options.append(SelectOption(label='guild',description='guild config menu'))
 		if self.user.id == self.client.owner_id:
