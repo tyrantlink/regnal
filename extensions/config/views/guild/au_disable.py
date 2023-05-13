@@ -25,7 +25,7 @@ class au_disable_view(EmptyView):
 
 	async def reload(self) -> None:
 		self.disabled = [au for _id in await self.client.db.guild(self.guild.id).data.auto_responses.disabled.read() if (au:=self.client.au.get(_id)) is not None]
-		self.embed.description = f'currently disabled:\n'+('\n'.join([f'`{i.trigger}`' for i in self.disabled][:100]) or 'None')
+		self.embed.description = f'currently selected:\n{self.selected.trigger if self.selected else "None"}\n\ncurrently disabled:\n'+('\n'.join([f'`{i.trigger}`' for i in self.disabled][:100]) or 'None')
 		self.get_item('au_select').options = [SelectOption(label=self.selected.trigger,description='manual input',default=True) if self.selected else SelectOption(label='search not found')]
 		self.get_item('enable_button').disabled = self.selected is None or self.selected not in self.disabled
 		self.get_item('disable_button').disabled = self.selected is None or self.selected in self.disabled
@@ -48,11 +48,11 @@ class au_disable_view(EmptyView):
 		custom_id='manual_input_button')
 	async def manual_input_button(self,button:Button,interaction:Interaction) -> None:
 		modal = CustomModal(self,'manual auto response input',
-			[InputText(label='auto response trigger',value=self.selected.trigger if self.selected else None)])
+			[InputText(label='message',placeholder='message that would trigger auto response',value=self.selected.trigger if self.selected else None)])
 		await interaction.response.send_modal(modal)
 		await modal.wait()
-		result = self.client.au.find({'custom':False,'trigger':modal.children[0].value})
-		if result: self.selected = result[0]
+		result = self.client.au.match(modal.children[0].value,{'custom':False})
+		if result: self.selected = result
 		await self.reload()
 		await modal.interaction.response.edit_message(view=self,embed=self.embed)
 
