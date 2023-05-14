@@ -39,7 +39,7 @@ class au_view(EmptyView):
 		self.clear_items()
 		match value:
 			case 'main':
-				self.add_items(self.au_select,self.back_button,self.new_button)
+				self.add_items(self.au_select,self.back_button,self.search_button,self.new_button)
 				if not self.custom: self.add_items(self.previous_button,self.next_button)
 				else: self.get_item('new_button').disabled = len(self.au.find()) >= 25
 				self.update_select()
@@ -104,6 +104,21 @@ class au_view(EmptyView):
 			return
 		self.page = 'main'
 		await interaction.response.edit_message(embed=self.embed,view=self)
+	
+	@button(
+		emoji='🔎',style=1,row=2,
+		custom_id='search_button')
+	async def search_button(self,button:Button,interaction:Interaction) -> None:
+		modal = CustomModal(self,'auto response search',
+			[InputText(label='message',placeholder='message that would trigger auto response')])
+		await interaction.response.send_modal(modal)
+		await modal.wait()
+		selected = self.client.au.match(modal.children[0].value,{'custom':self.custom})
+		if selected is None: raise ValueError(f'no results found')
+		self.selected_au = selected
+		self.add_items(self.edit_button,self.remove_button)
+		self.embed_au()
+		await modal.interaction.response.edit_message(embed=self.embed,view=self)
 
 	@button(
 		label='new',style=3,row=2,
