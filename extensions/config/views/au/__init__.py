@@ -114,7 +114,9 @@ class au_view(EmptyView):
 		await interaction.response.send_modal(modal)
 		await modal.wait()
 		selected = self.client.au.match(modal.children[0].value,{'custom':self.custom})
-		if selected is None: raise ValueError(f'no results found')
+		if selected is None:
+			await modal.interaction.response.defer()
+			raise ValueError(f'no results found')
 		self.selected_au = selected
 		self.add_items(self.edit_button,self.remove_button)
 		self.embed_au()
