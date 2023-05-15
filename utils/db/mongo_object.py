@@ -52,7 +52,7 @@ class MongoObject:
 		return True
 
 	async def pop(self,position:int=None,a_path:list[str]=None) -> bool:
-		"""append value to an array"""
+		"""pop from an array"""
 		if position not in [1,-1]: return False # -1 first last value, 1 removes first
 		await self._col.update_one({'_id':self.__id},{'$pop':{'.'.join(self.__path+(a_path if a_path is not None else [])):position*-1}})
 		self.__db.session_stats['db_writes'] += 1
