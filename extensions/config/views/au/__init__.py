@@ -57,7 +57,7 @@ class au_view(EmptyView):
 
 	def update_select(self):
 		select = self.get_item('au_select')
-		if (options:=[SelectOption(value=str(au._id),label=au.trigger,description=au.response.split('\n')[0][:100]) for au in self.au.find()][25*self.au_page-25:25*self.au_page]):
+		if (options:=[SelectOption(value=str(au._id),label=au.trigger[:100],description=au.response.split('\n')[0][:100]) for au in self.au.find()][25*self.au_page-25:25*self.au_page]):
 			select.options = options
 			select.placeholder = 'select an auto response'
 			select.disabled = False
