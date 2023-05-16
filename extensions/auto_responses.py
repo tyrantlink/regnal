@@ -104,13 +104,10 @@ class auto_response_listeners(Cog):
 		if message.id not in self.timeouts: return False
 		try: await message.channel.send(response)
 		except Forbidden: return False
-		original_deleted = False
-		if args.delete and (((content.lower() == au.trigger or au.regex) and au.file) or args.force):
+		if args.delete and (au.file or args.force):
 			try: await message.delete(reason='auto response deletion')
 			except Forbidden: pass
-			else:
-				original_deleted = True
-				await self.client.log.info(f'auto response trigger deleted by {message.author}')
+			else: await self.client.log.info(f'auto response trigger deleted by {message.author}')
 		for delay,followup in au.followups:
 			async with message.channel.typing():
 				await sleep(delay)
@@ -122,7 +119,7 @@ class auto_response_listeners(Cog):
 				await self.client.db.user(user.id).data.au.append(response_id)
 
 		self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
-		await self.client.log.listener(message,id=au._id,category=au.method,trigger=au.trigger,response=response,original_deleted=original_deleted)
+		await self.client.log.listener(message,id=au._id,category=au.method,trigger=au.trigger,response=response,original_deleted=args.delete)
 		return True
 
 	def rand_name(self,message:Message,splitter:str) -> str:
