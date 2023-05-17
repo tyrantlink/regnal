@@ -143,7 +143,8 @@ class AutoResponses:
 		return None
 
 	def match(self,message:str,attrs:dict=None) -> AutoResponse|None:
-		out = (None,None)
+		position = None
+		result   = None
 		for au in list(filter(lambda d: all(getattr(d,k) == v for k,v in (attrs or {}).items()),self.au)):
 			match au.method:
 				case 'exact': match = fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE)
@@ -152,9 +153,11 @@ class AutoResponses:
 					match = None
 					continue
 			if match:
-				if out[0] is None or match.span()[0] < out[0]: out = (match.span()[0],au)
-				if out[0] == 0: break
-		return out[1]
+				if position is None or match.span()[0] < position:
+					position = match.span()[0]
+					result = au
+				if position == 0: break
+		return result
 
 class ApplicationContext(AppContext):
 	def __init__(self,*args,**kwargs):
