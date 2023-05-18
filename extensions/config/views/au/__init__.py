@@ -67,7 +67,8 @@ class au_view(EmptyView):
 			select.disabled = True
 
 	def embed_au(self):
-		self.embed.clear_fields() 
+		self.embed.clear_fields()
+		self.embed.add_field(name='internal id',value=self.selected_au._id,inline=False)
 		self.embed.add_field(name='method',value=self.selected_au.method,inline=False)
 		self.embed.add_field(name='match with regex',value=self.selected_au.regex)
 		self.embed.add_field(name='limited to user',value=f"<@{self.selected_au.user}>" if self.selected_au.user is not None else 'None')
