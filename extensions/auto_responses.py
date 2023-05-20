@@ -82,45 +82,46 @@ class auto_response_listeners(Cog):
 		content = args.parse(message.content)
 		user_found = await self.client.db.user(user.id).data.au.read()
 		args.force = args.force and user.id in self.client.owner_ids
-		au = (self.client.au.get((args.au if args.au is not None and (args.force or any((search(f'{args.au}:\d+',s) for s in user_found))) else None)) or
-			self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}) or
-			self.client.au.match(content,{'custom':False,'guild':str(message.guild.id)}) or
-			self.client.au.match(content,{'custom':False,'guild':None}))
-		if au is None: return False
+		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((search(fr'{args.au}:\d+',s) for s in user_found))) else None)),
+							self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}),
+							self.client.au.match(content,{'custom':False,'guild':str(message.guild.id)}),
+							self.client.au.match(content,{'custom':False,'guild':None})):
+			if au is None: continue
 
-		if au._id in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): return False
-		weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
-		if args.alt is not None:
-			try: responses[args.alt]
-			except IndexError: args.alt = None
-			else: args.alt = args.alt if args.force or f'{au._id}:{args.alt}' in user_found else None
-		response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
-		response = responses[response_index]
-		if response is None: return False
-		if au.nsfw and not message.channel.nsfw: return False
-		if au.user is not None and (str(message.author.id) != au.user and not args.force): return False
-		if au.file: response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
+			if au._id in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): continue
+			weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
+			if args.alt is not None:
+				try: responses[args.alt]
+				except IndexError: args.alt = None
+				else: args.alt = args.alt if args.force or f'{au._id}:{args.alt}' in user_found else None
+			response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
+			response = responses[response_index]
+			if response is None: continue
+			if au.nsfw and not message.channel.nsfw: continue
+			if au.user is not None and (str(message.author.id) != au.user and not args.force): continue
+			if au.file: response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
 
-		if message.id not in self.timeouts: return False
-		try: await message.channel.send(response)
-		except Forbidden: return False
-		if args.delete and (au.file or args.force):
-			try: await message.delete(reason='auto response deletion')
-			except Forbidden: pass
-			else: await self.client.log.info(f'auto response trigger deleted by {message.author}')
-		for delay,followup in au.followups:
-			async with message.channel.typing():
-				await sleep(delay)
-			await message.channel.send(followup)
+			if message.id not in self.timeouts: continue
+			try: await message.channel.send(response)
+			except Forbidden: continue
+			if args.delete and (au.file or args.force):
+				try: await message.delete(reason='auto response deletion')
+				except Forbidden: pass
+				else: await self.client.log.info(f'auto response trigger deleted by {message.author}')
+			for delay,followup in au.followups:
+				async with message.channel.typing():
+					await sleep(delay)
+				await message.channel.send(followup)
 
-		if not au.custom and au.guild is None:
-			response_id = f'{au._id}:{response_index}'
-			if response_id not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
-				await self.client.db.user(user.id).data.au.append(response_id)
+			if not au.custom and au.guild is None:
+				response_id = f'{au._id}:{response_index}'
+				if response_id not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
+					await self.client.db.user(user.id).data.au.append(response_id)
 
-		self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
-		await self.client.log.listener(message,id=au._id,category=au.method,trigger=au.trigger,response=response,original_deleted=args.delete)
-		return True
+			self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
+			await self.client.log.listener(message,id=au._id,category=au.method,trigger=au.trigger,response=response,original_deleted=args.delete)
+			return True
+		else: return False
 
 	def rand_name(self,message:Message,splitter:str) -> str:
 		options,weights = [message.guild.me.display_name if message.guild else self.client.user.name],[]
