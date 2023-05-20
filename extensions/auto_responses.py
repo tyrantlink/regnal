@@ -131,7 +131,7 @@ class auto_response_listeners(Cog):
 		return choices(options,weights)[0]
 
 	async def listener_dad_bot(self,message:Message,user:MixedUser) -> None:
-		response = ''
+		response,splitter = '',''
 		input = sub(r"""<(@!|@|@&)\d{10,25}>|@everyone|@here|(https?:\/\/[^\s]+.)""",'[REDACTED]',sub(r'\*|\_|\~|\`|\|','',message.content))
 		splitters = "i'm|im|i am|i will be|i've|ive"
 		for s in finditer(splitters,input,IGNORECASE):
