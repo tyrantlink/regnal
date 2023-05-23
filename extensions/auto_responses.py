@@ -93,7 +93,7 @@ class auto_response_listeners(Cog):
 			if args.alt is not None:
 				try: responses[args.alt]
 				except IndexError: args.alt = None
-				else: args.alt = args.alt if args.force or f'{au._id}:{args.alt}' in user_found else None
+				else: args.alt = args.alt if args.force or (au.guild and not au.custom) or f'{au._id}:{args.alt}' in user_found else None
 			response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
 			response = responses[response_index]
 			if response is None: continue
