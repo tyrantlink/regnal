@@ -149,6 +149,7 @@ class AutoResponses:
 			match au.method:
 				case 'exact': match = fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE)
 				case 'contains': match = search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE)
+				case 'regex_raw': match = search(au.trigger,message,0 if au.cs else IGNORECASE)
 				case _:
 					match = None
 					continue
