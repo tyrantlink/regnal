@@ -106,7 +106,7 @@ class tts_cog(Cog):
 	def process_message(self,message:str) -> str:
 		message = sub(r'(?:\~\~|\_\_\*\*\*|\_\_\*\*|\_\_\*|\_\_|\_|\*\*\*|\*\*|\*)(.*?)(?:\~\~|\*\*\*\_\_|\*\*\_\_|\*\_\_|\_\_|\_|\*\*\*|\*\*|\*)',r'\g<1>',message)
 		message = sub(r'<\/((?:\w|\s)+):\d+>',r'slash \g<1> ',message)
-		message = sub(r'<:(\w+):\d+>',r'\g<1>',message)
+		message = sub(r'<a?:(\w+):\d+>',r'\g<1>',message)
 		message = sub(r'(?:^|\ )https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.',r'a \g<1> link',message)
 		return message
 
