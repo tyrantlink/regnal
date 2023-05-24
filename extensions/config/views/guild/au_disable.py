@@ -62,6 +62,10 @@ class au_disable_view(EmptyView):
 	async def enable_button(self,button:Button,interaction:Interaction) -> None:
 		if self.selected._id in await self.client.db.guild(self.guild.id).data.auto_responses.disabled.read():
 			await self.client.db.guild(self.guild.id).data.auto_responses.disabled.remove(self.selected._id)
+			await self.client.log.info(f'{self.user.name} enabled auto response {self.selected._id}',
+				author=self.user.id,
+				id=self.selected_au._id,
+				trigger=self.selected_au.trigger)
 		await self.reload()
 		await interaction.response.edit_message(view=self,embed=self.embed)
 	
@@ -71,5 +75,9 @@ class au_disable_view(EmptyView):
 	async def disable_button(self,button:Button,interaction:Interaction) -> None:
 		if self.selected._id not in await self.client.db.guild(self.guild.id).data.auto_responses.disabled.read():
 			await self.client.db.guild(self.guild.id).data.auto_responses.disabled.append(self.selected._id)
+			await self.client.log.info(f'{self.user.name} disabled auto response {self.selected._id}',
+				author=self.user.id,
+				id=self.selected_au._id,
+				trigger=self.selected_au.trigger)
 		await self.reload()
 		await interaction.response.edit_message(view=self,embed=self.embed)
