@@ -99,7 +99,9 @@ class auto_response_listeners(Cog):
 			if response is None: continue
 			if au.nsfw and not message.channel.nsfw: continue
 			if au.user is not None and (str(message.author.id) != au.user and not args.force): continue
-			if au.file: response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
+			if au.file:
+				if message.attachments: continue
+				response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
 
 			if message.id not in self.timeouts: continue
 			try: await message.channel.send(response)
