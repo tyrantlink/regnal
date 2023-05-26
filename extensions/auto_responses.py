@@ -102,7 +102,11 @@ class auto_response_listeners(Cog):
 			if au.file:
 				if message.attachments: continue
 				response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
-			if au.regex: response = response.format(**{f'g{k}':('character limit' if len(v) > 100 else v) if v is not None else f'invalid group {k}' for k,v in enumerate(search(au.trigger,message.content,IGNORECASE).groups()[:10],1)})
+			if au.regex:
+				groups = {f'g{i}':'' for i in range(1,11)}
+				groups.update({f'g{k}':'character limit' if len(v) > 100 else v for k,v in enumerate(search(au.trigger,message.content,IGNORECASE).groups()[:10],1) if v is not None})
+				try: response = response.format(**groups)
+				except KeyError as e: response = f'invalid group {e.args[0][1:]}\ngroup must be between 1 and 10'
 
 			if message.id not in self.timeouts: continue
 			try: await message.channel.send(response)
