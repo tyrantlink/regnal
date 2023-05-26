@@ -102,6 +102,7 @@ class auto_response_listeners(Cog):
 			if au.file:
 				if message.attachments: continue
 				response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
+			if au.regex: response = response.format(**{f'g{k}':v for k,v in enumerate(search(au.trigger,message.content,IGNORECASE).groups(),1)})
 
 			if message.id not in self.timeouts: continue
 			try: await message.channel.send(response)
