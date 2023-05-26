@@ -114,7 +114,7 @@ class au_view(EmptyView):
 			[InputText(label='message',placeholder='message that would trigger auto response')])
 		await interaction.response.send_modal(modal)
 		await modal.wait()
-		selected = self.client.au.match(modal.children[0].value,{'custom':self.custom})
+		selected = self.client.au.match(modal.children[0].value,{'custom':self.custom,'guild':str(self.guild.id) if self.custom else None})
 		if selected is None:
 			await modal.interaction.response.defer()
 			raise ValueError(f'no results found')
