@@ -115,11 +115,14 @@ class au_view(EmptyView):
 		emoji='🔎',style=1,row=2,
 		custom_id='search_button')
 	async def search_button(self,button:Button,interaction:Interaction) -> None:
-		modal = CustomModal(self,'auto response search',
-			[InputText(label='message',placeholder='message that would trigger auto response')])
+		modal = CustomModal(self,'auto response search',[
+			InputText(label='message',placeholder='message that would trigger auto response'),
+			InputText(label='from user',placeholder='user id',required=False)])
 		await interaction.response.send_modal(modal)
 		await modal.wait()
-		selected = self.client.au.match(modal.children[0].value,{'custom':self.custom,'guild':str(self.guild.id) if self.custom else None})
+		selected = self.client.au.match(modal.children[0].value,{
+			'custom':self.custom,'guild':str(self.guild.id) if self.custom else None,
+			'user':modal.children[1].value if modal.children[1].value else None})
 		if selected is None:
 			await modal.interaction.response.defer()
 			raise ValueError(f'no results found')
