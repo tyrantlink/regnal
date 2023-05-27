@@ -102,9 +102,9 @@ class auto_response_listeners(Cog):
 			if au.file:
 				if message.attachments: continue
 				response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
-			if au.regex:
+			if au.regex and (match:=search(au.trigger,message.content,IGNORECASE)) is not None:
 				groups = {f'g{i}':'' for i in range(1,11)}
-				groups.update({f'g{k}':'character limit' if len(v) > 100 else v for k,v in enumerate(search(au.trigger,message.content,IGNORECASE).groups()[:10],1) if v is not None})
+				groups.update({f'g{k}':'character limit' if len(v) > 100 else v for k,v in enumerate(match.groups()[:10],1) if v is not None})
 				try: response = response.format(**groups)
 				except KeyError as e: response = f'invalid group {e.args[0][1:]}\ngroup must be between 1 and 10'
 
