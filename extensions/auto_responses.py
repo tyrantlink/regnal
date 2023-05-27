@@ -1,8 +1,8 @@
 from regex import sub,split,finditer,search,IGNORECASE
+from discord.errors import Forbidden,HTTPException
 from utils.classes import MixedUser,ArgParser
 from asyncio import sleep,create_task
 from discord.ext.commands import Cog
-from discord.errors import Forbidden
 from discord import Message,Thread
 from urllib.parse import quote
 from random import choices
@@ -110,7 +110,7 @@ class auto_response_listeners(Cog):
 
 			if message.id not in self.timeouts: continue
 			try: await message.channel.send(response)
-			except Forbidden: continue
+			except (Forbidden,HTTPException): continue
 			if args.delete and (au.file or args.force):
 				try: await message.delete(reason='auto response deletion')
 				except Forbidden: pass
