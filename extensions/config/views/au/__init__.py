@@ -19,6 +19,11 @@ class au_view(EmptyView):
 		self.au_page = 1
 		self.selected_au:AutoResponse = None
 		self.page = 'main'
+		available_methods = [i for i in [
+			SelectOption(label='exact',description='trigger is exactly the message'),
+			SelectOption(label='contains',description='trigger anywhere within the message'),
+			SelectOption(label='regex_raw',description='raw regex, use with caution') if not self.custom else None] if i is not None]
+		self.method_select.options = available_methods
 
 	async def start(self,**kwargs) -> None: pass
 
@@ -200,8 +205,7 @@ class au_view(EmptyView):
 	@string_select(
 		custom_id='method_select',row=0,
 		placeholder='select a method',
-		options=[SelectOption(label='exact',description='trigger is exactly the message'),
-			SelectOption(label='contains',description='trigger anywhere within the message')])
+		options=[SelectOption(label='what',description='you shouldn\'t see this')])
 	async def method_select(self,select:Select,interaction:Interaction) -> None:
 		self.selected_au.method = select.values[0]
 		for option in select.options: option.default = option.label == self.selected_au.method
