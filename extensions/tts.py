@@ -99,7 +99,9 @@ class tts_cog(Cog):
 		self.client = client
 		self.tts = TextToSpeechAsyncClient()
 		self.guilds:dict[int,guild_data] = {}
-		for f in scandir('tmp/tts'): rm(f.path)
+		for f in scandir('tmp/tts'):
+			try: rm(f.path)
+			except FileNotFoundError: pass
 
 	tts = SlashCommandGroup('tts','text-to-speech commands')
 
