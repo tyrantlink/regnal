@@ -81,6 +81,7 @@ class AutoResponse:
 		self.trigger:str  = trigger
 		self.method:str   = kwargs.get('method')
 		self.response:str = kwargs.get('response',None)
+		self.priority:int = kwargs.get('priority',0)
 		self.custom:bool  = kwargs.get('custom',False)
 		self.regex:bool   = kwargs.get('regex',False)
 		self.nsfw:bool    = kwargs.get('nsfw',False)
@@ -98,6 +99,7 @@ class AutoResponse:
 			'trigger':self.trigger,
 			'method':self.method,
 			'response':self.response,
+			'priority':self.priority,
 			'custom':self.custom,
 			'regex':self.regex,
 			'nsfw':self.nsfw,
@@ -145,7 +147,7 @@ class AutoResponses:
 	def match(self,message:str,attrs:dict=None) -> AutoResponse|None:
 		position = None
 		result   = None
-		for au in list(filter(lambda d: all(getattr(d,k) == v for k,v in (attrs or {}).items()),self.au)):
+		for au in sorted(filter(lambda d: all(getattr(d,k) == v for k,v in (attrs or {}).items()),self.au),key=lambda d: d.priority,reverse=True):
 			match au.method:
 				case 'exact': match = fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE)
 				case 'contains': match = search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE)
