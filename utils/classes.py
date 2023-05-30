@@ -146,6 +146,7 @@ class AutoResponses:
 
 	def match(self,message:str,attrs:dict=None) -> AutoResponse|None:
 		position = None
+		priority = None
 		result   = None
 		for au in sorted(filter(lambda d: all(getattr(d,k) == v for k,v in (attrs or {}).items()),self.au),key=lambda d: d.priority,reverse=True):
 			match au.method:
@@ -156,10 +157,12 @@ class AutoResponses:
 					match = None
 					continue
 			if match:
-				if position is None or match.span()[0] < position:
-					position = match.span()[0]
-					result = au
-				if position == 0: break
+				if priority is None or au.priority >= priority:
+					if position is None or match.span()[0] < position:
+						position = match.span()[0]
+						priority = au.priority
+						result = au
+					if position == 0: break
 		return result
 
 class ApplicationContext(AppContext):
