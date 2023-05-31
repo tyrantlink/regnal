@@ -25,14 +25,20 @@ class commands_commands(Cog):
 			color=await self.client.embed_color(ctx))
 		embed.set_thumbnail(url=user.display_avatar.with_size(512).with_format('png').url)
 		user_doc = await self.client.db.user(user.id).read()
-		total_au = self.client.au.find({'custom':False,'user':None,'guild':None})+self.client.au.find({'custom':False,'user':str(user.id),'guild':None})
-		embed.add_field(
-			name='information:',
-			value=f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
+		base_au = self.client.au.find({'custom':False,'user':None,'guild':None})
+		user_au = self.client.au.find({'custom':False,'user':str(user.id),'guild':None})
+		description = f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			display name: {user.display_name}
 			seen messages: {user_doc.get('messages',0)}
-			auto responses found: {len({i.split(':')[0] for i in user_doc.get('data',{}).get('au',{})})}/{len(total_au)}
-			alt auto responses found: {len([i for i in user_doc.get('data',{}).get('au',{}) if i.split(':')[1] != '0'])}/{len([r for au in total_au for r in au.alt_responses])}""".replace('	',''))
+			auto responses found: {len({i.split(':')[0] for i in user_doc.get('data',{}).get('au',{})})}/{len(base_au)}
+			alt auto responses found: {len([i for i in user_doc.get('data',{}).get('au',{}) if i.split(':')[1] != '0'])}/{len([r for au in base_au for r in au.alt_responses])}"""
+		if user_au:
+			unique_alt = len([r for au in user_au for r in au.alt_responses])
+			description += f"\nunique auto responses found: {len({i.split(':')[0] for i in user_doc.get('data',{}).get('uau',{})})}/{len(user_au)}"
+			if unique_alt: description += f"\nunique alt auto responses found: {len([i for i in user_doc.get('data',{}).get('uau',{}) if i.split(':')[1] != '0'])}/{unique_alt}"
+		embed.add_field(
+			name='information:',
+			value=description.replace('	',''))
 		return embed
 
 	@profile.command(

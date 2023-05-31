@@ -98,7 +98,10 @@ class auto_response_listeners(Cog):
 	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
 		args = ArgParser()
 		content = args.parse(message.content)
-		user_found = await self.client.db.user(user.id).data.au.read()
+		user_data = await self.client.db.user(user.id).data.read()
+		base_found = user_data.get('au',[])
+		unique_found = user_data.get('uau',[])
+		user_found = base_found+unique_found
 		args.force = args.force and user.id in self.client.owner_ids
 		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((search(fr'{args.au}:\d+',s) for s in user_found))) else None)),
 							self.client.au.match(content,{'guild':str(message.guild.id),'user':str(user.id)}),
@@ -143,7 +146,10 @@ class auto_response_listeners(Cog):
 
 			if not au.custom and au.guild is None:
 				response_id = f'{au._id}:{response_index}'
-				if response_id not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
+				if au.user:
+					if response_id not in unique_found and not await self.client.db.user(user.id).config.general.no_track.read():
+						await self.client.db.user(user.id).data.uau.append(response_id)
+				elif response_id not in base_found and not await self.client.db.user(user.id).config.general.no_track.read():
 					await self.client.db.user(user.id).data.au.append(response_id)
 
 			self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
