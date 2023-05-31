@@ -24,7 +24,7 @@ class auto_response_listeners(Cog):
 		try: self.timeouts.remove(message_id)
 		except ValueError: pass
 
-	async def recent_response(self,response_data:tuple[int,int,list[int]]) -> None:
+	async def recent_response(self,response_data:tuple[int,list[int]]) -> None:
 		self.recent_responses.append(response_data)
 		await sleep(900)
 		try: self.recent_responses.remove(response_data)
@@ -34,8 +34,8 @@ class auto_response_listeners(Cog):
 	async def on_reaction_add(self,reaction:Reaction,user:User) -> None:
 		if (reaction.message.author.id != self.client.user.id or
 				reaction.emoji != '❌'): return
-		for response_data in filter(lambda r: r[0] == user.id and (r[1] == reaction.message.id or reaction.message.id in r[2]),self.recent_responses):
-			for message_id in (response_data[1],*response_data[2]):
+		for response_data in filter(lambda r: user.id in [r[0],*self.client.owner_ids] and reaction.message.id in r[1],self.recent_responses):
+			for message_id in response_data[1]:
 				message = self.client.get_message(message_id)
 				if message is None: continue
 				try: await message.delete()
@@ -129,7 +129,7 @@ class auto_response_listeners(Cog):
 				except KeyError as e: response = f'invalid group {e.args[0][1:]}\ngroup must be between 1 and 10'
 
 			if message.id not in self.timeouts: continue
-			try: response_data = (message.author.id,(await message.channel.send(response)).id,[])
+			try: response_data = (message.author.id,[(await message.channel.send(response)).id])
 			except (Forbidden,HTTPException): continue
 			if args.delete and (au.file or args.force):
 				try: await message.delete(reason='auto response deletion')
@@ -138,7 +138,7 @@ class auto_response_listeners(Cog):
 			for delay,followup in au.followups:
 				async with message.channel.typing():
 					await sleep(delay)
-				response_data[2].append((await message.channel.send(followup)).id)
+				response_data[1].append((await message.channel.send(followup)).id)
 			create_task(self.recent_response(response_data))
 
 			if not au.custom and au.guild is None:
