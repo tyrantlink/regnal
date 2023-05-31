@@ -115,7 +115,7 @@ class auto_response_listeners(Cog):
 			response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
 			response = responses[response_index]
 			if response is None: continue
-			if au.nsfw and not message.channel.nsfw: continue
+			if (au.nsfw and not message.channel.nsfw) or args.force: continue
 			if au.user is not None and (str(message.author.id) != au.user and not args.force): continue
 			if au.file:
 				if message.attachments: continue
