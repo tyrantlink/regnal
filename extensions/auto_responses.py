@@ -101,6 +101,8 @@ class auto_response_listeners(Cog):
 		user_found = await self.client.db.user(user.id).data.au.read()
 		args.force = args.force and user.id in self.client.owner_ids
 		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((search(fr'{args.au}:\d+',s) for s in user_found))) else None)),
+							self.client.au.match(content,{'guild':str(message.guild.id),'user':str(user.id)}),
+							self.client.au.match(content,{'guild':None,'user':str(user.id)}),
 							self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}),
 							self.client.au.match(content,{'custom':False,'guild':str(message.guild.id)}),
 							self.client.au.match(content,{'custom':False,'guild':None})):
