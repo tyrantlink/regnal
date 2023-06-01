@@ -130,6 +130,7 @@ class auto_response_listeners(Cog):
 				groups.update({f'g{k}':'character limit' if len(v) > 100 else v for k,v in enumerate(match.groups()[:10],1) if v is not None})
 				try: response = response.format(**groups)
 				except KeyError as e: response = f'invalid group {e.args[0][1:]}\ngroup must be between 1 and 10'
+			elif au.regex and search(r'\{g\d+\}',response) is not None: continue
 
 			if message.id not in self.timeouts: continue
 			try: response_data = (message.author.id,[(await message.channel.send(response)).id])
