@@ -53,6 +53,7 @@ class client_cls(Client):
 			self.nsfw = nsfw()
 			self.log.info('initialized nsfw class',False)
 		for extension,enabled in extensions.items():
+			if MODE == 'tet' and extension == 'auto_responses': continue
 			if enabled:
 				self.load_extension(f'extensions.{extension}')
 				self.loaded_extensions.append(extension)
