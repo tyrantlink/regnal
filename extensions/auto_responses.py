@@ -111,7 +111,7 @@ class auto_response_listeners(Cog):
 							self.client.au.match(content,{'custom':False,'guild':None})):
 			if au is None: continue
 
-			if au._id in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read(): continue
+			if au._id in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read() and not args.force: continue
 			weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
 			if args.alt is not None:
 				try: responses[args.alt]
