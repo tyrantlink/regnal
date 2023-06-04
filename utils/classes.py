@@ -171,13 +171,15 @@ class ApplicationContext(AppContext):
 		self.output:dict
 
 class ArgParser:
-	def __init__(self) -> None:
+	def __init__(self,message:str) -> None:
 		self.delete:bool  = False
 		self.alt:int|None = None
 		self.au:int|None  = None
 		self.force:bool   = False
+		self.message:str  = None
+		self.parse(message)
 
-	def parse(self,message:str) -> str:
+	def parse(self,message:str) -> None:
 		for loop in range(25):
 			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au \d+|--force)$',message,IGNORECASE)
 			if s is None: break
@@ -188,4 +190,4 @@ class ArgParser:
 				case ['--au',a]: self.au = int(a)
 				case ['--force']: self.force = True
 				case _: continue
-		return message
+		self.message = message

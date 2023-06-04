@@ -74,35 +74,36 @@ class auto_response_listeners(Cog):
 		if message.guild is None:
 			await message.channel.send('https://regn.al/dm.png')
 			return
-
+		args = ArgParser(message.content)
+		args.force = args.force and user.id in self.client.owner_ids
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
-		if time()-self.cooldowns['au'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
+		if args.force or time()-self.cooldowns['au'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['auto_responses']['cooldown']:
 			match guild['config']['auto_responses']['enabled']:
 				case 'enabled':
-					if await self.listener_auto_response(message,user): return
-				case 'whitelist' if channel.id in guild['data']['auto_responses']['whitelist']:
-					if await self.listener_auto_response(message,user): return
-				case 'blacklist' if channel.id not in guild['data']['auto_responses']['blacklist']:
-					if await self.listener_auto_response(message,user): return
-				case 'disabled': pass
-		if time()-self.cooldowns['db'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['dad_bot']['cooldown']:
+					if await self.listener_auto_response(message,user,args): return
+				case 'whitelist' if args.force or channel.id in guild['data']['auto_responses']['whitelist']:
+					if await self.listener_auto_response(message,user,args): return
+				case 'blacklist' if args.force or channel.id not in guild['data']['auto_responses']['blacklist']:
+					if await self.listener_auto_response(message,user,args): return
+				case 'disabled' if args.force:
+					if await self.listener_auto_response(message,user,args): return
+		if args.force or time()-self.cooldowns['db'].get(message.author.id if guild['config']['auto_responses']['cooldown_per_user'] else message.channel.id,0) > guild['config']['dad_bot']['cooldown']:
 			match guild['config']['dad_bot']['enabled']:
 				case 'enabled':
 					if await self.listener_dad_bot(message,user): return
-				case 'whitelist' if channel.id in guild['data']['dad_bot']['whitelist']:
+				case 'whitelist' if args.force or channel.id in guild['data']['dad_bot']['whitelist']:
 					if await self.listener_dad_bot(message,user): return
-				case 'blacklist' if channel.id not in guild['data']['dad_bot']['blacklist']:
+				case 'blacklist' if args.force or channel.id not in guild['data']['dad_bot']['blacklist']:
 					if await self.listener_dad_bot(message,user): return
-				case 'disabled': pass
+				case 'disabled' if args.force:
+					if await self.listener_dad_bot(message,user): return
 
-	async def listener_auto_response(self,message:Message,user:MixedUser) -> None:
-		args = ArgParser()
-		content = args.parse(message.content)
+	async def listener_auto_response(self,message:Message,user:MixedUser,args:ArgParser) -> None:
+		content = args.message
 		user_data = await self.client.db.user(user.id).data.read()
 		base_found = user_data.get('au',[])
 		unique_found = user_data.get('uau',[])
 		user_found = base_found+unique_found
-		args.force = args.force and user.id in self.client.owner_ids
 		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((search(fr'{args.au}:\d+',s) for s in user_found))) else None)),
 							self.client.au.match(content,{'guild':str(message.guild.id),'user':str(user.id)}),
 							self.client.au.match(content,{'guild':None,'user':str(user.id)}),
