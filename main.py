@@ -277,9 +277,9 @@ class message_handler(Cog):
 			await self.client.db.guild(message.guild.id).inc(1,['data','leaderboards','messages',str(author.id)])
 			# if author not an active member, dev banned, or ignored, add to active member list
 			if (author.bot or
-					author.id in guild.get('data',{}).get('talking_stick',{}).get('active',[]) or
 					user.get('config',{}).get('general',{}).get('ignored',False) or
-					await self.client.db.inf('/reg/nal').banned_users.read()): return
+					author.id in [*guild.get('data',{}).get('talking_stick',{}).get('active',[]),
+					*(await self.client.db.inf('/reg/nal').banned_users.read())]): return
 			if ts_limit:=guild.get('config',{}).get('talking_stick',{}).get('limit',None):
 				if not author.get_role(ts_limit): return
 
