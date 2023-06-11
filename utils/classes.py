@@ -182,11 +182,12 @@ class ArgParser:
 		self.au:int|None  = None
 		self.force:bool   = False
 		self.message:str  = None
+		self.get_id:bool  = False
 		self.parse(message)
 
 	def parse(self,message:str) -> None:
 		for loop in range(25):
-			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au \d+|--force)$',message,IGNORECASE)
+			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au \d+|--force|--get-id)$',message,IGNORECASE)
 			if s is None: break
 			message = s.group(1)
 			match s.group(2).split(' '):
@@ -194,5 +195,6 @@ class ArgParser:
 				case ['--alt',a]: self.alt = int(a)
 				case ['--au',a]: self.au = int(a)
 				case ['--force']: self.force = True
+				case ['--get-id']: self.get_id = True
 				case _: continue
 		self.message = message

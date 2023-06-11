@@ -130,22 +130,24 @@ class auto_response_listeners(Cog):
 				try: response = response.format(**groups)
 				except KeyError as e: response = f'invalid group {e.args[0][1:]}\ngroup must be between 1 and 10'
 			elif au.regex and search(r'\{g\d+\}',response) is not None: continue
+			if not response: continue
 
 			if message.id not in self.timeouts: continue
-			try: response_data = (message.author.id,[(await message.channel.send(response)).id])
+			try: response_data = (message.author.id,[(await message.channel.send(au._id if args.get_id else response)).id])
 			except (Forbidden,HTTPException): continue
 			if args.delete and (au.file or args.force):
 				try: await message.delete(reason='auto response deletion')
 				except Forbidden: pass
 				else: await self.client.log.info(f'auto response trigger deleted by {message.author}')
-			for delay,followup in au.followups:
-				async with message.channel.typing():
-					await sleep(delay)
-				response_data[1].append((await message.channel.send(followup)).id)
-			create_task(self.recent_response(response_data))
+			if not args.get_id:
+				for delay,followup in au.followups:
+					async with message.channel.typing():
+						await sleep(delay)
+					response_data[1].append((await message.channel.send(followup)).id)
+				create_task(self.recent_response(response_data))
 
-			if not (au.custom and au.user) and (response_id:=f'{au.type[0]}{message.guild.id if au.type[0] in ["g","u"] else ""}:{au._id}:{response_index}') not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
-				await self.client.db.user(user.id).data.au.append(response_id)
+				if not (au.custom and au.user) and (response_id:=f'{au.type[0]}{message.guild.id if au.type[0] in ["g","u"] else ""}:{au._id}:{response_index}') not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
+					await self.client.db.user(user.id).data.au.append(response_id)
 
 			self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
 			await self.client.log.listener(message,id=au._id,category=au.method,trigger=au.trigger,response=response,original_deleted=args.delete)
