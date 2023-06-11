@@ -171,7 +171,8 @@ class au_view(EmptyView):
 			await self.client.au.reload_au()
 			await self.au.reload_au()
 			self.page = 'main'
-			if not self.custom: await self.client.db.user(0)._col.update_many({'data.au':{'$regex':fr'^{self.selected_au._id}:\d+'}},{'$pull':{'data.au':{'$regex':fr'^{self.selected_au._id}:\d+'}}})
+			filter = {'data.au':{'$regex':fr'^(b|g|u|p)\d*:{self.selected_au._id}:\d+'}}
+			await self.client.db.user(0)._col.update_many(filter,{'$pull':filter})
 		else:
 			self.embed.description = 'are you sure you want to remove this auto response?\nclick remove again to remove it.'
 			self.remove_confirmed = True
