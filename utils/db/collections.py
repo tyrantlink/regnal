@@ -465,7 +465,3 @@ class User(MongoObject):
 			super().__init__(db,col,_id,path)
 			self.au = MongoObject(db,col,_id,['data','au'])
 			"""list[str]\n\ndfound auto responses"""
-			self.uau = MongoObject(db,col,_id,['data','uau'])
-			"""list[str]\n\nfound unique auto responses"""
-			self.gau = MongoObject(db,col,_id,['data','gau'])
-			"""dict[str,list[str]]\n\nfound guild auto responses"""

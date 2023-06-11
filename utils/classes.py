@@ -93,7 +93,7 @@ class AutoResponse:
 		self.alt_responses:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('alt_responses',[])]
 		self.followups:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('followups',[])]
 
-		self.type = 'guild' if self.custom else 'unique_guild' if self.guild else 'unique_user' if self.user else 'base'
+		self.type = 'guild' if self.custom else 'unique' if self.guild else 'personal' if self.user else 'base'
 
 	def __repr__(self) -> str:
 		return f'<AutoResponse id={self._id} type={self.type} trigger="{self.trigger}" response="{self.response}">'

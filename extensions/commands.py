@@ -8,6 +8,7 @@ from random import choice
 from io import StringIO
 from json import dumps
 
+NEWLINE = '\n'
 
 class commands_commands(Cog):
 	def __init__(self,client:Client) -> None:
@@ -15,6 +16,16 @@ class commands_commands(Cog):
 
 	profile = SlashCommandGroup('profile','get profile of a user or server')
 	leaderboard = SlashCommandGroup('leaderboard','see various leaderboards')
+
+	def identify_found_responses(self,found:list[str],guild_id:str=None) -> dict[str,int]:
+		output = {'b':0,'ba':0,'g':0,'ga':0,'u':0,'ua':0,'p':0,'pa':0}
+		for type,id,alt in (i.split(':') for i in found):
+			if type[0] == 'g' and type[1:] != guild_id: continue
+			print(':'.join((type,id,alt)))
+			output[f'{type[0]}{"a" if int(alt) else ""}'] += 1
+			adsf = f'{type[0]}{"a" if int(alt) else ""}'
+			print(f'output[{adsf}]={output[adsf]} alt={alt}')
+		return output
 
 	async def base_profile_user(self,user:User,ctx:ApplicationContext) -> Embed:
 		embed = Embed(
@@ -25,20 +36,20 @@ class commands_commands(Cog):
 			color=await self.client.embed_color(ctx))
 		embed.set_thumbnail(url=user.display_avatar.with_size(512).with_format('png').url)
 		user_doc = await self.client.db.user(user.id).read()
+		found_data = self.identify_found_responses(user_doc.get('data',{}).get('au',[]),str(ctx.guild_id))
 		base_au = self.client.au.find({'custom':False,'user':None,'guild':None})
-		user_au = self.client.au.find({'custom':False,'user':str(user.id),'guild':None})
 		description = f"""creation date: {user.created_at.strftime("%m/%d/%Y %H:%M:%S")}
 			display name: {user.display_name}
-			seen messages: {user_doc.get('messages',0)}
-			auto responses found: {len({i.split(':')[0] for i in user_doc.get('data',{}).get('au',{})})}/{len(base_au)}
-			alt auto responses found: {len([i for i in user_doc.get('data',{}).get('au',{}) if i.split(':')[1] != '0'])}/{len([r for au in base_au for r in au.alt_responses])}"""
-		if user_au:
-			unique_alt = len([r for au in user_au for r in au.alt_responses])
-			description += f"\nunique auto responses found: {len({i.split(':')[0] for i in user_doc.get('data',{}).get('uau',{})})}/{len(user_au)}"
-			if unique_alt: description += f"\nunique alt auto responses found: {len([i for i in user_doc.get('data',{}).get('uau',{}) if i.split(':')[1] != '0'])}/{unique_alt}"
-		embed.add_field(
-			name='information:',
-			value=description.replace('	',''))
+			seen messages: {user_doc.get('messages',0)}"""
+		embed.add_field(name='information:',value=description.replace('	',''),inline=False)
+		embed.add_field(name='auto responses found:',value=f'base: {found_data.pop("b")}/{len(base_au)}\nalt : {found_data.pop("ba")}/{len([r for au in base_au for r in au.alt_responses])}',inline=False)
+		if ctx.guild_id:
+			if custom_au:=self.client.au.find({'custom':True,'user':None,'guild':str(ctx.guild_id)}):
+				embed.add_field(name='custom responses found (current server):',value=f"""{f'base: {found_data["g"]}/{len(custom_au)}' if found_data['g'] else ''}{NEWLINE if found_data['g'] and found_data['ga'] else ''}{f'alt : {found_data["ga"]}/{len([r for au in custom_au for r in au.alt_responses])}' if found_data['ga'] else ''}""",inline=False)
+			if unique_au:=self.client.au.find({'custom':False,'user':None,'guild':str(ctx.guild_id)}):
+				embed.add_field(name='unique responses found (current server):',value=f"""{f'base: {found_data["u"]}/{len(unique_au)}' if found_data['u'] else ''}{NEWLINE if found_data['u'] and found_data['ua'] else ''}{f'alt : {found_data["ua"]}/{len([r for au in unique_au for r in au.alt_responses])}' if found_data['ua'] else ''}""",inline=False)
+		if personal_au:=self.client.au.find({'custom':False,'user':str(user.id),'guild':None}):
+			embed.add_field(name='personal responses found:',value=f"""{f'base: {found_data["p"]}/{len(personal_au)}' if found_data['p'] else ''}{NEWLINE if found_data['p'] and found_data['pa'] else ''}{f'alt : {found_data["pa"]}/{len([r for au in personal_au for r in au.alt_responses])}' if found_data['pa'] else ''}""",inline=False)
 		return embed
 
 	@profile.command(
