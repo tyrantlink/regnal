@@ -45,9 +45,9 @@ class commands_commands(Cog):
 		embed.add_field(name='auto responses found:',value=f'base: {found_data.pop("b")}/{len(base_au)}\nalt : {found_data.pop("ba")}/{len([r for au in base_au for r in au.alt_responses])}',inline=False)
 		if ctx.guild_id:
 			if custom_au:=self.client.au.find({'custom':True,'user':None,'guild':str(ctx.guild_id)}):
-				embed.add_field(name='custom responses found (current server):',value=f"""{f'base: {found_data["g"]}/{len(custom_au)}' if found_data['g'] else ''}{NEWLINE if found_data['g'] and found_data['ga'] else ''}{f'alt : {found_data["ga"]}/{len([r for au in custom_au for r in au.alt_responses])}' if found_data['ga'] else ''}""",inline=False)
+				embed.add_field(name='custom responses found (current server):',value=f"""{f'base: {found_data["g"]}/{len(custom_au)}'}{NEWLINE if found_data['g'] and found_data['ga'] else ''}{f'alt : {found_data["ga"]}/{len([r for au in custom_au for r in au.alt_responses])}' if found_data['ga'] else ''}""",inline=False)
 			if unique_au:=self.client.au.find({'custom':False,'user':None,'guild':str(ctx.guild_id)}):
-				embed.add_field(name='unique responses found (current server):',value=f"""{f'base: {found_data["u"]}/{len(unique_au)}' if found_data['u'] else ''}{NEWLINE if found_data['u'] and found_data['ua'] else ''}{f'alt : {found_data["ua"]}/{len([r for au in unique_au for r in au.alt_responses])}' if found_data['ua'] else ''}""",inline=False)
+				embed.add_field(name='unique responses found (current server):',value=f"""{f'base: {found_data["u"]}/{len(unique_au)}'}{NEWLINE if found_data['u'] and found_data['ua'] else ''}{f'alt : {found_data["ua"]}/{len([r for au in unique_au for r in au.alt_responses])}' if found_data['ua'] else ''}""",inline=False)
 		if personal_au:=self.client.au.find({'custom':False,'user':str(user.id),'guild':None}):
 			embed.add_field(name='personal responses found:',value=f"""{f'base: {found_data["p"]}/{len(personal_au)}' if found_data['p'] else ''}{NEWLINE if found_data['p'] and found_data['pa'] else ''}{f'alt : {found_data["pa"]}/{len([r for au in personal_au for r in au.alt_responses])}' if found_data['pa'] else ''}""",inline=False)
 		return embed
