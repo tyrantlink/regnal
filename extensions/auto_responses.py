@@ -144,7 +144,7 @@ class auto_response_listeners(Cog):
 				response_data[1].append((await message.channel.send(followup)).id)
 			create_task(self.recent_response(response_data))
 
-			if not (au.custom and au.user) and (response_id:=f'{au.type[0]}{message.guild.id if au.type[0] == "g" else ""}:{au._id}:{response_index}') not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
+			if not (au.custom and au.user) and (response_id:=f'{au.type[0]}{message.guild.id if au.type[0] in ["g","u"] else ""}:{au._id}:{response_index}') not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
 				await self.client.db.user(user.id).data.au.append(response_id)
 
 			self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})

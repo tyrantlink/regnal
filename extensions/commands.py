@@ -20,7 +20,7 @@ class commands_commands(Cog):
 	def identify_found_responses(self,found:list[str],guild_id:str=None) -> dict[str,int]:
 		output = {'b':0,'ba':0,'g':0,'ga':0,'u':0,'ua':0,'p':0,'pa':0}
 		for type,id,alt in (i.split(':') for i in found):
-			if type[0] == 'g' and type[1:] != guild_id: continue
+			if type[0] in ['g','u'] and type[1:] != guild_id: continue
 			print(':'.join((type,id,alt)))
 			output[f'{type[0]}{"a" if int(alt) else ""}'] += 1
 			adsf = f'{type[0]}{"a" if int(alt) else ""}'
