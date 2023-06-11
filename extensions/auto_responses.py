@@ -1,6 +1,6 @@
-from discord import Message,Thread,Reaction,User
-from regex import sub,split,finditer,search,IGNORECASE
+from regex import sub,split,finditer,search,fullmatch,IGNORECASE
 from discord.errors import Forbidden,HTTPException
+from discord import Message,Thread,Reaction,User
 from utils.classes import MixedUser,ArgParser
 from asyncio import sleep,create_task
 from discord.ext.commands import Cog
@@ -102,7 +102,7 @@ class auto_response_listeners(Cog):
 		content = args.message
 		user_data = await self.client.db.user(user.id).data.read()
 		user_found = user_data.get('au',[])
-		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((search(fr'{args.au}:\d+',s) for s in user_found))) else None)),
+		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((fullmatch(fr'^(b|p)|((g|u){message.guild.id}):{args.au}:\d+',s) for s in user_found))) else None)),
 							self.client.au.match(content,{'guild':str(message.guild.id),'user':str(user.id)}),
 							self.client.au.match(content,{'guild':None,'user':str(user.id)}),
 							self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}),
@@ -115,7 +115,7 @@ class auto_response_listeners(Cog):
 			if args.alt is not None:
 				try: responses[args.alt]
 				except IndexError: args.alt = None
-				else: args.alt = args.alt if args.force or (au.guild and not au.custom) or f'{au._id}:{args.alt}' in user_found else None
+				else: args.alt = args.alt if args.force or any((fullmatch(fr'^(b|g|u|p)\d*:{au._id}:{args.alt}',s) for s in user_found)) in user_found else None
 			response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
 			response = responses[response_index]
 			if response is None: continue
