@@ -27,7 +27,7 @@ class followups_view(EmptyView):
 		delay,followup = (None,None) if edit is None else edit
 		modal = CustomModal(self,'add followup response' if edit is None else 'edit followup response',[
 			InputText(label='delay (seconds)',value=str(delay) if delay else delay,max_length=5,required=True),
-			InputText(label='response message',value=followup,max_length=100,required=True)])
+			InputText(label='response message',value=followup,max_length=512,required=True)])
 		await interaction.response.send_modal(modal)
 		await modal.wait()
 		try: delay = float(modal.children[0].value)

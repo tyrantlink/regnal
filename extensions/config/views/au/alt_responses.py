@@ -28,7 +28,7 @@ class alt_responses_view(EmptyView):
 		weight,response = (None,None) if edit is None else edit
 		modal = CustomModal(self,'add alt response' if edit is None else 'edit alt response',[
 			InputText(label='% chance 0.01-99.99',placeholder='leave blank for auto',value=str(weight) if weight else weight,max_length=5,required=False),
-			InputText(label='response message',value=response,max_length=100,required=True)])
+			InputText(label='response message',value=response,max_length=512,required=True)])
 		await interaction.response.send_modal(modal)
 		all_weights = [w for w,r in self.au.alt_responses]
 		weight_sum = sum(filter(None,all_weights))+(0.01*len(all_weights))
