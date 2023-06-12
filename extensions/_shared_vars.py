@@ -425,7 +425,7 @@ config_info = {
 			},
       "allow_cross_guild":
 			{
-				"description": "allows users to trigger custom auto responses from other servers using --au\nthis is a very, very dangerous option to enable, as it can allow the user to trigger almost anything they want.\nthis should only be done in very small or private servers.",
+				"description": "allows users to trigger custom auto responses from other servers using --au\nthis is a very, very dangerous option to enable, as it can allow the user to trigger almost anything they want.\nthis should only be done in very small private or testing servers.",
         "required_permissions":'manage_messages',
 				"default": False,
 				"type": "bool"
