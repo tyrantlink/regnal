@@ -191,6 +191,8 @@ class Guild(MongoObject):
 				"""int"""
 				self.cooldown_per_user = MongoObject(db,col,_id,['config','auto_responses','cooldown_per_user'])
 				"""bool"""
+				self.allow_cross_guild = MongoObject(db,col,_id,['config','auto_responses','allow_cross_guild'])
+				"""bool"""
 
 		class ___dad_bot(MongoObject):
 			def __init__(self,db,col,_id,path) -> None:

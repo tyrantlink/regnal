@@ -102,7 +102,8 @@ class auto_response_listeners(Cog):
 		content = args.message
 		user_data = await self.client.db.user(user.id).data.read()
 		user_found = user_data.get('au',[])
-		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((fullmatch(fr'^(b|p)|((g|u){message.guild.id}):{args.au}:\d+',s) for s in user_found))) else None)),
+		cross_guild = r'\d+' if await self.client.db.guild(message.guild.id).config.auto_responses.allow_cross_guild.read() else message.guild.id
+		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((fullmatch(fr'^(b|p)|((g|u){cross_guild}):{args.au}:\d+',s) for s in user_found))) else None)),
 							self.client.au.match(content,{'guild':str(message.guild.id),'user':str(user.id)}),
 							self.client.au.match(content,{'guild':None,'user':str(user.id)}),
 							self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}),
@@ -146,7 +147,7 @@ class auto_response_listeners(Cog):
 					response_data[1].append((await message.channel.send(followup)).id)
 				create_task(self.recent_response(response_data))
 
-				if not (au.custom and au.user) and (response_id:=f'{au.type[0]}{message.guild.id if au.type[0] in ["g","u"] else ""}:{au._id}:{response_index}') not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
+				if not (au.custom and au.user) and au.guild in [None,str(message.guild.id)] and (response_id:=f'{au.type[0]}{message.guild.id if au.type[0] in ["g","u"] else ""}:{au._id}:{response_index}') not in user_found and not await self.client.db.user(user.id).config.general.no_track.read():
 					await self.client.db.user(user.id).data.au.append(response_id)
 
 			self.cooldowns['au'].update({user.id if await self.client.db.guild(message.guild.id).config.auto_responses.cooldown_per_user.read() else message.channel.id:int(time())})
