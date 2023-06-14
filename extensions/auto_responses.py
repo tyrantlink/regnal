@@ -5,6 +5,7 @@ from utils.classes import MixedUser,ArgParser
 from asyncio import sleep,create_task
 from discord.ext.commands import Cog
 from urllib.parse import quote
+from time import perf_counter
 from random import choices
 from client import Client
 from time import time
@@ -112,13 +113,19 @@ class auto_response_listeners(Cog):
 			if au is None: continue
 
 			if au._id in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read() and not args.force: continue
-			weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
-			if args.alt is not None:
-				try: responses[args.alt]
-				except IndexError: args.alt = None
-				else: args.alt = args.alt if args.force or any((fullmatch(fr'^(b|g|u|p)\d*:{au._id}:{args.alt}',s) for s in user_found)) in user_found else None
-			response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
-			response = responses[response_index]
+			if au.script:
+				st = perf_counter()
+				response = await au.run(message,message.author.id in self.client.owner_ids)
+				self.client.log.debug(f'auto response script {au._id} took {round((perf_counter()-st)*100,2)}ms to run',False)
+				response_index = 0
+			else:
+				weights,responses = zip(*[(w,r) for w,r in [(None,au.response)]+au.alt_responses])
+				if args.alt is not None:
+					try: responses[args.alt]
+					except IndexError: args.alt = None
+					else: args.alt = args.alt if args.force or any((fullmatch(fr'^(b|g|u|p)\d*:{au._id}:{args.alt}',s) for s in user_found)) in user_found else None
+				response_index = args.alt if args.alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
+				response = responses[response_index]
 			if response is None: continue
 			if (au.nsfw and not message.channel.nsfw) and not args.force: continue
 			if au.user is not None and (str(message.author.id) != au.user and not args.force): continue

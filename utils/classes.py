@@ -1,10 +1,43 @@
-from discord import ApplicationContext as AppContext,Interaction,Embed,User,Member as DiscordMember
+from discord import ApplicationContext as AppContext,Interaction,Embed,User,Member as DiscordMember,Message
 from regex import search,fullmatch,escape,IGNORECASE
 from discord.ui import View,Item,Modal,InputText
 from utils.pluralkit import Member as PKMember
 from utils.db.mongo_object import MongoObject
 from pymongo.collection import Collection
+from asyncio import wait_for,TimeoutError
+from utils.sandbox import safe_exec
 from functools import partial
+
+class RestrictedMessage:
+	class _channel:
+		def __init__(self,id,name) -> None:
+			self.id = id
+			self.name = name
+
+	class _guild:
+		def __init__(self,id,name) -> None:
+			self.id = id
+			self.name = name
+
+	class _user:
+		def __init__(self,id,name,display_name) -> None:
+			self.id = id
+			self.name = name
+			self.display_name = display_name
+
+	def __init__(self,**kwargs):
+		self.id = kwargs.get('message_id',None)
+		self.channel = self._channel(
+			kwargs.get('channel_id',None),
+			kwargs.get('channel_name',None))
+		self.guild = self._guild(
+			kwargs.get('guild_id',None),
+			kwargs.get('guild_name',None))
+		self.author = self._user(
+			kwargs.get('author_id',None),
+			kwargs.get('author_name',None),
+			kwargs.get('author_display_name',None))
+		self.content = kwargs.get('content',None)
 
 class Env:
 	def __init__(self,env_dict:dict) -> None:
@@ -90,6 +123,7 @@ class AutoResponse:
 		self.user:str     = kwargs.get('user',None)
 		self.guild:str    = kwargs.get('guild',None)
 		self.source:str   = kwargs.get('source',None)
+		self.script:str	  = kwargs.get('script',None)
 		self.alt_responses:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('alt_responses',[])]
 		self.followups:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('followups',[])]
 
@@ -113,6 +147,7 @@ class AutoResponse:
 			'user':self.user,
 			'guild':self.guild,
 			'source':self.source,
+			'script':self.script,
 			'alt_responses':[[w,r] for w,r in self.alt_responses],
 			'followups':[[w,r] for w,r in self.followups]}
 	
@@ -122,6 +157,24 @@ class AutoResponse:
 		successful,new_id = await db.new(_id or self._id or '+1',data,update=True)
 		if successful: self._id = new_id
 		else: raise Exception(f'failed to write to mongo: {self.to_dict()}')
+
+	async def run(self,message:Message,bypass_char_limit:bool=False) -> str:
+		if self.script is None: return self.response
+		restricted_message = RestrictedMessage(
+			message_id=message.id,
+			channel_id=message.channel.id,
+			channel_name=message.channel.name,
+			guild_id=message.guild.id,
+			guild_name=message.guild.name,
+			author_id=message.author.id,
+			author_name=message.author.name,
+			author_display_name=message.author.display_name,
+			content=message.content)
+		try: output = await wait_for(safe_exec(self.script,{'message':restricted_message}),5)
+		except TimeoutError: return
+		response = output.get('response','')
+
+		return response if (len(response) <= 512 or bypass_char_limit) else None
 
 class AutoResponses:
 	def __init__(self,db:Collection,filter:dict=None) -> None:
