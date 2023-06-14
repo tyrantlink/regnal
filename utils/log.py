@@ -43,7 +43,7 @@ class log:
 	async def listener(self,ctx:ApplicationContext|Message,**kwargs) -> None:
 		match stack()[1].function:
 			case 'listener_dad_bot': source = 'dad bot'
-			case 'listener_auto_response': source = 'auto response'
+			case 'listener_auto_response': source = f'auto response{f""" {kwargs.get("id","")}""" if kwargs.get("id") else ""}'
 			case _: source = 'unknown listener'
 		await self._submit('listener',f'{source} was triggered by {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
 
