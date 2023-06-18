@@ -1,4 +1,4 @@
-from aiohttp.client_exceptions import ContentTypeError
+from aiohttp.client_exceptions import ContentTypeError,ClientConnectorError,ClientConnectorSSLError
 from asyncio import sleep,create_task
 from aiohttp import ClientSession
 from datetime import datetime
@@ -97,11 +97,13 @@ class PluralKit:
 		self._cache.update({endpoint:'PENDING'})
 		await self._handle_ratelimit()
 		async with ClientSession() as session:
-			async with session.get(f'{BASEURL}{endpoint}') as res:
-				self._recent_requests.append(perf_counter())
-				try: self.cache(endpoint,(res.status == 200,await res.json()))
-				except ContentTypeError: pass
-				return await self.from_cache(endpoint)
+			try: 
+				async with session.get(f'{BASEURL}{endpoint}') as res:
+					self._recent_requests.append(perf_counter())
+					try: self.cache(endpoint,(res.status == 200,await res.json()))
+					except ContentTypeError: pass
+					return await self.from_cache(endpoint)
+			except (ClientConnectorSSLError,ClientConnectorError): return (False,None)
 
 	async def get_system(self,discord_id:str|int) -> System|None:
 		req = await self.request(f'/systems/{discord_id}')
