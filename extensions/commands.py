@@ -21,10 +21,7 @@ class commands_commands(Cog):
 		output = {'b':0,'ba':0,'g':0,'ga':0,'u':0,'ua':0,'p':0,'pa':0}
 		for type,id,alt in (i.split(':') for i in found):
 			if type[0] in ['g','u'] and type[1:] != guild_id: continue
-			print(':'.join((type,id,alt)))
 			output[f'{type[0]}{"a" if int(alt) else ""}'] += 1
-			adsf = f'{type[0]}{"a" if int(alt) else ""}'
-			print(f'output[{adsf}]={output[adsf]} alt={alt}')
 		return output
 
 	async def base_profile_user(self,user:User,ctx:ApplicationContext) -> Embed:
