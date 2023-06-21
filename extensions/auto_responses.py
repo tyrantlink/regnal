@@ -105,11 +105,11 @@ class auto_response_listeners(Cog):
 		user_found = user_data.get('au',[])
 		cross_guild = r'\d+' if await self.client.db.guild(message.guild.id).config.auto_responses.allow_cross_guild.read() else message.guild.id
 		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((fullmatch(fr'^(b|p)|((g|u){cross_guild}):{args.au}:\d+',s) for s in user_found))) else None)),
-							self.client.au.match(content,{'guild':str(message.guild.id),'user':str(user.id)}),
-							self.client.au.match(content,{'guild':None,'user':str(user.id)}),
-							self.client.au.match(content,{'custom':True,'guild':str(message.guild.id)}),
-							self.client.au.match(content,{'custom':False,'guild':str(message.guild.id)}),
-							self.client.au.match(content,{'custom':False,'guild':None})):
+							self.client.au.match(content,message.guild.id,{'guild':str(message.guild.id),'user':str(user.id)}),
+							self.client.au.match(content,message.guild.id,{'guild':None,'user':str(user.id)}),
+							self.client.au.match(content,message.guild.id,{'custom':True,'guild':str(message.guild.id)}),
+							self.client.au.match(content,message.guild.id,{'custom':False,'guild':str(message.guild.id)}),
+							self.client.au.match(content,message.guild.id,{'custom':False,'guild':None})):
 			if au is None: continue
 
 			if au._id in await self.client.db.guild(message.guild.id).data.auto_responses.disabled.read() and not args.force: continue

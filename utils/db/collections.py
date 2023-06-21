@@ -74,6 +74,8 @@ class AutoResponse(MongoObject):
 		"""list[list[float|int,str]]\n\nalternative responses"""
 		self.followups = MongoObject(db,col,_id,['followups'])
 		"""list[list[float|int,str]]\n\nfollowup responses"""
+		self.overrides = MongoObject(db,col,_id,['overrides'])
+		"""dict[str,dict[str,str]]\n\nguild overrides"""
 
 class Guild(MongoObject):
 	def __init__(self,db,col:Collection,_id) -> None:

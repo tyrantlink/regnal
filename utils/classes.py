@@ -126,6 +126,7 @@ class AutoResponse:
 		self.script:str	  = kwargs.get('script',None)
 		self.alt_responses:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('alt_responses',[])]
 		self.followups:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('followups',[])]
+		self.overrides:dict[str,dict[str,str]] = kwargs.get('overrides',{})
 
 		self.type = 'guild' if self.custom else 'unique' if self.guild else 'personal' if self.user else 'base'
 
@@ -149,7 +150,8 @@ class AutoResponse:
 			'source':self.source,
 			'script':self.script,
 			'alt_responses':[[w,r] for w,r in self.alt_responses],
-			'followups':[[w,r] for w,r in self.followups]}
+			'followups':[[w,r] for w,r in self.followups],
+			'overrides':self.overrides}
 	
 	async def to_mongo(self,db:MongoObject,_id:int=None) -> None:
 		data = self.to_dict()
@@ -202,15 +204,16 @@ class AutoResponses:
 		if res:= self.find({'_id':_id},1): return res[0]
 		return None
 
-	def match(self,message:str,attrs:dict=None) -> AutoResponse|None:
+	def match(self,message:Message,guild_id:int,attrs:dict=None) -> AutoResponse|None:
 		position = None
 		priority = None
 		result   = None
 		for au in sorted(filter(lambda d: all(getattr(d,k) == v for k,v in (attrs or {}).items()),self.au),key=lambda d: d.priority,reverse=True):
-			match au.method:
-				case 'exact': match = fullmatch((au.trigger if au.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE)
-				case 'contains': match = search(rf'(^|\s){au.trigger if au.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE)
-				case 'regex_raw': match = search(au.trigger,message,0 if au.cs else IGNORECASE)
+			trigger = au.overrides.get(str(guild_id),{}).get('trigger',au.trigger)
+			match au.overrides.get(str(guild_id),{}).get('method',au.method):
+				case 'exact': match = fullmatch((trigger if au.regex else escape(trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE)
+				case 'contains': match = search(rf'(^|\s){trigger if au.regex else escape(trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE)
+				case 'regex_raw': match = search(trigger,message,0 if au.cs else IGNORECASE)
 				case _:
 					match = None
 					continue
