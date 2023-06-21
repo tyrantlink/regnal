@@ -251,63 +251,63 @@ config_info = {
 			"channel":
 			{
 				"description": "channel where logged messages will be sent",
-        "required_permissions":'manage_channels',
+        "required_permissions":'administrator',
 				"default": None,
 				"type": "channel"
 			},
 			"log_all_messages":
 			{
 				"description": "creates a log entry for every message sent, this ensures that every state of a message will be logged, and will also be useful in preventing caching issues. mostly useful for deletes and bulk deletes",
-				"required_permissions":'manage_messages',
+				"required_permissions":'administrator',
 				"default": False,
 				"type": "bool"
 			},
 			"deleted_messages":
 			{
 				"description": "announce deleted messages to the logging channel",
-				"required_permissions":'manage_messages',
+				"required_permissions":'administrator',
 				"default": True,
 				"type": "bool"
 			},
 			"edited_messages":
 			{
 				"description": "announce edited messages to the logging channel",
-				"required_permissions":'manage_messages',
+				"required_permissions":'administrator',
 				"default": False,
 				"type": "bool"
 			},
 			"member_join":
 			{
 				"description": "announce member joins to the logging channel",
-				"required_permissions":'manage_messages',
+				"required_permissions":'administrator',
 				"default": False,
 				"type": "bool"
 			},
 			"member_leave":
 			{
 				"description": "announce member leaves to the logging channel",
-				"required_permissions":'manage_messages',
+				"required_permissions":'administrator',
 				"default": False,
 				"type": "bool"
 			},
       "member_ban":
       {
         "description": "announce member bans to the logging channel",
-        "required_permissions":'manage_messages',
+        "required_permissions":'administrator',
         "default": False,
         "type": "bool"
       },
       "member_unban":
       {
         "description": "announce member unbans to the logging channel",
-        "required_permissions":'manage_messages',
+        "required_permissions":'administrator',
         "default": False,
         "type": "bool"
       },
 			"log_bots":
 			{
 				"description": "log bot messages",
-				"required_permissions":'manage_messages',
+				"required_permissions":'administrator',
 				"default": False,
 				"type": "bool"
 			}
