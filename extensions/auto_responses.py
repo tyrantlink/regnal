@@ -104,7 +104,7 @@ class auto_response_listeners(Cog):
 		user_data = await self.client.db.user(user.id).data.read()
 		user_found = user_data.get('au',[])
 		cross_guild = r'\d+' if await self.client.db.guild(message.guild.id).config.auto_responses.allow_cross_guild.read() else message.guild.id
-		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((fullmatch(fr'^(b|p)|((g|u){cross_guild}):{args.au}:\d+',s) for s in user_found))) else None)),
+		for au in (self.client.au.get((args.au if args.au is not None and (args.force or any((fullmatch(fr'^((b|p)|((g|u){cross_guild})):{args.au}:\d+',s) for s in user_found))) else None)),
 							self.client.au.match(content,message.guild.id,{'guild':str(message.guild.id),'user':str(user.id)}),
 							self.client.au.match(content,message.guild.id,{'guild':None,'user':str(user.id)}),
 							self.client.au.match(content,message.guild.id,{'custom':True,'guild':str(message.guild.id)}),
