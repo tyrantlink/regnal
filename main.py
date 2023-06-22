@@ -205,10 +205,11 @@ class base_commands(Cog):
 		description='pls donate am broke')
 	async def slash_donate(self,ctx:ApplicationContext) -> None:
 		embed = Embed(
-			description='uhhh, this is for donations, i refuse to lock any features behind a paywall, at best you can donate so i\'ll get something done faster, but that feature will be public for everyone.\n\nif your server is big enough, i might do a unique spin off that uses the same backend as /reg/nal, but with a different name and icon, just shoot me a dm from the [development server](<https://discord.gg/4mteVXBDW7>)\n\nanywho, no need to donate, it just helps me uh, live, i guess.',
+			description='uhhh, this is for donations, i refuse to lock any features behind a paywall, at best you can donate so i\'ll get something done faster, but that feature will be public for everyone.\n\nif your server is big enough, i might do a unique spin off that uses the same backend as /reg/nal, but with a different name and icon, just shoot me a dm from the [development server](<https://discord.gg/4mteVXBDW7>)\n\nanywho, no need to donate, it just helps me uh, work on stuff more often, i guess.',
 			color=await self.client.embed_color(ctx))
 		embed.set_author(name='donation',icon_url='https://cdn.tyrant.link/blurple_tyrantlink.png')
-		embed.add_field(name='Monero (XMR)',value='`899YLWhurE1d4rMnNEbLUChXvRtQ6uiwbUCwEcy9gdSaDgJkHE5EWQPT31YKrATtcoRVUa1regt4mKLhhEhi38Kh1WjVNuz`')
+		embed.add_field(name='github sponsors',value='https://github.com/sponsors/tyrantlink',inline=False)
+		embed.add_field(name='monero (XMR)',value='`899YLWhurE1d4rMnNEbLUChXvRtQ6uiwbUCwEcy9gdSaDgJkHE5EWQPT31YKrATtcoRVUa1regt4mKLhhEhi38Kh1WjVNuz`',inline=False)
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.hide(ctx))
 
 	@loop(minutes=5)
