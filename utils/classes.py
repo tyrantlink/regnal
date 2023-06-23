@@ -37,6 +37,7 @@ class RestrictedMessage:
 			kwargs.get('author_id',None),
 			kwargs.get('author_name',None),
 			kwargs.get('author_display_name',None))
+		self.timestamp = kwargs.get('timestamp',None)
 		self.content = kwargs.get('content',None)
 
 class Env:
@@ -171,6 +172,7 @@ class AutoResponse:
 			author_id=message.author.id,
 			author_name=message.author.name,
 			author_display_name=message.author.display_name,
+			timestamp=message.created_at.timestamp(),
 			content=message.content)
 		try: output = await wait_for(safe_exec(self.script,{'message':restricted_message}),5)
 		except TimeoutError: return
