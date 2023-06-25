@@ -242,6 +242,13 @@ class ArgParser:
 		self.message:str  = None
 		self.get_id:bool  = False
 		self.parse(message)
+	
+	def __bool__(self) -> bool:
+		return (self.delete is True or
+						self.alt is not None or
+						self.au is not None or
+						self.force is True or
+						self.get_id is True)
 
 	def parse(self,message:str) -> None:
 		for loop in range(25):

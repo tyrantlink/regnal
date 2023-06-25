@@ -148,7 +148,7 @@ class auto_response_listeners(Cog):
 				try: await message.delete(reason='auto response deletion')
 				except Forbidden: pass
 				else: await self.client.log.info(f'auto response trigger deleted by {message.author}')
-			if not args.get_id:
+			if not args:
 				for delay,followup in au.followups:
 					async with message.channel.typing():
 						await sleep(delay)
