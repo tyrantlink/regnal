@@ -148,13 +148,13 @@ class auto_response_listeners(Cog):
 				try: await message.delete(reason='auto response deletion')
 				except Forbidden: pass
 				else: await self.client.log.info(f'auto response trigger deleted by {message.author}')
-			if not args:
+			if not args.get_id:
 				for delay,followup in au.followups:
 					async with message.channel.typing():
 						await sleep(delay)
 					response_data[1].append((await message.channel.send(followup)).id)
-				create_task(self.recent_response(response_data))
-
+			create_task(self.recent_response(response_data))
+			if not args:
 				if (not (au.custom and au.user) and
 						au.guild in [None,str(message.guild.id)] and
 						(response_id:=f'{au.type[0]}{message.guild.id if au.type[0] in ["g","u"] else ""}:{au._id}:{response_index}') not in user_found and
