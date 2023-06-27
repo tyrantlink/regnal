@@ -220,6 +220,9 @@ class message_handler(Cog):
 
 	@Cog.listener()
 	async def on_guild_join(self,guild:Guild) -> None:
+		if self.client.MODE != '/reg/nal':
+			await guild.leave()
+			return
 		# create new guild document if current guild doesn't exist
 		if not await self.client.db.guild(guild.id).read():
 			await self.client.db.guild(0).new(guild.id)
