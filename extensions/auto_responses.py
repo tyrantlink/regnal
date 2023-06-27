@@ -132,7 +132,12 @@ class auto_response_listeners(Cog):
 			if au.user is not None and (str(message.author.id) != au.user and not args.force): continue
 			if au.file:
 				if message.attachments: continue
-				response = (f'https://regn.al/gau/{au.guild}/' if au.guild else 'https://regn.al/au/')+quote(response)
+				match au.type:
+					case 'unique': response = f'https://regn.al/gau/{au.guild}/{quote(response)}'
+					case 'personal': response = f'https://regn.al/pau/{au.user}/{quote(response)}'
+					case 'mention': response = f'https://regn.al/mau/{au.mention}/{quote(response)}'
+					case 'base': response = f'https://regn.al/au/{quote(response)}'
+					case 'guild'|_: continue
 			if au.regex and (match:=search(au.trigger,message.content,IGNORECASE)) is not None:
 				groups = {f'g{i}':'' for i in range(1,11)}
 				groups.update({f'g{k}':'character limit' if len(v) > 100 else v for k,v in enumerate(match.groups()[:10],1) if v is not None})
@@ -157,7 +162,7 @@ class auto_response_listeners(Cog):
 			if not args:
 				if (not (au.custom and au.user) and
 						au.guild in [None,str(message.guild.id)] and
-						(response_id:=f'{au.type[0]}{message.guild.id if au.type[0] in ["g","u"] else ""}:{au._id}:{response_index}') not in user_found and
+						(response_id:=f'{au.type[0]}{message.guild.id if au.type[0] in ["g","u"] else au.mention if au.mention else ""}:{au._id}:{response_index}') not in user_found and
 						not await self.client.db.user(user.id).config.general.no_track.read()):
 					await self.client.db.user(user.id).data.au.append(response_id)
 

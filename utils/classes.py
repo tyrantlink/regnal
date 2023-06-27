@@ -128,8 +128,10 @@ class AutoResponse:
 		self.alt_responses:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('alt_responses',[])]
 		self.followups:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('followups',[])]
 		self.overrides:dict[str,dict[str,str]] = kwargs.get('overrides',{})
-
-		self.type = 'guild' if self.custom else 'unique' if self.guild else 'personal' if self.user else 'base'
+		# attributes not in db
+		s = None
+		self.type = 'guild' if self.custom else 'unique' if self.guild else 'mention' if (s:=search(r'<@(\d+)>',self.trigger,IGNORECASE)) else 'personal' if self.user else 'base'
+		self.mention = int(s.group(1)) if s else None
 
 	def __repr__(self) -> str:
 		return f'<AutoResponse id={self._id} type={self.type} trigger="{self.trigger}" response="{self.response}">'

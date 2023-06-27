@@ -176,13 +176,8 @@ class base_commands(Cog):
 		embed.add_field(name='guilds',value=len([guild for guild in self.client.guilds if guild.member_count >= 5]),inline=True)
 		embed.add_field(name='line count',value=f'{self.client.lines} lines',inline=True)
 		embed.add_field(name='commands',value=len([cmd for cmd in self.client.walk_application_commands() if not isinstance(cmd,SlashCommandGroup)]),inline=True)
-		auto_response_count = str(len(self.client.au.find({'guild':None,'user':None})))
-		if ctx.guild:
-			if g_au:=[str(i) for i in [
-				len(self.client.au.find({'custom':False,'guild':str(ctx.guild.id)})),
-				len(self.client.au.find({'custom':True,'guild':str(ctx.guild.id)}))] if i]:
-					auto_response_count += f'({"+" if len(g_au) == 1 else ""}{"+".join(g_au)})'
-		embed.add_field(name='auto responses',value=auto_response_count,inline=True)
+		auto_response_count = str(len(self.client.au.find({'type':'base'})))
+		embed.add_field(name='base auto responses',value=auto_response_count,inline=True)
 		lifetime_stats = await self.client.db.status_log(1).stats.read()
 		for name in ['db_reads','db_writes','messages_seen','commands_used']:
 			lifetime.append(f'{name}: {"{:,}".format(lifetime_stats.get(name)+self.client.db.session_stats.get(name))}')
