@@ -104,7 +104,7 @@ class auto_response_listeners(Cog):
 		user_data = await self.client.db.user(user.id).data.read()
 		user_found = user_data.get('au',[])
 		cross_guild = r'\d+' if await self.client.db.guild(message.guild.id).config.auto_responses.allow_cross_guild.read() else message.guild.id
-		matches = sorted(filter(lambda a: a is not None,[self.client.au.get((args.au if args.au is not None and (args.force or any((fullmatch(fr'^((b|p)|((g|u){cross_guild})):{args.au}:\d+',s) for s in user_found))) else None)), # set id
+		matches = sorted(filter(lambda a: a is not None,[self.client.au.get((args.au if args.au is not None and (args.force or any((fullmatch(fr'^((b|p|m\d+)|((g|u){cross_guild})):{args.au}:\d+',s) for s in user_found))) else None)), # set id
 			self.client.au.match(content,message.guild.id,{'guild':str(message.guild.id),'user':str(user.id)}), # guild restricted personal
 			self.client.au.match(content,message.guild.id,{'guild':None,'user':str(user.id)}), # personal
 			self.client.au.match(content,message.guild.id,{'custom':True,'guild':str(message.guild.id)}), # custom
@@ -124,7 +124,7 @@ class auto_response_listeners(Cog):
 				if args.alt is not None:
 					try: responses[args.alt]
 					except IndexError: alt = None
-					else: alt = args.alt if args.force or any((fullmatch(fr'^(b|g|u|p)\d*:{au._id}:{args.alt}',s) for s in user_found)) else None
+					else: alt = args.alt if args.force or any((fullmatch(fr'^[bgupm]\d*:{au._id}:{args.alt}',s) for s in user_found)) else None
 				response_index = alt if alt is not None else choices([i for i in range(len(responses))],[w or (100-sum(filter(None,weights)))/weights.count(None) for w in weights])[0]
 				response = responses[response_index]
 			if response is None: continue
