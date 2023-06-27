@@ -130,7 +130,7 @@ class AutoResponse:
 		self.overrides:dict[str,dict[str,str]] = kwargs.get('overrides',{})
 		# attributes not in db
 		s = None
-		self.type = 'guild' if self.custom else 'unique' if self.guild else 'mention' if (s:=search(r'<@(\d+)>',self.trigger,IGNORECASE)) else 'personal' if self.user else 'base'
+		self.type = None if self.trigger is None else 'guild' if self.custom else 'unique' if self.guild else 'mention' if (s:=search(r'<@(\d+)>',self.trigger,IGNORECASE)) else 'personal' if self.user else 'base'
 		self.mention = int(s.group(1)) if s else None
 
 	def __repr__(self) -> str:
