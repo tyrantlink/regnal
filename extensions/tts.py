@@ -110,6 +110,7 @@ class tts_cog(Cog):
 		message = sub(r'<\/((?:\w|\s)+):\d+>',r'slash \g<1> ',message)
 		message = sub(r'<a?:(\w+):\d+>',r'\g<1>',message)
 		message = sub(r'(?:^|\ )https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.',r'a \g<1> link',message)
+		message = sub(r'<t:\d+(:[tTdDfFR])?>','a timestamp',message)
 		return message
 
 	@Cog.listener()
