@@ -211,7 +211,7 @@ class base_commands(Cog):
 	async def uptime_loop(self) -> None:
 		await sleep(5)
 		nhours = int((time()-self.client.lu)/60/60)
-		try: await self.client.change_presence(activity=Activity(type=ActivityType.listening,name=f'last update: {nhours} hours ago' if nhours else 'last update: just now'))
+		try: await self.client.change_presence(activity=Activity(type=ActivityType.custom,name='a',state=f'last update: {nhours} hours ago' if nhours else 'last update: just now'))
 		except AttributeError: pass
 
 class message_handler(Cog):
