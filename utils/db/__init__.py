@@ -1,48 +1,28 @@
-from .collections import INF,AutoResponse,Guild,Log,Message,Poll,RoleMenu,StatusLog,User
+from beanie import init_beanie
+from .documents import User,Guild,AutoResponse
 from motor.motor_asyncio import AsyncIOMotorClient
-
+from .documents.inf import INFVersion,INFTextCorrection,INFCommandUsage,INFQOTD,INFExcuses,INFInsults,INFEightBall,INFBees,INFSauceNao
+from .documents.inf import Inf
 
 class MongoDatabase:
 	def __init__(self,mongo_uri:str) -> None:
-		self._client = AsyncIOMotorClient(mongo_uri, serverSelectionTimeoutMS=5000)['reg-nal']
-		self.session_stats = {
-			'db_reads': 0,
-			'db_writes': 0,
-			'messages_seen': 0,
-			'commands_used': 0}
+		self._client = AsyncIOMotorClient(mongo_uri,serverSelectionTimeoutMS=5000)['regnal']
 
-	def inf(self,_id:str) -> INF:
-		"""infrequently read documents"""
-		return INF(self,self._client.INF,_id)
-	
-	def auto_response(self,_id:int) -> AutoResponse:
-		"""auto response documents"""
-		return AutoResponse(self,self._client.auto_responses,_id)
+	async def connect(self) -> None:
+		await init_beanie(self._client, document_models=[User,Guild,AutoResponse,INFVersion,INFTextCorrection,INFCommandUsage,INFQOTD,INFExcuses,INFInsults,INFEightBall,INFBees,INFSauceNao])
 
-	def guild(self,_id:int) -> Guild:
-		"""guild documents"""
-		return Guild(self,self._client.guilds,_id)
+	@property
+	def inf(self) -> Inf:
+		return Inf
 
-	def log(self,_id:int) -> Log:
-		"""logging documents"""
-		return Log(self,self._client.logs,_id)
-
-	def message(self,_id:int) -> Message:
-		"""message documents"""
-		return Message(self,self._client.messages,_id)
-
-	def poll(self,_id:int) -> Poll:
-		"""poll documents"""
-		return Poll(self,self._client.polls,_id)
-
-	def role_menu(self,_id:int) -> RoleMenu:
-		"""role menu documents"""
-		return RoleMenu(self,self._client.role_menu,_id)
-
-	def status_log(self,_id:int|str) -> StatusLog:
-		"""status documents"""
-		return StatusLog(self,self._client.status_logs,_id)
-
-	def user(self,_id:int|str) -> User:
+	async def user(self,_id:int|str,use_cache:bool=True) -> User|None:
 		"""user documents"""
-		return User(self,self._client.users,_id)
+		return await User.find_one({'_id': _id},ignore_cache=not use_cache)
+
+	async def guild(self,_id:int|str,use_cache:bool=True) -> Guild|None:
+		"""guild documents"""
+		return await Guild.find_one({'_id': _id},ignore_cache=not use_cache)
+
+	async def auto_response(self,_id:int|str,use_cache:bool=True) -> AutoResponse|None:
+		"""auto response documents"""
+		return await AutoResponse.find_one({'_id': _id},ignore_cache=not use_cache)

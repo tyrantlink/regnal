@@ -1,14 +1,17 @@
-from utils.classes import ApplicationContext
-from discord.ext.commands import check
 from collections.abc import Mapping
-from discord import Embed
 from os.path import isdir
 from os import walk
 from re import sub
+from .models import LastUpdate
+from aiofiles import open
+from concurrent.futures import ThreadPoolExecutor
+from asyncio import get_event_loop
+from zlib import decompress
 
 sizes = ['bytes','KBs','MBs','GBs','TBs','PBs','EBs','ZBs','YBs']
 
 def merge_dicts(*dicts:dict) -> dict:
+	"""priority goes to the last dict"""
 	out = {}
 	for d in dicts:
 		for k,v in d.items():
@@ -44,22 +47,6 @@ def convert_time(seconds:int|float,decimal=15) -> str:
 	if seconds: res.append(f'{seconds} second{"" if seconds == 1 else "s"}')
 	return ', '.join(res)
 
-def dev_only(ctx:ApplicationContext=None) -> bool:
-	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT THIS HAS TO BE AWAITED
-	async def perms(ctx:ApplicationContext,respond=True) -> bool:
-		if ctx.author.id in ctx.bot.owner_ids: return True
-		if respond: await ctx.response.send_message(embed=Embed(title='ERROR!',description='you must be the bot developer to run this command.',color=0xff6969),ephemeral=True)
-		return False
-	return check(perms) if not ctx else perms(ctx,False)
-
-def dev_banned(ctx:ApplicationContext=None) -> bool:
-	# IF YOU'RE DEBUGGING THIS IN THE FUTURE REMEMBER THAT THIS HAS TO BE AWAITED
-	async def perms(ctx:ApplicationContext,respond=True) -> bool:
-		if ctx.author.id not in await ctx.bot.db.inf('/reg/nal').banned_users.read(): return True
-		if respond: await ctx.response.send_message(embed=Embed(title='ERROR!',description='banned users are not allowed to run this command!',color=0xff6969),ephemeral=True)
-		return False
-	return check(perms) if not ctx else perms(ctx,False)
-
 def get_line_count(input_path:str,excluded_dirs:list=None,excluded_files:list=None) -> int:
 	if excluded_dirs is None: excluded_dirs = []
 	if excluded_files is None: excluded_files = []
@@ -81,3 +68,14 @@ def get_line_count(input_path:str,excluded_dirs:list=None,excluded_files:list=No
 def split_list(lst:list,size:int) -> list:
 	for i in range(0,len(lst),size):
 		yield lst[i:i+size]
+
+async def get_last_update() -> LastUpdate:
+	async with open('.git/refs/heads/master','r') as f:
+		git_hash = (await f.read()).strip()
+	
+	async with open(f'.git/objects/{git_hash[:2]}/{git_hash[2:]}','rb') as f:
+		with ThreadPoolExecutor() as exceutor:
+			git_data = await f.read()
+			git_object = (await get_event_loop().run_in_executor(exceutor,lambda: decompress(git_data))).decode()
+			ts = int(git_object.split('\n')[2].split(' ')[3])
+	return LastUpdate(commit=git_hash[:7],commit_full=git_hash,timestamp=ts)

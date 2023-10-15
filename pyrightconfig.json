@@ -1,4 +1,5 @@
 {
 	"reportGeneralTypeIssues": false,
-	"reportOptionalMemberAccess": false
+	"reportOptionalMemberAccess": false,
+	"reportOptionalIterable":"information"
 }

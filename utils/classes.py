@@ -1,199 +1,72 @@
-from discord import ApplicationContext as AppContext,Interaction,Embed,User,Member as DiscordMember,Message
+from discord import Interaction,Embed,User,Message
 from regex import search,fullmatch,escape,IGNORECASE
 from discord.ui import View,Item,Modal,InputText
-from utils.pluralkit import Member as PKMember
-from utils.db.mongo_object import MongoObject
 from pymongo.collection import Collection
 from asyncio import wait_for,TimeoutError
 from utils.sandbox import safe_exec
 from functools import partial
 
-class RestrictedMessage:
-	class _channel:
-		def __init__(self,id,name) -> None:
-			self.id = id
-			self.name = name
+from utils.db import AutoResponse
+from utils.db import Guild
 
-	class _guild:
-		def __init__(self,id,name) -> None:
-			self.id = id
-			self.name = name
+class OverriddenAutoResponse:
+	class OverriddenData:
+		class OverriddenFollowup:
+			def __init__(self,delay:float,response:str) -> None:
+				self.delay = delay
+				self.response = response
+		class OverriddenAlt:
+			def __init__(self,chance:float,data:dict) -> None:
+				self.chance = chance
+				self.data = data #! this maybe has recursion potential, i'll deal with it later
+		def __init__(self,au:AutoResponse.AutoResponseData,override:dict) -> None:
+			self.priority = override.get('priority',au.priority)
+			self.ignore_cooldown = override.get('ignore_cooldown',au.ignore_cooldown)
+			self.custom = override.get('custom',au.custom)
+			self.regex = override.get('regex',au.regex)
+			self.nsfw = override.get('nsfw',au.nsfw)
+			self.case_sensitive = override.get('case_sensitive',au.case_sensitive)
+			self.users = override.get('users',au.users)
+			self.guild = override.get('guild',au.guild)
+			self.source = override.get('source',au.source)
+			self.followups = [self.OverriddenFollowup(f.delay,f.response) for f in au.followups]
+			self.alts = [self.OverriddenAlt(a.chance,a.data) for a in au.alts]
 
-	class _user:
-		def __init__(self,id,name,display_name) -> None:
-			self.id = id
-			self.name = name
-			self.display_name = display_name
+	def __init__(self,au:AutoResponse,override:dict) -> None:
+		self._original = au
+		self._override = override
 
-	def __init__(self,**kwargs):
-		self.id = kwargs.get('message_id',None)
-		self.channel = self._channel(
-			kwargs.get('channel_id',None),
-			kwargs.get('channel_name',None))
-		self.guild = self._guild(
-			kwargs.get('guild_id',None),
-			kwargs.get('guild_name',None))
-		self.author = self._user(
-			kwargs.get('author_id',None),
-			kwargs.get('author_name',None),
-			kwargs.get('author_display_name',None))
-		self.timestamp = kwargs.get('timestamp',None)
-		self.content = kwargs.get('content',None)
-
-class Env:
-	def __init__(self,env_dict:dict) -> None:
-		self.token:str = None
-		self.dev_token:str = None
-		self.beta_token:str = None
-		self.tet_token:str = None
-		self.mongo_pub:str = None
-		self.mongo_prv:str = None
-		self.config:dict = None
-		self.activities:dict = None
-		self.help:dict = None
-		self.statcord_key:str = None
-		self.saucenao_key:str = None
-		for k,v in env_dict.items():
-			setattr(self,k,v)
-
-class MakeshiftClass:
-	def __init__(self,**kwargs) -> None:
-		"""attr=value will be set"""
-		for k,v in kwargs.items():
-			setattr(self,k,v)
-
-class EmptyView(View):
-	def __init__(self,*items:Item,timeout:float|None=180,disable_on_timeout:bool=False):
-		tmp,self.__view_children_items__ = self.__view_children_items__,[]
-		super().__init__(*items,timeout=timeout,disable_on_timeout=disable_on_timeout)
-		self.__view_children_items__ = tmp
-		for func in self.__view_children_items__:
-			item: Item = func.__discord_ui_model_type__(**func.__discord_ui_model_kwargs__)
-			item.callback = partial(func,self,item)
-			item._view = self
-			setattr(self,func.__name__,item)
-
-	def add_items(self,*items:Item) -> None:
-		for item in items:
-			if item not in self.children: self.add_item(item)
-
-	async def on_error(self,error:Exception,item:Item,interaction:Interaction) -> None:
-		embed = Embed(title='an error has occurred!',color=0xff6969)
-		embed.add_field(name='error',value=str(error))
-		await interaction.followup.send(embed=embed,ephemeral=True)
-
-class CustomModal(Modal):
-	def __init__(self,view:View|EmptyView,title:str,children:list[InputText]) -> None:
-		self.view = view
-		self.interaction = None
-		super().__init__(*children,title=title)
-
-	async def callback(self, interaction: Interaction):
-		self.interaction = interaction
-		self.stop()
-
-class MixedUser:
-	def __init__(self,type:str,raw:(User|DiscordMember)|PKMember,**kwargs) -> None:
-		self.raw  = raw
-		if type not in [
-			'discord',
-			'pluralkit']:
-			raise ValueError(f'MixedUser type must be `discord` or `pluralkit` not {type}')
-		self.type = type
-		self.id:int|str
-		self.name:str
-		self.icon:str
-		self.discriminator:str|None
-		self.bot:bool
-
-		for k,v in kwargs.items():
-			setattr(self,k,v)
-
-class AutoResponse:
-	def __init__(self,_id:int,trigger:str,**kwargs) -> None:
-		self._id          = _id
-		self.trigger:str  = trigger
-		self.method:str   = kwargs.get('method')
-		self.response:str = kwargs.get('response',None)
-		self.priority:int = kwargs.get('priority',0)
-		self.custom:bool  = kwargs.get('custom',False)
-		self.regex:bool   = kwargs.get('regex',False)
-		self.nsfw:bool    = kwargs.get('nsfw',False)
-		self.file:bool    = kwargs.get('file',False)
-		self.cs:bool      = kwargs.get('case_sensitive',False)
-		self.user:str     = kwargs.get('user',None)
-		self.guild:str    = kwargs.get('guild',None)
-		self.source:str   = kwargs.get('source',None)
-		self.script:str	  = kwargs.get('script',None)
-		self.alt_responses:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('alt_responses',[])]
-		self.followups:list[tuple[float|int,str]] = [(w,r) for w,r in kwargs.get('followups',[])]
-		self.overrides:dict[str,dict[str,str]] = kwargs.get('overrides',{})
-		# attributes not in db
-		s = None
-		self.type = None if self.trigger is None else 'guild' if self.custom else 'unique' if self.guild else 'mention' if (s:=search(r'<@(\d+)>',self.trigger,IGNORECASE)) else 'personal' if self.user else 'base'
-		self.mention = int(s.group(1)) if s else None
-
-	def __repr__(self) -> str:
-		return f'<AutoResponse id={self._id} type={self.type} trigger="{self.trigger}" response="{self.response}">'
-
-	def to_dict(self) -> dict:
-		return {
-			'_id':self._id,
-			'trigger':self.trigger,
-			'method':self.method,
-			'response':self.response,
-			'priority':self.priority,
-			'custom':self.custom,
-			'regex':self.regex,
-			'nsfw':self.nsfw,
-			'file':self.file,
-			'case_sensitive':self.cs,
-			'user':self.user,
-			'guild':self.guild,
-			'source':self.source,
-			'script':self.script,
-			'alt_responses':[[w,r] for w,r in self.alt_responses],
-			'followups':[[w,r] for w,r in self.followups],
-			'overrides':self.overrides}
-	
-	async def to_mongo(self,db:MongoObject,_id:int=None) -> None:
-		data = self.to_dict()
-		data.pop('_id')
-		successful,new_id = await db.new(_id or self._id or '+1',data,update=True)
-		if successful: self._id = new_id
-		else: raise Exception(f'failed to write to mongo: {self.to_dict()}')
-
-	async def run(self,message:Message,bypass_char_limit:bool=False) -> str:
-		if self.script is None: return self.response
-		restricted_message = RestrictedMessage(
-			message_id=message.id,
-			channel_id=message.channel.id,
-			channel_name=message.channel.name,
-			guild_id=message.guild.id,
-			guild_name=message.guild.name,
-			author_id=message.author.id,
-			author_name=message.author.name,
-			author_display_name=message.author.display_name,
-			timestamp=message.created_at.timestamp(),
-			content=message.content)
-		try: output = await wait_for(safe_exec(self.script,{'message':restricted_message}),5)
-		except TimeoutError: return
-		response = output.get('response','')
-
-		return response if (len(response) <= 512 or bypass_char_limit) else None
+		self.id = au.id
+		self.method = override.get('method',au.method)
+		self.trigger = override.get('trigger',au.trigger)
+		self.response = override.get('response',au.response)
+		self.type = override.get('type',au.type)
+		self.data = self.OverriddenData(au.data,override.get('data',{}))
 
 class AutoResponses:
-	def __init__(self,db:Collection,filter:dict=None) -> None:
-		self.db:Collection = db
-		self.raw_au:list[dict] = []
+	def __init__(self,filter:dict|None=None) -> None:
+		self.filter = filter or {}
 		self.au:list[AutoResponse] = []
-		self.custom_filter = filter is not None
-		self.filter = {'_id':{'$ne':0}}
-		if self.custom_filter: self.filter.update(filter)
+		self.overrides:dict[int,dict[str,dict]] # {guild_id:{au_id:override_data}
 
-	async def reload_au(self) -> None:
-		self.raw_au = [d async for d in self.db.find(self.filter)]
-		self.au = [AutoResponse(**i) for i in self.raw_au]
+	def __iter__(self) -> iter:
+		return iter(self.au)
+
+	def __len__(self) -> int:
+		return len(self.au)
+
+	async def reload_au(self,use_cache:bool=True) -> None:
+		self.au = await AutoResponse.find(self.filter,ignore_cache=not use_cache).to_list()
+
+	async def reload_overrides(self,guild_id:int|None,use_cache:bool=True) -> None:
+		if guild_id is not None:
+			guild = await Guild.find_one({'_id':guild_id},ignore_cache=not use_cache)
+			if guild is None: raise Exception(f'guild {guild_id} not found')
+			self.overrides[guild_id] = guild.data.auto_responses.overrides
+			return None
+
+		guilds = [g async for g in Guild.find_all(ignore_cache=not use_cache)]
+		self.overrides = {g.id:g.data.auto_responses.overrides for g in guilds}
 
 	def find(self,attrs:dict=None,limit:int=None) -> list[AutoResponse]:
 		if attrs is None: return self.au
@@ -205,63 +78,27 @@ class AutoResponses:
 		return out
 
 	def get(self,_id:int) -> AutoResponse|None:
-		if res:= self.find({'_id':_id},1): return res[0]
+		if res:=self.find({'_id':_id},1): return res[0]
 		return None
 
-	def match(self,message:Message,guild_id:int,attrs:dict=None) -> AutoResponse|None:
+	def match(self,message:Message,guild_id:int=None,attrs:dict=None) -> AutoResponse|None:
 		position = None
 		priority = None
 		result   = None
-		for au in sorted(filter(lambda d: all(getattr(d,k) == v for k,v in (attrs or {}).items()),self.au),key=lambda d: d.priority,reverse=True):
-			trigger = au.overrides.get(str(guild_id),{}).get('trigger',au.trigger)
-			match au.overrides.get(str(guild_id),{}).get('method',au.method):
-				case 'exact': match = fullmatch((trigger if au.regex else escape(trigger))+r'(\.|\?|\!)*',message,0 if au.cs else IGNORECASE)
-				case 'contains': match = search(rf'(^|\s){trigger if au.regex else escape(trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.cs else IGNORECASE)
-				case 'regex_raw': match = search(trigger,message,0 if au.cs else IGNORECASE)
+		for au in sorted(filter(lambda d: all(getattr(d,k) == v for k,v in (attrs or {}).items()),self.au),key=lambda d: d.data.priority,reverse=True):
+			if guild_id: au = OverriddenAutoResponse(au,self.overrides.get(guild_id,{}).get(au.id,{}))
+			match au.method.name:
+				case 'exact': match = fullmatch((au.trigger if au.data.regex else escape(au.trigger))+r'(\.|\?|\!)*',message,0 if au.data.case_sensitive else IGNORECASE)
+				case 'contains': match = search(rf'(^|\s){au.trigger if au.data.regex else escape(au.trigger)}(\.|\?|\!)*(\s|$)',message,0 if au.data.case_sensitive else IGNORECASE)
+				case 'regex': match = search(au.trigger,message,0 if au.data.case_sensitive else IGNORECASE)
 				case _:
 					match = None
 					continue
 			if match:
-				if priority is None or au.priority >= priority:
+				if priority is None or au.data.priority >= priority:
 					if position is None or match.span()[0] < position:
 						position = match.span()[0]
-						priority = au.priority
+						priority = au.data.priority
 						result = au
 					if position == 0: break
 		return result
-
-class ApplicationContext(AppContext):
-	def __init__(self,*args,**kwargs):
-		super().__init__(*args,**kwargs)
-		self.output:dict
-
-class ArgParser:
-	def __init__(self,message:str) -> None:
-		self.delete:bool  = False
-		self.alt:int|None = None
-		self.au:int|None  = None
-		self.force:bool   = False
-		self.message:str  = None
-		self.get_id:bool  = False
-		self.parse(message)
-	
-	def __bool__(self) -> bool:
-		return (self.delete is True or
-						self.alt is not None or
-						self.au is not None or
-						self.force is True or
-						self.get_id is True)
-
-	def parse(self,message:str) -> None:
-		for loop in range(25):
-			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au \d+|--force|--get-id)$',message,IGNORECASE)
-			if s is None: break
-			message = s.group(1)
-			match s.group(2).split(' '):
-				case ['--delete']: self.delete = True
-				case ['--alt',a]: self.alt = int(a)
-				case ['--au',a]: self.au = int(a)
-				case ['--force']: self.force = True
-				case ['--get-id']: self.get_id = True
-				case _: continue
-		self.message = message

@@ -1,71 +1,47 @@
-from utils.classes import ApplicationContext,MakeshiftClass
-from traceback import format_exception
-from utils.db import MongoDatabase
+from aiohttp import ClientSession
+from asyncio import create_task
 from datetime import datetime
-from discord import Message
-from inspect import stack
-from time import time
+from base64 import b64encode
+from json import dumps
 
-class log:
-	def __init__(self,db:MongoDatabase,MODE:str) -> None:
-		self.db = db
-		self.MODE = MODE
 
-	def print(self,message:str,tag:str,format:bool=True):
-		print(f'[{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}] [{self.MODE.upper()}] [{tag.upper()}] {message}' if format else message)
+class Logger:
+	def __init__(self,url:str,token:str) -> None:
+		self.url = url
+		self.headers = {
+			"Authorization": f"Basic {token}",
+			"Content-Type": "application/json"}
+	
+	async def logstream_init(self) -> None:
+		async with ClientSession() as session:
+			base_url,logstream = '/'.join(self.url.split('/')[:-1]),self.url.split('/')[-1]
+			logstreams = [d['name'] for d in await (await session.get(base_url,headers=self.headers)).json()]
+			if logstream not in logstreams:
+				async with session.put(self.url,headers=self.headers) as resp:
+					if resp.status != 200:
+						raise Exception(f'Logger failed with status {resp.status}\n{await resp.text()}')
 
-	async def _submit(self,tag:str,message:str,ctx:ApplicationContext=None,do_print:bool=True,**kwargs) -> None:
-		if ctx:
-			guild = ctx.guild.id if ctx.guild else None
-			channel = ctx.channel.id if ctx.channel else None
-			author = ctx.author.id if ctx.author else None
-		else:
-			guild = kwargs.pop('guild',None)
-			channel = kwargs.pop('channel',None)
-			author = kwargs.pop('author',None)
-		if do_print: self.print(message,tag,kwargs.get('format_print',True))
-		await self.db.log(0).new('+1',{
-			'ts':time(),
-			'dt':datetime.now().strftime("%m/%d/%Y %H:%M:%S"),
-			'mode':self.MODE,
-			'type':tag,
-			'log':message,
-			'guild':guild,
-			'channel':channel,
-			'author':author,
-			'data':kwargs})
 
-	async def command(self,ctx:ApplicationContext,**kwargs) -> None:
-		await self.db.inf('/reg/nal').inc(1,['command_usage',ctx.command.qualified_name])
-		self.db.session_stats['commands_used'] += 1
-		await self._submit('command',f'{ctx.command.qualified_name} was used by {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
+	async def _log(self,message:str,label:str,guild_id:int|None=None,metadata:dict|None=None) -> None:
+		print(f'[{datetime.now().strftime("%d/%m/%Y %H:%M:%S")}] [{label}] {message}')
+		headers = {
+			**self.headers,
+			f'X-P-Tag-label':label,
+			f'X-P-Tag-guild_id':str(guild_id).lower(),
+			**{f'X-P-Meta-{k}':str(v) for k,v in (metadata or {}).items()}}
 
-	async def listener(self,ctx:ApplicationContext|Message,**kwargs) -> None:
-		match stack()[1].function:
-			case 'listener_dad_bot': source = 'dad bot'
-			case 'listener_auto_response': source = f'auto response{f""" {kwargs.get("id","")}""" if kwargs.get("id") else ""}'
-			case _: source = 'unknown listener'
-		await self._submit('listener',f'{source} was triggered by {ctx.author} in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
+		async with ClientSession() as session:
+			async with session.post(self.url,headers=headers,data=dumps([{'label':label,'message':message}])) as resp:
+				if resp.status != 200:
+					raise Exception(f'Logger failed with status {resp.status}\n{await resp.text()}')
 
-	async def talking_stick(self,ctx:MakeshiftClass,**kwargs) -> None:
-		await self._submit('talking stick',f'{ctx.author} got the talking stick in {ctx.guild.name if ctx.guild else "DMs"}',ctx,**kwargs)
+	def custom(self,label:str,message:str,guild_id:int|None=None,**metadata) -> None: create_task(self._log(message,label.upper(),guild_id,metadata))
+	def info(self,message:str,guild_id:int|None=None,**metadata)             -> None: self.custom('info',message,guild_id,**metadata)
+	def error(self,message:str,guild_id:int|None=None,**metadata)            -> None: self.custom('error',message,guild_id,**metadata)
+	def warning(self,message:str,guild_id:int|None=None,**metadata)          -> None: self.custom('warning',message,guild_id,**metadata)
+	def debug(self,message:str,guild_id:int|None=None,**metadata)            -> None: self.custom('debug',message,guild_id,**metadata)
+	def critical(self,message:str,guild_id:int|None=None,**metadata)         -> None: self.custom('critical',message,guild_id,**metadata)
 
-	def log(self,tag:str,message:str,to_db:bool=True,**kwargs) -> None:
-		"""to_db returns a coroutine"""
-		if to_db: return self._submit(tag,message,**kwargs)
-		else    : self.print(message,tag,kwargs.get('format_print',True))
-
-	def info(self,message:str,to_db:bool=True,**kwargs) -> None:
-		"""to_db returns a coroutine"""
-		return self.log('info',message,to_db,**kwargs)
-
-	async def error(self,message:Exception|str,**kwargs) -> None:
-		if isinstance(message,Exception):
-			if format: message = ''.join(format_exception(message))
-			if 'The above exception was the direct cause of the following exception:' in message:
-				message = ''.join(message).split('\nThe above exception was the direct cause of the following exception:')[:-1]
-		await self._submit('error',message if isinstance(message,str) else ''.join(message),**kwargs)
-
-	def debug(self,message:str,to_db:bool=True,**kwargs) -> None:
-		"""to_db returns a coroutine"""
-		return self.log('debug',message,to_db,**kwargs)
+	def success(self,message:str,guild_id:int|None=None,**metadata)          -> None: self.custom('success',message,guild_id,**metadata)
+	def client_error(self,message:str,guild_id:int|None=None,**metadata)     -> None: self.custom('client_error',message,guild_id,**metadata)
+	def server_error(self,message:str,guild_id:int|None=None,**metadata)     -> None: self.custom('server_error',message,guild_id,**metadata)
