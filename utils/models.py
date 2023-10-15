@@ -16,6 +16,7 @@ class BotData(BaseModel):
 class _ProjectConfig(BaseModel):
 	dev_bypass:bool # allows users on dev team to access all commands
 	base_guilds:list[int] # additional guilds small bots should join (emote servers, etc)
+	git_branch:str # branch to pull from
 
 class _ProjectWebhooks(BaseModel):
 	support:str # forum channel for issues and suggestions

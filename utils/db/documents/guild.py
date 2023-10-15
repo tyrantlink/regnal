@@ -66,8 +66,6 @@ class Guild(Document):
 
 	class GuildData(BaseModel):
 		class GuildDataQOTD(BaseModel):
-			# class Config:
-			# 	arbitrary_types_allowed=True
 			class GuildDataQOTDQuestion(BaseModel):
 				question:str = Field(min_length=1,max_length=200,description='question to be asked')
 				author:str = Field(min_length=1,max_length=32,description='author of the question')
@@ -101,7 +99,7 @@ class Guild(Document):
 			questions:int = Field(0,ge=0,description='total questions asked')
 			tts:int = Field(0,ge=0,description='total tts characters used')
 
-		activity:list[dict[str,int]] = Field([],max_length=30,description='activity data for at most last 30 days\n\nformat user_id:message count')
+		activity:dict[str,dict[str,int]] = Field({},max_length=30,description='activity data for at most last 30 days\n\nformat {day:{user_id:count}}')
 		qotd:GuildDataQOTD = Field(description='qotd data')
 		talking_stick:GuildDataTalkingStick = Field(description='talking stick data')
 		auto_responses:GuildDataAutoResponses = Field(description='auto response data')
@@ -113,6 +111,6 @@ class Guild(Document):
 
 	id:int = Field(description='guild\'s discord id')
 	name:str = Field(description='guild\'s discord name')
-	owner:int = Field(description='guild\'s discord owner id')
+	owner:int|None = Field(description='guild\'s discord owner id')
 	config:GuildConfig = Field(description='guild config')
 	data:GuildData = Field(description='guild data')

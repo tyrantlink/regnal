@@ -69,8 +69,8 @@ def split_list(lst:list,size:int) -> list:
 	for i in range(0,len(lst),size):
 		yield lst[i:i+size]
 
-async def get_last_update() -> LastUpdate:
-	async with open('.git/refs/heads/master','r') as f:
+async def get_last_update(git_branch:str) -> LastUpdate:
+	async with open(f'.git/refs/heads/{git_branch}','r') as f:
 		git_hash = (await f.read()).strip()
 	
 	async with open(f'.git/objects/{git_hash[:2]}/{git_hash[2:]}','rb') as f:
