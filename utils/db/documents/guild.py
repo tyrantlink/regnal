@@ -1,10 +1,9 @@
-from beanie import Document
-from datetime import timedelta
-from typing import Optional,Any
-from pydantic import BaseModel,Field
 from .ext.enums import TWBFMode,AUCooldownMode,TTSVoices
-from .auto_response import AutoResponse
-from bson .binary import Binary
+from pydantic import BaseModel,Field
+from typing import Optional,Any
+from datetime import timedelta
+from beanie import Document
+
 
 class Guild(Document):
 	class Settings:
@@ -16,12 +15,12 @@ class Guild(Document):
 
 	class GuildConfig(BaseModel):
 		class GuildConfigGeneral(BaseModel):
-			hide_commands:TWBFMode = Field(TWBFMode.false,description='commands will only be visible to the user\n\neven disabled, some commands with sensitive information will still be hidden\n\ntrue: commands will always be hidden\nwhitelist: commands will be hidden in selected channels\nblacklist: commands will be hidden in all channels except selected channels\nfalse: commands will never be force hidden')
+			hide_commands:TWBFMode = Field(TWBFMode.disabled,description='commands will only be visible to the user\n\neven disabled, some commands with sensitive information will still be hidden\n\ntrue: commands will always be hidden\nwhitelist: commands will be hidden in selected channels\nblacklist: commands will be hidden in all channels except selected channels\nfalse: commands will never be force hidden')
 			embed_color:str = Field('69ff69',min_length=6,max_length=6,pattern=r'^[a-fA-F\d]{6}$',description='color used by embeds\n\nif not set, the default color will be used')
 			event_time:str = Field('09:00',min_length=5,max_length=5,pattern=r'^[0-2]\d:[0-5]\d$',description='time used by event command\n\nif not set, the default time will be used')
 
 		class GuildConfigAutoResponses(BaseModel):
-			mode:TWBFMode = Field(TWBFMode.true,description='enable/disable auto responses\n\ntrue: auto responses enabled in all channels\nwhitelist: auto responses enabled in selected channels\nblacklist: auto responses disabled in selected channels\nfalse: auto responses disabled in all channels')
+			mode:TWBFMode = Field(TWBFMode.enabled,description='enable/disable auto responses\n\ntrue: auto responses enabled in all channels\nwhitelist: auto responses enabled in selected channels\nblacklist: auto responses disabled in selected channels\nfalse: auto responses disabled in all channels')
 			cooldown:int = Field(0,ge=0,description='cooldown between auto responses in seconds')
 			cooldown_mode:AUCooldownMode = Field(AUCooldownMode.channel,description='cooldown mode\n\nnone: no cooldown\nuser: cooldown per user\nchannel: cooldown per channel\nguild: cooldown server-wide')
 			allow_cross_guild_responses:bool = Field(False,description='allow custom auto responses from other guilds to be used (using the --au argument)\n\nvery, very dangerous permission, allows users to send arbitrary auto responses\nuse at your own risk.')
@@ -79,20 +78,20 @@ class Guild(Document):
 
 		class GuildDataTalkingStick(BaseModel):
 			current:Optional[int] = Field(None,description='user currently holding the talking stick')
-		
+
 		class GuildDataAutoResponses(BaseModel):
 			whitelist:list[int] = Field([],description='channels where auto responses are whitelisted')
 			blacklist:list[int] = Field([],description='channels where auto responses are blacklisted')
 			disabled:list[str] = Field([],description='auto responses disabled')
 			overrides:dict[str,dict] = Field({},description='auto response overrides')
-	
+
 		class GuildDataHideCommands(BaseModel):
 			whitelist:list[int] = Field([],description='channels where commands are whitelisted')
 			blacklist:list[int] = Field([],description='channels where commands are blacklisted')
-		
+
 		class GuildDataTTS(BaseModel):
 			banned:list[int] = Field([],description='users banned from using tts')
-		
+
 		class GuildDataStatistics(BaseModel):
 			messages:int = Field(0,ge=0,description='total messages sent')
 			commands:int = Field(0,ge=0,description='total commands used')
@@ -106,7 +105,7 @@ class Guild(Document):
 		hide_commands:GuildDataHideCommands = Field(description='hide commands data')
 		tts:GuildDataTTS = Field(description='text-to-speech data')
 		statistics:GuildDataStatistics = Field(description='guild statistics')
-		flags:list[str] = Field([],description='flags the guild has')
+		flags:int = Field(0,description='flags the guild has')
 		extra:dict[str,Any] = Field({},description='extra data')
 
 	id:int = Field(description='guild\'s discord id')

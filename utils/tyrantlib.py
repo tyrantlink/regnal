@@ -1,12 +1,14 @@
+from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Mapping
+from asyncio import get_event_loop
+from .models import LastUpdate
+from zlib import decompress
+from aiofiles import open
 from os.path import isdir
+from typing import Any
 from os import walk
 from re import sub
-from .models import LastUpdate
-from aiofiles import open
-from concurrent.futures import ThreadPoolExecutor
-from asyncio import get_event_loop
-from zlib import decompress
+
 
 sizes = ['bytes','KBs','MBs','GBs','TBs','PBs','EBs','ZBs','YBs']
 
@@ -72,10 +74,10 @@ def split_list(lst:list,size:int) -> list:
 async def get_last_update(git_branch:str) -> LastUpdate:
 	async with open(f'.git/refs/heads/{git_branch}','r') as f:
 		git_hash = (await f.read()).strip()
-	
+
 	async with open(f'.git/objects/{git_hash[:2]}/{git_hash[2:]}','rb') as f:
-		with ThreadPoolExecutor() as exceutor:
+		with ThreadPoolExecutor() as executor:
 			git_data = await f.read()
-			git_object = (await get_event_loop().run_in_executor(exceutor,lambda: decompress(git_data))).decode()
+			git_object = (await get_event_loop().run_in_executor(executor,lambda: decompress(git_data))).decode()
 			ts = int(git_object.split('\n')[2].split(' ')[3])
 	return LastUpdate(commit=git_hash[:7],commit_full=git_hash,timestamp=ts)

@@ -1,37 +1,52 @@
-from asyncio import run,gather
-from utils.models import Project
-from tomllib import loads
-from os import walk
-from aiofiles import open
+from client import ClientLarge,ClientSmall,Client
+from utils.update_handler import UpdateHandler
 from utils.models import BotType,BotData
-from client import ClientLarge,ClientSmall
-
+from utils.models import Project
+from asyncio import run,gather
+from utils.log import Logger
+from tomllib import loads
+from aiofiles import open
+from os import walk
 
 
 async def main() -> None:
 	# grab project data
 	async with open('project.toml','r') as f:
 		base_project = loads(await f.read())
+	# initialize logger
+	log = Logger(base_project['parseable']['base_url'],base_project['parseable']['logstream'],base_project['parseable']['token'])
+	await log.logstream_init()
 
-	bots:list[ClientLarge] = []
-	
+	bots:dict[str,Client] = {}
+
+	extensions = next(walk('extensions'))[1]
 	bot_dirs = next(walk('bots'))[1]
 	for dir in bot_dirs:
 		async with open(f'bots/{dir}/bot.toml','r') as f:
 			bot_data = BotData.model_validate(loads(await f.read()))
 
 		if not bot_data.enabled:
-			print(f'skipping {dir} because it is disabled')
+			log.info(f'skipping {dir} because it is disabled')
 			continue
 
 		proj = base_project.copy()
 		proj['bot'] = bot_data
 		match bot_data.type:
-			case BotType.LARGE: bots.append(ClientLarge(Project.model_validate(proj)))
-			case BotType.SMALL: bots.append(ClientSmall(Project.model_validate(proj)))
+			case BotType.LARGE: bots.update({dir:ClientLarge(Project.model_validate(proj))})
+			case BotType.SMALL: bots.update({dir:ClientSmall(Project.model_validate(proj))})
 			case _: raise ValueError(f'invalid bot type {bot_data.type}')
-	
-	await gather(*[client.start() for client in bots])
+		log.info(f'prepared {dir} for launch')
+
+		for extension in extensions:
+			if extension in bot_data.disabled_extensions: continue
+			bots[dir].load_extension(f'extensions.{extension}')
+		if bot_data.custom_extension:
+			bots[dir].load_extension(f'bots.{dir}')
+
+	updater = UpdateHandler(log,bots,base_project,base_project['config']['github_secret'])
+	log.info('starting clients')
+	await gather(updater.initialize(),*[client.start() for client in bots.values()])
 
 if __name__ == '__main__':
-	run(main())
+	try: run(main())
+	except KeyboardInterrupt: pass

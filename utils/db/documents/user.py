@@ -1,10 +1,8 @@
-from .guild import Guild
-from datetime import timedelta
-from typing import Optional,Any
-from beanie import Document
-from pydantic import BaseModel,Field
-from .auto_response import AutoResponse
 from .ext.enums import TTSVoices,TTSMode
+from pydantic import BaseModel,Field
+from typing import Optional,Any
+from datetime import timedelta
+from beanie import Document
 
 
 class User(Document):
@@ -51,7 +49,7 @@ class User(Document):
 		api:UserDataAPI = Field(description='api data')
 		auto_responses:UserDataAutoResponses = Field(description='auto response data')
 		statistics:UserDataStatistics = Field(description='user statistics')
-		flags:list[str] = Field([],description='flags the user has')
+		flags:int = Field(0,description='flags the user has')
 		extra:dict[str,Any] = Field({},description='extra data')
 
 	id:int = Field(description='user\'s discord id')

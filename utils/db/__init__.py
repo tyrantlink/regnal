@@ -1,8 +1,8 @@
-from beanie import init_beanie
-from .documents import User,Guild,AutoResponse
-from motor.motor_asyncio import AsyncIOMotorClient
 from .documents.inf import Inf,INFVersion,INFTextCorrection,INFCommandUsage,INFQOTD,INFExcuses,INFInsults,INFEightBall,INFBees,INFSauceNao
 from .documents.ext.enums import AutoResponseMethod
+from motor.motor_asyncio import AsyncIOMotorClient
+from .documents import User,Guild,AutoResponse
+from beanie import init_beanie
 
 
 class _MongoNew:
@@ -13,7 +13,7 @@ class _MongoNew:
 	@staticmethod
 	def guild(id:int,name:str,owner:int) -> Guild:
 		return Guild(id=id,name=name,owner=owner)
-	
+
 	@staticmethod
 	def auto_response(id:int,method:AutoResponseMethod,trigger:str,response:str) -> AutoResponse:
 		return AutoResponse(id=id,method=method,trigger=trigger,response=response)

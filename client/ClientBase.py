@@ -1,17 +1,18 @@
 from discord import Interaction,ApplicationContext,Embed,Webhook,File,Activity,ActivityType,Guild,Message
-from utils.db import MongoDatabase,Guild as GuildDocument
-from time import perf_counter,time
-from utils.log import Logger
-from utils.models import Project,BotType
-from utils.tyrantlib import get_last_update
-from utils.classes import AutoResponses
 from discord.errors import CheckFailure,ApplicationCommandInvokeError,HTTPException
+if not 'TYPE_HINT': from extensions.auto_responses import AutoResponses
+from utils.db import MongoDatabase,Guild as GuildDocument
+from utils.tyrantlib import get_last_update
 from traceback import format_exc,format_tb
-from aiohttp import ClientSession
-from io import StringIO
-from .Helper import ClientHelpers
+from utils.models import Project,BotType
+from time import perf_counter,time
 from discord.ext.tasks import loop
+from aiohttp import ClientSession
+from .Helper import ClientHelpers
 from datetime import datetime
+from utils.log import Logger
+from config import DEV_MODE
+from io import StringIO
 
 
 class ClientBase:
@@ -19,9 +20,9 @@ class ClientBase:
 		self._st = perf_counter()
 		self.project = project_data
 		self.db = MongoDatabase(self.project.mongo.uri)
-		self.log = Logger(self.project.parseable.base_url+self.project.bot.logstream,self.project.parseable.token)
+		self.log = Logger(self.project.parseable.base_url,self.project.bot.logstream,self.project.parseable.token)
 		self.helpers = ClientHelpers(self.db)
-		self.au = AutoResponses()
+		self.au:AutoResponses = None # set by auto responses extension 
 		self.uptime = -1
 		self._initialized = False
 
@@ -30,38 +31,38 @@ class ClientBase:
 		await self.log.logstream_init()
 		self.last_update = await get_last_update(self.project.config.git_branch)
 		self._initialized = True
-	
+
 	async def start(self) -> None:
 		if not self._initialized: await self.initialize()
 		await self.login(self.project.bot.token)
 		await self.connect(reconnect=True)
-	
+
 	async def _owner_init(self) -> None:
 		app = await self.application_info()
 		self.owner_ids = {m.id for m in app.team.members} if app.team else {app.owner.id}
 		self.owner_id = list(self.owner_ids)[0] # set because Bot.owner_id is given, never used in practice
-	
+
 	async def on_connect(self) -> None:
 		await self.sync_commands()
 		await self._owner_init()
 		shards = f' with {self.shard_count} shard{"s" if self.shard_count != 1 else ""}' if self.shard_count is not None else ''
 		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-self._st,2)} seconds{shards}')
 		self.update_presence.start()
-	
+
 	async def on_ready(self) -> None:
 		self.log.info(f'{self.user.name} ready in {round(perf_counter()-self._st,2)} seconds')
 
 	async def on_unknown_application_command(self,interaction:Interaction) -> None:
 		await interaction.response.send_message('u wot m8?',ephemeral=True)
-	
+
 	async def on_application_command(self,ctx:ApplicationContext) -> None:
-		ctx.output = {}
-		self.log.custom('command',f'{ctx.author} used {ctx.command.name}',ctx.guild_id)
-	
+		self.log.custom('command',f'{ctx.author.name} used {ctx.command.name}',ctx.guild_id)
+
 	async def on_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return
 		await self.log.error(str(error),ctx.guild_id,traceback="".join(format_tb(error.original.__traceback__)))
-	
+		if DEV_MODE: "".join(format_tb(error.original.__traceback__))
+
 	async def on_application_command_error(self,ctx:ApplicationContext|Interaction,error:ApplicationCommandInvokeError) -> None:
 		if isinstance(error,CheckFailure): return
 		embed = Embed(title='an error has occurred!',description='the issue has been automatically reported and should be fixed soon.',color=0xff6969)
@@ -73,20 +74,44 @@ class ClientBase:
 		else: await ctx.respond(embed=embed,ephemeral=True)
 
 		traceback = "".join(format_tb(error.original.__traceback__))
+		if DEV_MODE: print(traceback)
 		self.log.error(str(error),guild_id=ctx.guild_id,traceback=traceback)
 
 		async with ClientSession() as session:
 			wh = Webhook.from_url(self.project.webhooks.errors,session=session)
-			if len(traceback)+8 > 2000: await wh.send(file=File(StringIO(traceback),'error.txt'))
-			else: await wh.send(f'```\n{traceback}\n```')
-		
+			if len(traceback)+8 > 2000: await wh.send(
+				username=self.user.name,
+				avatar_url=self.user.avatar.url,
+				file=File(StringIO(traceback),'error.txt'))
+			else:
+				await wh.send(f'```\n{traceback}\n```',
+					username=self.user.name,
+					avatar_url=self.user.avatar.url)
+
 	async def on_error(self,event:str,*args,**kwargs) -> None:
 		async with ClientSession() as session:
 			wh = Webhook.from_url(self.project.webhooks.errors,session=session)
 			error = format_exc()
-			if len(error)+8 > 2000: await wh.send(file=File(StringIO(error),'error.txt'))
-			else: await wh.send(f'```\n{error}\n```')
-	
+			if DEV_MODE: print(error)
+			if len(error)+8 > 2000: await wh.send(
+				username=self.user.name,
+				avatar_url=self.user.avatar.url,
+				file=File(StringIO(error),'error.txt'))
+			else:
+				await wh.send(f'```\n{error}\n```',
+					username=self.user.name,
+					avatar_url=self.user.avatar.url)
+
+	def load_extension(self,name:str) -> None:
+		try: super().load_extension(name)
+		except Exception as e: self.log.error(str(e),traceback="".join(format_tb(e.__traceback__)))
+		self.log.info(f'loaded extension {name.split(".")[-1]}')
+
+	async def stop(self) -> None:
+		await self.close()
+		self.update_presence.cancel()
+		await super().close()
+
 	#! Events
 	async def on_guild_join(self,guild:Guild) -> GuildDocument:
 		if self.project.bot.type == BotType.SMALL and guild.id not in [*self.project.config.base_guilds,*self.project.bot.guilds]:
@@ -103,6 +128,7 @@ class ClientBase:
 			)
 			await guild_doc.save()
 		self.log.info(f'joined guild {guild.name} ({guild.id})')
+		return guild_doc
 
 	async def on_message(self,message:Message) -> None:
 		# ignore DMs
@@ -120,6 +146,7 @@ class ClientBase:
 			user = self.db.new.user(
 				id=message.author.id,
 				username=message.author.name)
+			await user.save()
 		# return if user has no_track enabled
 		if user.config.general.no_track: return
 		# update username if changed
@@ -141,14 +168,14 @@ class ClientBase:
 			guild.data.activity[day][str(message.author.id)] = 0
 		guild.data.activity[day][str(message.author.id)] += 1
 		# save user and guild data to db
-		await user.save()
-		await guild.save()
+		await user.save_changes()
+		await guild.save_changes()
 
 	#! Tasks
 	@loop(minutes=1)
 	async def update_presence(self) -> None:
-		self.log.debug('updating presence')
-		if new:=round((time()-self.last_update.timestamp)/3600) != self.uptime:
+		if (new:=round((time()-self.last_update.timestamp)/3600)) != self.uptime:
 			self.uptime = new
+			self.log.debug('updating presence')
 			await self.change_presence(activity=Activity(
 				type=ActivityType.custom,name='a',state=f'last update: {self.uptime} hours ago' if self.uptime else 'last update: just now'))

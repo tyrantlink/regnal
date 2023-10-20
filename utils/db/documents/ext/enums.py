@@ -407,10 +407,10 @@ class TWBFMode(Enum):
 	def __str__(self) -> str:
 		return self.name
 
-	false = 0
+	disabled = 0
 	whitelist = 1
 	blacklist = 2
-	true = 3
+	enabled = 3
 
 class AUCooldownMode(Enum):
 	def __str__(self) -> str:
@@ -427,7 +427,8 @@ class AutoResponseMethod(Enum):
 
 	exact = 0
 	contains = 1
-	regex = 3 #! FIX THIS LATER
+	regex = 2 # different from data.regex, this method uses raw matching rather than adding filtering
+	mention = 3
 
 class AutoResponseType(Enum):
 	def __str__(self) -> str:

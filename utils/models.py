@@ -12,11 +12,13 @@ class BotData(BaseModel):
 	token:str # bot token
 	guilds:list[int] # guilds the bot is limited to (unrestricted if empty)
 	disabled_extensions:list[str] # disabled extensions by name
+	custom_extension:bool
 
 class _ProjectConfig(BaseModel):
 	dev_bypass:bool # allows users on dev team to access all commands
 	base_guilds:list[int] # additional guilds small bots should join (emote servers, etc)
 	git_branch:str # branch to pull from
+	github_secret:str # github webhook secret
 
 class _ProjectWebhooks(BaseModel):
 	support:str # forum channel for issues and suggestions
@@ -35,6 +37,7 @@ class _ProjectAPI(BaseModel):
 class _ProjectParseable(BaseModel):
 	base_url:str # base url for parseable
 	token:str # parseable token
+	logstream:str # hypervisor logstream
 
 class Project(BaseModel):
 	config:_ProjectConfig

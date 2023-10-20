@@ -4,6 +4,38 @@ from RestrictedPython import compile_restricted_exec
 from concurrent.futures import ThreadPoolExecutor
 from asyncio import get_running_loop
 
+class RestrictedMessage:
+	class _channel:
+		def __init__(self,id,name) -> None:
+			self.id = id
+			self.name = name
+
+	class _guild:
+		def __init__(self,id,name) -> None:
+			self.id = id
+			self.name = name
+
+	class _user:
+		def __init__(self,id,name,display_name) -> None:
+			self.id = id
+			self.name = name
+			self.display_name = display_name
+
+	def __init__(self,**kwargs):
+		self.id = kwargs.get('message_id',None)
+		self.channel = self._channel(
+			kwargs.get('channel_id',None),
+			kwargs.get('channel_name',None))
+		self.guild = self._guild(
+			kwargs.get('guild_id',None),
+			kwargs.get('guild_name',None))
+		self.author = self._user(
+			kwargs.get('author_id',None),
+			kwargs.get('author_name',None),
+			kwargs.get('author_display_name',None))
+		self.timestamp = kwargs.get('timestamp',None)
+		self.content = kwargs.get('content',None)
+
 allowed_imports = [
 	'math',
 	'collections',

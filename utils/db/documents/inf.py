@@ -1,5 +1,5 @@
-from beanie import Document
 from pydantic import BaseModel,Field
+from beanie import Document
 
 class INFBase(Document):
 	class Settings:
