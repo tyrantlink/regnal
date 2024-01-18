@@ -14,16 +14,18 @@ class Logger:
 			"Content-Type": "application/json"}
 
 	async def logstream_init(self) -> None:
-		async with ClientSession() as session:
-			logstreams = [d['name'] for d in await (await session.get(self.base_url,headers=self.headers)).json()]
-			if self.logstream not in logstreams:
-				async with session.put(self.url,headers=self.headers) as resp:
-					if resp.status != 200:
-						raise Exception(f'Logger failed with status {resp.status}\n{await resp.text()}')
+		...
+		# async with ClientSession() as session:
+		# 	logstreams = [d['name'] for d in await (await session.get(self.base_url,headers=self.headers)).json()]
+		# 	if self.logstream not in logstreams:
+		# 		async with session.put(self.url,headers=self.headers) as resp:
+		# 			if resp.status != 200:
+		# 				raise Exception(f'Logger failed with status {resp.status}\n{await resp.text()}')
 
 
 	async def _log(self,message:str,label:str,guild_id:int|None=None,metadata:dict|None=None) -> None:
 		print(f'[{datetime.now().strftime("%d/%m/%Y %H:%M:%S")}] [{self.logstream.upper()}] [{label}] {message}')
+		return
 		headers = {
 			**self.headers,
 			f'X-P-Tag-label':label,

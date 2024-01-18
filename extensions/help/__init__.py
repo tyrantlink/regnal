@@ -1,2 +1,3 @@
 def setup(client) -> None:
 	...
+	#! hey if i don't do this then i will be in the exact same state as v3, so imma do it later™

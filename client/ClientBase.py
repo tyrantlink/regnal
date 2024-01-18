@@ -1,18 +1,22 @@
 from discord import Interaction,ApplicationContext,Embed,Webhook,File,Activity,ActivityType,Guild,Message
 from discord.errors import CheckFailure,ApplicationCommandInvokeError,HTTPException
 if not 'TYPE_HINT': from extensions.auto_responses import AutoResponses
+from .permissions import PermissionHandler,register_base_permissions
 from utils.db import MongoDatabase,Guild as GuildDocument
+from .config import Config,register_base_config
 from utils.tyrantlib import get_last_update
 from traceback import format_exc,format_tb
 from utils.models import Project,BotType
 from time import perf_counter,time
 from discord.ext.tasks import loop
+from .commands import BaseCommands
 from aiohttp import ClientSession
 from .Helper import ClientHelpers
 from datetime import datetime
 from utils.log import Logger
 from config import DEV_MODE
 from io import StringIO
+from .api import CrAPI
 
 
 class ClientBase:
@@ -22,12 +26,19 @@ class ClientBase:
 		self.db = MongoDatabase(self.project.mongo.uri)
 		self.log = Logger(self.project.parseable.base_url,self.project.bot.logstream,self.project.parseable.token)
 		self.helpers = ClientHelpers(self.db)
-		self.au:AutoResponses = None # set by auto responses extension 
+		self.au:AutoResponses = None # set by auto responses extension
+		self.api = CrAPI(self.project.api.url,self.project.api.token)
+		self.config = Config(self)
+		self.permissions = PermissionHandler(self)
+		register_base_config(self.config)
+		register_base_permissions(self.permissions)
 		self.uptime = -1
+		self.add_cog(BaseCommands(self))
 		self._initialized = False
 
 	async def initialize(self) -> None:
 		await self.db.connect()
+		await self.api.connect()
 		await self.log.logstream_init()
 		self.last_update = await get_last_update(self.project.config.git_branch)
 		self._initialized = True
@@ -68,10 +79,7 @@ class ClientBase:
 		embed = Embed(title='an error has occurred!',description='the issue has been automatically reported and should be fixed soon.',color=0xff6969)
 		embed.add_field(name='error',value=str(error))
 
-		if isinstance(ctx,Interaction):
-			if not ctx.response.is_done(): await ctx.response.send_message(embed=embed,ephemeral=True)
-			else: await ctx.followup.send(embed=embed,ephemeral=True)
-		else: await ctx.respond(embed=embed,ephemeral=True)
+		# await ctx.respond(embed=embed,ephemeral=True)
 
 		traceback = "".join(format_tb(error.original.__traceback__))
 		if DEV_MODE: print(traceback)
@@ -176,6 +184,7 @@ class ClientBase:
 	async def update_presence(self) -> None:
 		if (new:=round((time()-self.last_update.timestamp)/3600)) != self.uptime:
 			self.uptime = new
-			self.log.debug('updating presence')
+			status = f'last update: {self.uptime} hours ago' if self.uptime else 'last update: just now'
 			await self.change_presence(activity=Activity(
-				type=ActivityType.custom,name='a',state=f'last update: {self.uptime} hours ago' if self.uptime else 'last update: just now'))
+				type=ActivityType.custom,name='a',state=status))
+			self.log.debug(f'updated status to "{status}"')

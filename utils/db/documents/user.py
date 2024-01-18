@@ -16,6 +16,7 @@ class User(Document):
 	class UserConfig(BaseModel):
 		class UserConfigGeneral(BaseModel):
 			no_track:bool = Field(False,description='disable found au, message counts, command usage logging and api usage logging\n\nsince found au is disabled, you will not be able to use the --au <id> argument')
+			private_profile:bool = Field(False,description='make your profile private\n\nif enabled, your profile will only show id, username, display name and creation date')
 			talking_stick:bool = Field(True,description='allows you to recieve the talking stick\n\ndisable to remove potential unwanted pings')
 			hide_commands:bool = Field(True,description='commands used will only be visible to you\n\neven disabled, some commands with sensitive information will still be hidden')
 			auto_responses:bool = Field(True,description='enable/disable auto responses\n\nif guild.auto_responses.mode is set to disabled, this will be ignored')
@@ -33,7 +34,7 @@ class User(Document):
 
 	class UserData(BaseModel):
 		class UserDataAPI(BaseModel):
-			token:Optional[str] = Field(None,pattern=r'^[a-zA-Z-_\d]+\.[a-zA-Z-_\d]+\.[a-zA-Z-_\d]{43}$',description='api token')
+			token:Optional[str] = Field(None,pattern=r'^\$2[ayb]\$.{56}$',description='api token')
 			permissions:int = Field(0,description='api permissions')
 		
 		class UserDataAutoResponses(BaseModel):
@@ -42,9 +43,8 @@ class User(Document):
 		
 		class UserDataStatistics(BaseModel):
 			messages:dict[str,int] = Field({},description='message counts by guild id\n\nlegacy data under _legacy')
-			commands:dict[str,int] = Field({},description='command usage by command name')
 			api_usage:int = Field(0,description='api calls made')
-			tts_usage:int = Field(0,description='tts characters made')
+			tts_usage:int = Field(0,description='tts characters used')
 
 		api:UserDataAPI = Field(description='api data')
 		auto_responses:UserDataAutoResponses = Field(description='auto response data')

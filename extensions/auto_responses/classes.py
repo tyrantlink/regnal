@@ -29,15 +29,15 @@ class ArgParser:
 
 	def parse(self,message:str) -> None:
 		for loop in range(25):
-			s = search(r'(.*)(?:^|\s)(--delete|--alt \d+|--au (?:b|c|u|m|p)\d+|--force|--get-id)$',message,IGNORECASE)
+			s = search(r'(.*)(?:^|\s)((?:--delete|-d)|(?:--alt|-l) \d+|(?:--au|-a) (?:b|c|u|m|p|g)\d+|(?:--force|-f)|(?:--get-id|-i))$',message,IGNORECASE)
 			if s is None: break
 			message = s.group(1)
 			match s.group(2).split(' '):
-				case ['--delete']: self.delete = True
-				case ['--alt',a]: self.alt = int(a)
-				case ['--au',a]: self.au = a
-				case ['--force']: self.force = True
-				case ['--get-id']: self.get_id = True
+				case ['--delete']|['-d']: self.delete = True
+				case ['--alt',a]|['-l',a]: self.alt = int(a)
+				case ['--au',a]|['-a',a]: self.au = a
+				case ['--force']|['-f']: self.force = True
+				case ['--get-id']|['-i']: self.get_id = True
 				case _: continue
 		self.message = message
 
@@ -88,7 +88,7 @@ class AutoResponses:
 				if limit is not None and len(out) >= limit: break
 		return out
 
-	def get(self,_id:int) -> AutoResponse|None:
+	def get(self,_id:str) -> AutoResponse|None:
 		if res:=self.find({'id':_id},1): return res[0]
 		return None
 
@@ -109,7 +109,7 @@ class AutoResponses:
 	async def notify_reaction(self,message:Message) -> None:
 		try:
 			await message.add_reaction('❌')
-			await sleep(2)
+			await sleep(1)
 			await message.remove_reaction('❌',self.client.user)
 		except (HTTPException,Forbidden): pass
 	
@@ -135,7 +135,7 @@ class AutoResponses:
 		if args.au is not None:
 			if (
 				(response:=self.get(args.au)) and 
-				(response.au in user_found and
+				(response.id in user_found and
 				(response.data.guild in [message.guild.id,None] or cross_guild) or cross_guild)):
 					return response
 			create_task(self.notify_reaction(message))
@@ -178,6 +178,7 @@ class AutoResponses:
 		except TimeoutError: return
 		response = output.get('response','')
 		followups = [AutoResponse.AutoResponseData.AutoResponseFollowup(delay=d,response=r) for d,r in output.get('followups',[])]
-		if any([len(response) > 512 for delay,response in [(0,response),*[(f.delay,f.response) for f in followups]]]):
+		if len(followups) > 10: return
+		if any([(len(response) > 512) or (delay > 60) for delay,response in [(0,response),*[(f.delay,f.response) for f in followups]]]):
 			raise ValueError('response cannot exceed 512 characters')
 		return response,followups

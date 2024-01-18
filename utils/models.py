@@ -33,6 +33,7 @@ class _ProjectMongo(BaseModel):
 
 class _ProjectAPI(BaseModel):
 	url:str # api url (crapi)
+	token:str # api token
 
 class _ProjectParseable(BaseModel):
 	base_url:str # base url for parseable

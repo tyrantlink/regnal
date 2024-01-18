@@ -407,10 +407,10 @@ class TWBFMode(Enum):
 	def __str__(self) -> str:
 		return self.name
 
-	disabled = 0
+	true = 0
 	whitelist = 1
 	blacklist = 2
-	enabled = 3
+	false = 3
 
 class AUCooldownMode(Enum):
 	def __str__(self) -> str:

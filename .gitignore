@@ -8,3 +8,6 @@ __pycache__
 dev_stuff
 bot.toml
 test.py
+scripted_auto_responses
+regnalrb/target
+.vscode

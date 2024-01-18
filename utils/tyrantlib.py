@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from discord import SlashCommandGroup
 from collections.abc import Mapping
 from asyncio import get_event_loop
 from .models import LastUpdate
@@ -11,6 +12,7 @@ from re import sub
 
 
 sizes = ['bytes','KBs','MBs','GBs','TBs','PBs','EBs','ZBs','YBs']
+base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 
 def merge_dicts(*dicts:dict) -> dict:
 	"""priority goes to the last dict"""
@@ -71,6 +73,19 @@ def split_list(lst:list,size:int) -> list:
 	for i in range(0,len(lst),size):
 		yield lst[i:i+size]
 
+def encode_b64(b10:int) -> str:
+    b64 = ''
+    while b10:
+        b64 = base64chars[b10%64]+b64
+        b10 //= 64
+    return b64
+
+def decode_b64(b64:str) -> int:
+    b10 = 0
+    for i in range(len(b64)):
+        b10 += base64chars.index(b64[i])*(64**(len(b64)-i-1))
+    return b10
+
 async def get_last_update(git_branch:str) -> LastUpdate:
 	async with open(f'.git/refs/heads/{git_branch}','r') as f:
 		git_hash = (await f.read()).strip()
@@ -81,3 +96,9 @@ async def get_last_update(git_branch:str) -> LastUpdate:
 			git_object = (await get_event_loop().run_in_executor(executor,lambda: decompress(git_data))).decode()
 			ts = int(git_object.split('\n')[2].split(' ')[3])
 	return LastUpdate(commit=git_hash[:7],commit_full=git_hash,timestamp=ts)
+
+class ArbitraryClass:
+	def __init__(self,**kwargs) -> None:
+		"""attr=value will be set"""
+		for k,v in kwargs.items():
+			setattr(self,k,v)

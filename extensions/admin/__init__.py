@@ -8,7 +8,7 @@ class ExtensionAdmin(Cog):
 
 	@slash_command(
 		name='purge',
-		descriptions='bulk delete messages from current channel',
+		description='bulk delete messages from current channel',
 		guild_only=True,default_member_permissions=Permissions(manage_messages=True),
 		options=[
 			Option(int,name='amount',description='amount of messages to delete',required=True)])

@@ -33,14 +33,14 @@ class MongoDatabase:
 	def inf(self) -> Inf:
 		return Inf
 
-	async def user(self,_id:int|str,use_cache:bool=True) -> User|None:
+	async def user(self,_id:int|str,ignore_cache:bool=False) -> User|None:
 		"""user documents"""
-		return await User.find_one({'_id': _id},ignore_cache=not use_cache)
+		return await User.find_one({'_id': _id},ignore_cache=ignore_cache)
 
-	async def guild(self,_id:int|str,use_cache:bool=True) -> Guild|None:
+	async def guild(self,_id:int|str,ignore_cache:bool=False) -> Guild|None:
 		"""guild documents"""
-		return await Guild.find_one({'_id': _id},ignore_cache=not use_cache)
+		return await Guild.find_one({'_id': _id},ignore_cache=ignore_cache)
 
-	async def auto_response(self,_id:int|str,use_cache:bool=True) -> AutoResponse|None:
+	async def auto_response(self,_id:int|str,ignore_cache:bool=False) -> AutoResponse|None:
 		"""auto response documents"""
-		return await AutoResponse.find_one({'_id': _id},ignore_cache=not use_cache)
+		return await AutoResponse.find_one({'_id': _id},ignore_cache=ignore_cache)

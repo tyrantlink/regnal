@@ -1,0 +1,27 @@
+[config]
+dev_bypass = true # bot owner bypasses all permission checks
+base_guilds = [] # additional guilds that small are allowed in (e.g. emote server)
+git_branch = 'master' # git branch to pull from
+github_secret = '' # github webhook secret
+
+[webhooks]
+support = '' # forum channel where issues and suggestions are sent
+support_issue_tag = 0 # tag id for issues
+support_suggestion_tag = 0 # tag id for suggestions
+updates = '' # announcement channel where updates and change-logs are sent
+errors = '' # error channel where errors are sent
+
+[env]
+saucenao_key = '' # saucenao api key
+
+[mongo]
+uri = 'mongodb://localhost:27017'
+
+[api]
+url = 'https://localhost:8080' # crapi backend server
+token = ''
+
+[parseable]
+base_url = 'https://logs.regn.al/api/v1/logstream' # parseable logstream uri
+token = '' # parseable auth token
+logstream = 'dev1'

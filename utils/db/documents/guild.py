@@ -15,12 +15,11 @@ class Guild(Document):
 
 	class GuildConfig(BaseModel):
 		class GuildConfigGeneral(BaseModel):
-			hide_commands:TWBFMode = Field(TWBFMode.disabled,description='commands will only be visible to the user\n\neven disabled, some commands with sensitive information will still be hidden\n\ntrue: commands will always be hidden\nwhitelist: commands will be hidden in selected channels\nblacklist: commands will be hidden in all channels except selected channels\nfalse: commands will never be force hidden')
+			hide_commands:TWBFMode = Field(TWBFMode.false,description='commands will only be visible to the user\n\neven disabled, some commands with sensitive information will still be hidden\n\ntrue: commands will always be hidden\nwhitelist: commands will be hidden in selected channels\nblacklist: commands will be hidden in all channels except selected channels\nfalse: commands will never be force hidden')
 			embed_color:str = Field('69ff69',min_length=6,max_length=6,pattern=r'^[a-fA-F\d]{6}$',description='color used by embeds\n\nif not set, the default color will be used')
-			event_time:str = Field('09:00',min_length=5,max_length=5,pattern=r'^[0-2]\d:[0-5]\d$',description='time used by event command\n\nif not set, the default time will be used')
 
 		class GuildConfigAutoResponses(BaseModel):
-			mode:TWBFMode = Field(TWBFMode.enabled,description='enable/disable auto responses\n\ntrue: auto responses enabled in all channels\nwhitelist: auto responses enabled in selected channels\nblacklist: auto responses disabled in selected channels\nfalse: auto responses disabled in all channels')
+			enabled:TWBFMode = Field(TWBFMode.true,description='enable/disable auto responses\n\ntrue: auto responses enabled in all channels\nwhitelist: auto responses enabled in selected channels\nblacklist: auto responses disabled in selected channels\nfalse: auto responses disabled in all channels')
 			cooldown:int = Field(0,ge=0,description='cooldown between auto responses in seconds')
 			cooldown_mode:AUCooldownMode = Field(AUCooldownMode.channel,description='cooldown mode\n\nnone: no cooldown\nuser: cooldown per user\nchannel: cooldown per channel\nguild: cooldown server-wide')
 			allow_cross_guild_responses:bool = Field(False,description='allow custom auto responses from other guilds to be used (using the --au argument)\n\nvery, very dangerous permission, allows users to send arbitrary auto responses\nuse at your own risk.')
@@ -36,10 +35,14 @@ class Guild(Document):
 			member_leave:bool = Field(False,description='enable/disable logging of member leaves')
 			member_ban:bool = Field(False,description='enable/disable logging of member bans')
 			member_unban:bool = Field(False,description='enable/disable logging of member unbans')
+		
+		class GuildConfigPermissions(BaseModel):
+			advanced:bool = Field(False,description='enable/disable the advanced permission system')
 
 		class GuildConfigQOTD(BaseModel):
 			enabled:bool = Field(False,description='enable/disable qotd\n\nif disabled, all qotd will be disabled')
-			channel:Optional[int] = Field(None,description='channel used for qotd\n\nquestions will be sent here at `{self.general.event_time}` (event time)')
+			channel:Optional[int] = Field(None)
+			time:str = Field('00:00',min_length=5,max_length=5,pattern=r'^\d{2}:\d{2}$',description='time of day to send qotd (UTC)\n\nformat: HH:MM')
 
 		class GuildConfigTTS(BaseModel):
 			enabled:bool = Field(True,description='allow tts to be used')
@@ -50,6 +53,7 @@ class Guild(Document):
 			enabled:bool = Field(False,description='daily random roll to give an active user a specific role\n\nmeant to give users send_messages permissions in a channel, but can be used for anything')
 			channel:Optional[int] = Field(None,description='channel used to announce the talking stick')
 			role:Optional[int] = Field(None,description='role given to the user')
+			time:str = Field('00:00',min_length=5,max_length=5,pattern=r'^\d{2}:\d{2}$',description='time of day to give new talking stick (UTC)\n\nformat: HH:MM')
 			limit:Optional[int] = Field(None,description='role that limits who can get the talking stick\n\nif not set, all users can get the talking stick')
 
 		class GuildConfigSauceNao(BaseModel):
@@ -58,6 +62,7 @@ class Guild(Document):
 		general:GuildConfigGeneral = Field(description='general options')
 		auto_responses:GuildConfigAutoResponses = Field(description='auto response options')
 		logging:GuildConfigLogging = Field(description='logging options')
+		permissions:GuildConfigPermissions = Field(description='advanced permission options')
 		qotd:GuildConfigQOTD = Field(description='qotd options')
 		tts:GuildConfigTTS = Field(description='text-to-speech options')
 		talking_stick:GuildConfigTalkingStick = Field(description='talking stick options')
@@ -99,11 +104,12 @@ class Guild(Document):
 			tts:int = Field(0,ge=0,description='total tts characters used')
 
 		activity:dict[str,dict[str,int]] = Field({},max_length=30,description='activity data for at most last 30 days\n\nformat {day:{user_id:count}}')
-		qotd:GuildDataQOTD = Field(description='qotd data')
-		talking_stick:GuildDataTalkingStick = Field(description='talking stick data')
 		auto_responses:GuildDataAutoResponses = Field(description='auto response data')
-		hide_commands:GuildDataHideCommands = Field(description='hide commands data')
+		permissions:dict[str,list[str]] = Field({'@everyone':[]},description='permissions for user/roles\n\nformat {id:[permission1,...]}')
+		qotd:GuildDataQOTD = Field(description='qotd data')
 		tts:GuildDataTTS = Field(description='text-to-speech data')
+		talking_stick:GuildDataTalkingStick = Field(description='talking stick data')
+		hide_commands:GuildDataHideCommands = Field(description='hide commands data')
 		statistics:GuildDataStatistics = Field(description='guild statistics')
 		flags:int = Field(0,description='flags the guild has')
 		extra:dict[str,Any] = Field({},description='extra data')

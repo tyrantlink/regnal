@@ -1,0 +1,1 @@
+from .configure_channels import ConfigChannelsView

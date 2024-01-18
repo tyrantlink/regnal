@@ -15,10 +15,10 @@ class ClientHelpers:
 		if ctx.guild:
 			guild = await self.db.guild(ctx.guild_id)
 			match guild.config.general.hide_commands:
-				case TWBFMode.enabled: return True
+				case TWBFMode.true: return True
 				case TWBFMode.whitelist if ctx.channel_id in guild.data.hide_commands.whitelist: return True
 				case TWBFMode.blacklist if ctx.channel_id not in guild.data.hide_commands.blacklist: return True
-				case TWBFMode.disabled: pass
+				case TWBFMode.false: pass
 		return (await self.db.user(ctx.user.id)).config.general.hide_commands
 
 	async def error_response(self,ctx:ApplicationContext|Interaction,error:str,description:str=None) -> None:
