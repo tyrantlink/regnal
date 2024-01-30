@@ -11,7 +11,7 @@ class ApiView(View):
 		self.user = user
 		self.embed = Embed(title='api',description='i\'ll put something here eventually, for now it\'s just a token reset portal\nhttps://api.regn.al/docs',color=0x69ff69)
 		self.add_item(self.button_reset_token)
-	
+
 	@button(label='reset token',style=4)
 	async def button_reset_token(self,_,interaction:Interaction) -> None:
 		assert self.user.id == interaction.user.id

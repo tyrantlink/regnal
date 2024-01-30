@@ -11,7 +11,7 @@ class BaseCommands(Cog):
 		description='pong')
 	async def slash_ping(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(f'pong! {round(self.client.latency*100,1)}ms',ephemeral=await self.client.helpers.ephemeral(ctx))
-	
+
 	@slash_command(
 		name='donate',
 		description='pls donate am broke')
@@ -23,7 +23,7 @@ class BaseCommands(Cog):
 		embed.add_field(name='github sponsors',value='https://github.com/sponsors/tyrantlink',inline=False)
 		embed.add_field(name='monero (XMR)',value='`899YLWhurE1d4rMnNEbLUChXvRtQ6uiwbUCwEcy9gdSaDgJkHE5EWQPT31YKrATtcoRVUa1regt4mKLhhEhi38Kh1WjVNuz`',inline=False)
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
-	
+
 	@slash_command(
 		name='stats',
 		description='get /reg/nal\'s session stats')

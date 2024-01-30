@@ -112,7 +112,7 @@ class AutoResponses:
 			await sleep(1)
 			await message.remove_reaction('❌',self.client.user)
 		except (HTTPException,Forbidden): pass
-	
+
 	def random_choice(self,pool:list[tuple[Any,int|None]]) -> Any:
 		choices,weights = zip(*pool)
 		if None in weights: # auto balance None values

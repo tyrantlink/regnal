@@ -7,7 +7,7 @@ from io import BytesIO
 class ExtensionCryptography(Cog):
 	def __init__(self,client:Client) -> None:
 		self.client = client
-	
+
 	@message_command(
 		name='QR Code')
 	async def message_qr_code(self,ctx:ApplicationContext,message:Message) -> None:

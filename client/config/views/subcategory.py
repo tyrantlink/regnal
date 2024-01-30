@@ -18,7 +18,7 @@ class ConfigSubcategoryView(SubView):
 		self.config_subcategory = config_subcategory
 		self.user = user
 		self.generate_embed()
-	
+
 	async def __ainit__(self) -> None:
 		self.add_item(self.back_button)
 		self.add_item(self.option_select)
@@ -53,8 +53,8 @@ class ConfigSubcategoryView(SubView):
 		self.get_item('option_select').options = [SelectOption(label='None')]
 		self.get_item('option_select').placeholder = 'no access'
 		self.get_item('option_select').disabled = True
-		
-	
+
+
 	async def __on_back__(self) -> None:
 		self.generate_embed()
 		self.clear_items()
@@ -69,7 +69,7 @@ class ConfigSubcategoryView(SubView):
 			case 'dev': self.embed.set_author(name=self.client.user.display_name,icon_url=self.client.user.avatar.url)
 			case _: raise ValueError('improper config category name')
 		self.embed.set_footer(text=f'config.{self.config_category.name}.{self.config_subcategory.name}')
-	
+
 	@string_select(
 		placeholder='select an option',
 		custom_id='option_select')

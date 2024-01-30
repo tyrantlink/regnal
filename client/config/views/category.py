@@ -27,7 +27,7 @@ class ConfigCategoryView(SubView):
 				not self.master.client.permissions.matcher(f'{subcategory.name}*',user_permissions)
 			):
 				options.append(SelectOption(label=subcategory.name,description=subcategory.description))
-					
+
 		if options:
 			self.get_item('subcategory_select').options = options
 			return
@@ -52,7 +52,7 @@ class ConfigCategoryView(SubView):
 		custom_id='subcategory_select')
 	async def subcategory_select(self,select:Select,interaction:Interaction) -> None:
 		subcategory = self.config_category[select.values[0]]
-	
+
 		view = self.master.create_subview(ConfigSubcategoryView,self.config_category,subcategory,self.user)
 		await view.__ainit__()
 		await interaction.response.edit_message(view=view,embed=view.embed)

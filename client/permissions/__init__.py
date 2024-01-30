@@ -1,4 +1,4 @@
-from .base import register_permissions as register_base_permissions
+from .base import register_permissions as register_base_permissions # imported here for client to import
 if not 'TYPE_HINT': from client import Client
 from discord import Member,Guild
 from typing import Iterable
@@ -12,13 +12,13 @@ class PermissionHandler:
 	def register_permission(self,permission:str) -> None:
 		self.permissions.add(permission)
 		self.client.log.debug(f'registered permission {permission}')
-	
+
 	def unregister_permission(self,permission:str) -> None:
 		try:
 			self.permissions.remove(permission)
 			self.client.log.debug(f'unregistered permission {permission}')
 		except KeyError: pass
-	
+
 	def matcher(self,pattern:str,check:Iterable[str]=None) -> set[str]:
 		check = check or self.permissions
 		pattern = pattern.replace('.','\.').replace('*','.*')
@@ -30,8 +30,8 @@ class PermissionHandler:
 		if str(user.id) in guild_patterns: user_roles.add(str(user.id))
 		user_patterns = {p for s in [guild_patterns.get(r,[]) for r in user_roles] for p in s}
 		user_permissions = {p for s in [self.matcher(pattern) for pattern in user_patterns] for p in s}
-		
+
 		return user_permissions
-	
+
 	async def check(self,pattern:str,user:Member,guild:Guild) -> bool:
 		return bool(self.matcher(pattern,await self.user(user,guild)))

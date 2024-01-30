@@ -33,7 +33,7 @@ class ExtensionDev(Cog):
 		])
 		await ctx.response.send_modal(modal)
 		await modal.wait()
-		
+
 		title,description = modal.children[0].value,modal.children[1].value
 		embed = Embed(title=title,description=description,color=await self.client.helpers.embed_color(ctx.guild_id))
 		embed.set_author(name=ctx.author.name,icon_url=ctx.author.avatar.url)
@@ -44,9 +44,9 @@ class ExtensionDev(Cog):
 				avatar_url=self.client.user.avatar.url,
 				embed=embed,thread_name=title if len(title) < 100 else f'{title[:97]}...',
 				applied_tags=[])
-		
+
 		await modal.interaction.response.send_message(data.thank_you_message,ephemeral=True)
-	
+
 	@slash_command(
 		name='suggest',
 		description='suggest a feature!')
@@ -56,8 +56,8 @@ class ExtensionDev(Cog):
 			modal_title_placeholder='feature title',
 			modal_description_placeholder='feature description',
 			thank_you_message='thank you for your suggestion!',
-			tag=1197133842008526848))
-	
+			tag=self.client.project.webhooks.support_suggestion_tag))
+
 	@slash_command(
 		name='issue',
 		description='report an issue!')
@@ -67,8 +67,8 @@ class ExtensionDev(Cog):
 			modal_title_placeholder='issue title',
 			modal_description_placeholder='issue description',
 			thank_you_message='thank you for your report!',
-			tag=1197133854595620915))
-	
+			tag=self.client.project.webhooks.support_issue_tag))
+
 	@slash_command(
 		name='get_data',
 		description='get all the data that is stored about you')
@@ -78,7 +78,7 @@ class ExtensionDev(Cog):
 			await ctx.response.send_message(file=File(StringIO(user_data),f'user{ctx.author.id}.json'),ephemeral=True)
 			return
 		await ctx.response.send_message(f'```json\n{user_data}\n```',ephemeral=True)
-	
+
 	@slash_command(
 		name='api',
 		description='utilize the api!')

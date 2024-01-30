@@ -48,11 +48,11 @@ class ExtensionFun(Cog):
 			value=f'''seen messages: {sum(doc.data.statistics.messages.values())}
 								tts characters used: {doc.data.statistics.tts_usage}
 								api calls made: {doc.data.statistics.api_usage}'''.replace('\t',''))
-		
+
 		if not doc.data.auto_responses.found:
 			await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
 			return
-		
+
 		found_description = []
 		user_found = set(doc.data.auto_responses.found)
 
@@ -70,11 +70,11 @@ class ExtensionFun(Cog):
 			found_description.append(f'unique: {len(unique_found)}')
 		if custom_found:=(user_found & set([c.id for c in self.client.au.au.custom(ctx.guild.id)])):
 			found_description.append(f'custom: {len(custom_found)}')
-		
+
 		embed.add_field(name='auto responses found',value='\n'.join(found_description))
-		
+
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
-	
+
 	@slash_command(
 		name='hello',
 		description='say hello to /reg/nal?')
@@ -154,7 +154,7 @@ class ExtensionFun(Cog):
 				description='\n'.join([f'{l}: {c}' for l,c in zip(['R','G','B'],colors)]),
 				color=int(colors_hex,16)),
 			ephemeral=await self.client.helpers.embed_color(ctx))
-		
+
 	@slash_command(
 		name='random_user',guild_only=True,
 		description='get random user with role',

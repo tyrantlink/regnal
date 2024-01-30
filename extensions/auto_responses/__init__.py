@@ -103,7 +103,7 @@ class ExtensionAutoResponses(Cog):
 			async with message.channel.typing():
 				await sleep(followup.delay)
 				await message.channel.send(followup.response)
-	
+
 	@slash_command(
 			name='auto_responses',
 			description='browse auto responses you\'ve found',

@@ -1,4 +1,5 @@
 from discord import Embed,Message,Member
+from datetime import datetime
 from time import time
 
 
@@ -12,10 +13,10 @@ class EditLogEmbed(Embed):
 			name=f'ORIGINAL <t:{int((after.edited_at or after.created_at).timestamp())}:t>',inline=False,
 			value=(before.content or '`no content`') if before is not None else '`original message not in cache; may be too old`')
 		self.add_field(
-			name=f'EDITED <t:{int(after.edited_at.timestamp())}:t>',
+			name=f'EDITED <t:{int((after.edited_at or datetime.now()).timestamp())}:t>',
 			value=after.content or '`no content`',inline=False)
 		self.set_footer(text=f'message: {after.id}\nauthor: {after.author.id}')
-	
+
 class DeleteLogEmbedFromID(Embed):
 	def __init__(self,message_id:int,channel_id:int,guild_id:int,author:Member=None,deleter:Member=None) -> None:
 		super().__init__()

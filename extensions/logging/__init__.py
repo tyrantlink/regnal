@@ -11,11 +11,6 @@ from .embeds import EditLogEmbed,DeleteLogEmbedFromMessage,DeleteLogEmbedFromID
 from .config import register_config
 
 
-
-
-
-
-
 class ExtensionLogging(Cog):
 	def __init__(self,client:Client) -> None:
 		self.client = client
@@ -35,7 +30,8 @@ class ExtensionLogging(Cog):
 		message = self.client.get_message(data.get('id')) or await _channel.fetch_message(data.get('id'))
 		if message is None: return None
 		message.content = data.get('content')
-		message._edited_timestamp = datetime.fromisoformat(data.get('edited_timestamp'))
+		ts = data.get('edited_timestamp')
+		message._edited_timestamp = datetime.fromisoformat(ts) if ts is not None else None
 		return message
 
 	async def find_deleter_from_message(self,message:Message) -> Member:

@@ -11,7 +11,7 @@ class Config:
 		self.data = ConfigData()
 		self.client.add_application_command(self.slash_config)
 		self._stupid_slash_command_compat()
-	
+
 	def register_option(self,category:str,subcategory:str,option:ConfigOption,register_permission:bool=True) -> None:
 		if any((option.name == o.name for o in self.data[category][subcategory].options)):
 			raise ValueError(f'option with name `{option.name}` already registered in subcategory `{subcategory}`')
@@ -19,7 +19,7 @@ class Config:
 		self.client.log.debug(f'registered config option {category}.{subcategory}.{option.name}')
 		if not (category == 'guild' and register_permission): return
 		self.client.permissions.register_permission(f'{subcategory}.{option.name}')
-	
+
 	def unregister_option(self,category:str,subcategory:str,option:str) -> None:
 		option_data = next((o for o in self.data[category][subcategory].options if o.name == option),None)
 		if option_data is None:
@@ -28,7 +28,7 @@ class Config:
 		self.client.log.debug(f'unregistered config option {category}.{subcategory}.{option}')
 		if category != 'guild': return
 		self.client.permissions.unregister_permission(f'{subcategory}.{option}')
-	
+
 	def register_subcategory(self,category:str,subcategory:ConfigSubcategory,register_permission:bool=True) -> None:
 		if any((subcategory.name == s.name for s in self.data[category].subcategories)):
 			raise ValueError(f'subcategory with name `{subcategory.name}` already registered in category `{category}`')
@@ -37,7 +37,7 @@ class Config:
 		if not (category == 'guild' and register_permission): return
 		self.client.permissions.register_permission(subcategory.name)
 		self.client.log.debug(f'registered permission {subcategory.name}')
-	
+
 	def unregister_subcategory(self,category:str,subcategory:str) -> None:
 		subcategory_data = next((s for s in self.data[category].subcategories if s.name == subcategory),None)
 		if subcategory_data is None:

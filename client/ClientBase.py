@@ -15,6 +15,7 @@ from .Helper import ClientHelpers
 from datetime import datetime
 from utils.log import Logger
 from config import DEV_MODE
+from pytz import timezone
 from io import StringIO
 from .api import CrAPI
 
@@ -58,7 +59,8 @@ class ClientBase:
 		await self._owner_init()
 		shards = f' with {self.shard_count} shard{"s" if self.shard_count != 1 else ""}' if self.shard_count is not None else ''
 		self.log.info(f'{self.user.name} connected to discord in {round(perf_counter()-self._st,2)} seconds{shards}')
-		self.update_presence.start()
+		if not self.update_presence.is_running():
+			self.update_presence.start()
 
 	async def on_ready(self) -> None:
 		self.log.info(f'{self.user.name} ready in {round(perf_counter()-self._st,2)} seconds')
@@ -164,8 +166,12 @@ class ClientBase:
 		if str(message.guild.id) not in user.data.statistics.messages.keys():
 			user.data.statistics.messages[str(message.guild.id)] = 0
 		user.data.statistics.messages[str(message.guild.id)] += 1
+		# bots aren't counted in activity stats
+		if message.author.bot:
+			await user.save_changes()
+			return
 		# increment guild activity stats
-		day = str(datetime.utcnow().timetuple().tm_yday)
+		day = str(guild.get_current_day())
 		# check if day is in activity dict
 		if day not in guild.data.activity.keys():
 			guild.data.activity[day] = {}

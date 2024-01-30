@@ -12,7 +12,7 @@ def register_config(config:'Config') -> None:
 		name='auto_responses',type=OptionType.BOOL,default=True,
 		short_description='configure auto responses',
 		description= '''enable auto responses in chat'''.replace('\t','')))
-	
+
 	config.register_subcategory('guild',ConfigSubcategory(
 		name='auto_responses',description='auto response options',
 		additional_views=[
@@ -26,7 +26,7 @@ def register_config(config:'Config') -> None:
 				button_row=0,
 				button_id='override_auto_responses',
 				view=AutoResponseOverridesView)]))
-	
+
 	config.register_option('guild','auto_responses',ConfigOption(
 		name='enabled',type=OptionType.TWBF,default=TWBFMode.true,
 		short_description='enable/disable auto responses',
@@ -59,5 +59,4 @@ def register_config(config:'Config') -> None:
 		description= '''allow custom auto responses from other guilds to be used (using the --au argument)
 										very, very dangerous permission, allows users to send arbitrary auto responses
 										use at your own risk.'''.replace('\t','')))
-	
-	
+
