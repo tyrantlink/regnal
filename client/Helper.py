@@ -1,28 +1,38 @@
 from discord import ApplicationContext,Interaction,Embed
 from utils.db.documents.ext.enums import TWBFMode
+if not 'TYPE_HINT': from client import Client
 from utils.db import MongoDatabase
+from regex import sub,finditer,UNICODE,sub
 
 
 class ClientHelpers:
-	def __init__(self,db:MongoDatabase) -> None:
-		self.db = db
+	def __init__(self,client:'Client') -> None:
+		self.client = client
+		self._cmd_ref_pattern = r'{cmd_ref\[([ -_\p{L}\p{N}]{1,32})\]}'
+		self.commands = {
+			command.qualified_name:command.qualified_id for command in self.client.walk_application_commands()}
+
 
 	async def embed_color(self,guild_id:int=None) -> int:
 		if guild_id is None: return int('69ff69',16)
-		else: return int((await self.db.guild(guild_id)).config.general.embed_color,16)
+		else: return int((await self.client.db.guild(guild_id)).config.general.embed_color,16)
 
 	async def ephemeral(self,ctx:ApplicationContext|Interaction) -> bool:
 		if ctx.guild:
-			guild = await self.db.guild(ctx.guild_id)
+			guild = await self.client.db.guild(ctx.guild_id)
 			match guild.config.general.hide_commands:
 				case TWBFMode.true: return True
 				case TWBFMode.whitelist if ctx.channel_id in guild.data.hide_commands.whitelist: return True
 				case TWBFMode.blacklist if ctx.channel_id not in guild.data.hide_commands.blacklist: return True
 				case TWBFMode.false: pass
-		return (await self.db.user(ctx.user.id)).config.general.hide_commands
-
-	async def error_response(self,ctx:ApplicationContext|Interaction,error:str,description:str=None) -> None:
-		await ctx.send(embed=Embed(
-				title='PERMISSION ERROR',
-				description='i am missing either `Manage Messages` or `Read Message History`\nbe sure to check both my integration role and channel overrides',color=0xff6969),
-			ephemeral=await self.client.hide(ctx))
+		return (await self.client.db.user(ctx.user.id)).config.general.hide_commands
+	
+	def handle_cmd_ref(self,message:str) -> str:
+		for match in finditer(pattern=self._cmd_ref_pattern,string=message,flags=UNICODE):
+			message = sub(
+				pattern=self._cmd_ref_pattern,
+				repl=f'</{match.group(1)}:{self.commands.get(match.group(1),"command not found")}>',
+				string=message,
+				count=1,
+				flags=UNICODE)
+		return message

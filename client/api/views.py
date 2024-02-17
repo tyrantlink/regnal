@@ -1,11 +1,11 @@
+if not 'TYPE_HINT': from client import Client
 from discord import Interaction,User,Embed
-from utils.atomic_view import View
+from utils.pycord_classes import View
 from discord.ui import button
-from client import Client
 
 
 class ApiView(View):
-	def __init__(self,client:Client,user:User,**kwargs) -> None:
+	def __init__(self,client:'Client',user:User,**kwargs) -> None:
 		super().__init__(**kwargs)
 		self.client = client
 		self.user = user

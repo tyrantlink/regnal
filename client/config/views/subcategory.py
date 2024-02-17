@@ -1,7 +1,7 @@
 from discord import Interaction,SelectOption,User,Member,Embed
-from ..models import ConfigCategory,ConfigSubcategory
+from ..models import ConfigCategory,ConfigSubcategory,OptionType
 from utils.db.documents.ext.flags import UserFlags
-from utils.atomic_view import SubView,MasterView
+from utils.pycord_classes import SubView,MasterView
 from discord.ui import string_select,Select
 from .option import ConfigOptionView
 
@@ -44,7 +44,13 @@ class ConfigSubcategoryView(SubView):
 				f'{self.config_subcategory.name}.{option.name}' in user_permissions
 			):
 				options.append(SelectOption(label=option.name,description=option.short_description))
-			self.embed.add_field(name=option.name,value=str(getattr(current_config,option.name)))
+			value = str(getattr(current_config,option.name))
+			match option.type:
+				case OptionType.CHANNEL: value = f'<#{value}>'
+				case OptionType.ROLE: value = f'<@&{value}>'
+				case OptionType.USER: value = f'<@{value}>'
+				case _: pass
+			self.embed.add_field(name=option.name,value=value)
 
 		if options:
 			self.get_item('option_select').options = options

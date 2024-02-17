@@ -1,4 +1,4 @@
-from utils.atomic_view import SubView
+from utils.pycord_classes import SubView
 
 
 class AutoResponseOverridesView(SubView):

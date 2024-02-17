@@ -3,6 +3,8 @@ dev_bypass = true # bot owner bypasses all permission checks
 base_guilds = [] # additional guilds that small are allowed in (e.g. emote server)
 git_branch = 'master' # git branch to pull from
 github_secret = '' # github webhook secret
+base_version = [0,0,0] # base version to start with when counting commits
+start_commit = '' # commit to start counting from
 
 [webhooks]
 support = '' # forum channel where issues and suggestions are sent

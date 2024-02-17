@@ -33,7 +33,7 @@ class DeleteLogEmbedFromID(Embed):
 class DeleteLogEmbedFromMessage(Embed):
 	def __init__(self,message:Message,deleter:Member) -> None:
 		super().__init__()
-		self.description = f'''a [message](<{message.jump_url}>) by {
+		self.description = f'''a message by {
 			message.author.mention} was deleted in {message.channel.mention} by {deleter.mention}'''
 		self.color = 0xff6969
 		self.set_author(name=message.author.name,icon_url=message.author.avatar.url)

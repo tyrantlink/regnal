@@ -1,6 +1,6 @@
 from discord import Interaction,SelectOption,User,Member,Embed
 from utils.db.documents.ext.flags import UserFlags
-from utils.atomic_view import SubView,MasterView
+from utils.pycord_classes import SubView,MasterView
 from .subcategory import ConfigSubcategoryView
 from discord.ui import string_select,Select
 from ..models import ConfigCategory

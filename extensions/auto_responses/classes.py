@@ -17,27 +17,24 @@ class ArgParser:
 		self.au:int|None  = None
 		self.force:bool   = False
 		self.message:str  = None
-		self.get_id:bool  = False
 		self.parse(message)
 
 	def __bool__(self) -> bool:
 		return (self.delete is True or
 						self.alt is not None or
 						self.au is not None or
-						self.force is True or
-						self.get_id is True)
+						self.force is True)
 
 	def parse(self,message:str) -> None:
 		for loop in range(25):
-			s = search(r'(.*)(?:^|\s)((?:--delete|-d)|(?:--alt|-l) \d+|(?:--au|-a) (?:b|c|u|m|p|g)\d+|(?:--force|-f)|(?:--get-id|-i))$',message,IGNORECASE)
+			s = search(r'(.*)(?:^|\s)((?:--delete|-d)|(?:--force-index|-i) \d+|(?:--au|-a) (?:b|c|u|m|p|g)\d+|(?:--force|-f))$',message,IGNORECASE)
 			if s is None: break
 			message = s.group(1)
 			match s.group(2).split(' '):
 				case ['--delete']|['-d']: self.delete = True
-				case ['--alt',a]|['-l',a]: self.alt = int(a)
+				case ['--force-index',a]|['-i',a]: self.alt = int(a)
 				case ['--au',a]|['-a',a]: self.au = a
 				case ['--force']|['-f']: self.force = True
-				case ['--get-id']|['-i']: self.get_id = True
 				case _: continue
 		self.message = message
 

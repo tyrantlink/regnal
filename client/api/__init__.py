@@ -1,12 +1,18 @@
+if not 'TYPE_HINT': from client import Client
 from aiohttp import ClientSession
 
 
-
 class CrAPI:
-	def __init__(self,base_url:str,token:str) -> None:
-		self.base_url = base_url
-		self.token = token
-		self.session = ClientSession(base_url,headers={'token':token})
+	def __init__(self,client:'Client') -> None:
+		self.client = client
+		self.base_url = self.client.project.api.url
+		self.token = self.client.project.api.token
+		self.session = ClientSession(self.base_url,headers={'token':self.token})
+		self._connected = False
+	
+	@property
+	def is_connected(self) -> bool:
+		return self._connected
 
 	async def connect(self) -> None:
 		... # do this when the gateway exists in crapi

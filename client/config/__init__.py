@@ -2,7 +2,7 @@ from .models import ConfigData,ConfigOption,ConfigSubcategory
 from .base import register_config as register_base_config
 from discord import slash_command,ApplicationContext
 if not 'TYPE_HINT': from client import Client
-from utils.atomic_view import MasterView
+from utils.pycord_classes import MasterView
 from .views import ConfigHomeView
 
 class Config:

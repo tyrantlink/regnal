@@ -1,12 +1,11 @@
 from ..models import ConfigCategory,ConfigSubcategory,ConfigOption,OptionType
 from discord import User,Member,Embed,Button,ButtonStyle,Interaction,Role
 from ..errors import ConfigValidationError,ConfigValidationWarning
-from utils.atomic_view import SubView,MasterView,CustomModal
+from utils.pycord_classes import SubView,MasterView,CustomModal
 from utils.db.documents.ext.enums import TWBFMode
 from discord.ui import button,InputText
 from discord.abc import GuildChannel
 from re import match,IGNORECASE
-from .enums import ValidOption
 from typing import Any
 
 
@@ -45,8 +44,9 @@ class ConfigOptionView(SubView):
 		embed_color = int((await self.client.db.guild(self.user.guild.id)).config.general.embed_color,16)
 		self.master.embed_color = embed_color
 		self.embed = Embed(
-			title=f'{self.option.name}',color=self.master.embed_color,
-			description=self.option.description)
+			title=f'{self.option.name}',color=self.master.embed_color)
+		if self.option.description:
+			self.embed.description = self.client.helpers.handle_cmd_ref(self.option.description)
 		match self.config_category.name:
 			case 'user': self.embed.set_author(name=self.user.display_name,icon_url=self.user.avatar.url)
 			case 'guild': self.embed.set_author(name=self.user.guild.name,icon_url=self.user.guild.icon.url)
@@ -115,13 +115,13 @@ class ConfigOptionView(SubView):
 	async def handle_user(self) -> None:
 		pass
 
-	async def validate_bool(self,value:bool) -> tuple[ValidOption,Any|tuple[str,Any]]:
+	async def validate_bool(self,value:bool) -> bool:
 		return value
 
-	async def validate_twbf(self,value:TWBFMode) -> tuple[ValidOption,Any|tuple[str,Any]]:
+	async def validate_twbf(self,value:TWBFMode) -> TWBFMode:
 		return value
 
-	async def validate_string(self,value:str) -> tuple[ValidOption,Any|tuple[str,Any]]:
+	async def validate_string(self,value:str) -> str:
 		if self.option.attrs.regex and not match(self.option.attrs.regex,value,IGNORECASE): raise ConfigValidationError(f'failed to match regex `{self.option.attrs.regex}`')
 		return value
 
@@ -135,18 +135,13 @@ class ConfigOptionView(SubView):
 		if self.option.attrs.min_value and value < self.option.attrs.min_value: raise ConfigValidationError(f'value cannot be less than `{self.option.attrs.min_value}`')
 		return value
 
-	async def validate_channel(self,value:GuildChannel) -> tuple[ValidOption,str]:
-		# if self.config_category.name == 'guild' and self.option.name == 'channel':
-		# 	match self.config_subcategory.name: #! remember to switch to option.attrs.validation for these
-		# 		case 'qotd': return await validate_qotd_channel(self.user,value)
-		# 		case 'tts'|'logging'|'talking_stick' if value.type != ChannelType.text:
-		# 			return (ValidOption.false,'channel must be a text channel')
+	async def validate_channel(self,value:GuildChannel) -> GuildChannel:
 		return value
 
-	async def validate_role(self,value:Role) -> tuple[ValidOption,str]:
+	async def validate_role(self,value:Role) -> Role:
 		return value
 
-	async def validate_user(self,value:Member) -> tuple[ValidOption,str]:
+	async def validate_user(self,value:Member) -> User|Member:
 		return value
 
 	async def write_config(self,value:Any) -> str|None:

@@ -4,15 +4,16 @@ if not 'TYPE_HINT': from extensions.auto_responses import AutoResponses
 from .permissions import PermissionHandler,register_base_permissions
 from utils.db import MongoDatabase,Guild as GuildDocument
 from .config import Config,register_base_config
-from utils.tyrantlib import get_last_update
 from traceback import format_exc,format_tb
 from utils.models import Project,BotType
+from utils.tyrantlib import get_version
 from time import perf_counter,time
 from discord.ext.tasks import loop
 from .commands import BaseCommands
 from aiohttp import ClientSession
 from .Helper import ClientHelpers
 from datetime import datetime
+from functools import partial
 from utils.log import Logger
 from config import DEV_MODE
 from pytz import timezone
@@ -26,14 +27,14 @@ class ClientBase:
 		self.project = project_data
 		self.db = MongoDatabase(self.project.mongo.uri)
 		self.log = Logger(self.project.parseable.base_url,self.project.bot.logstream,self.project.parseable.token)
-		self.helpers = ClientHelpers(self.db)
+		self.helpers = ClientHelpers(self)
 		self.au:AutoResponses = None # set by auto responses extension
-		self.api = CrAPI(self.project.api.url,self.project.api.token)
+		self.api = CrAPI(self)
 		self.config = Config(self)
 		self.permissions = PermissionHandler(self)
 		register_base_config(self.config)
 		register_base_permissions(self.permissions)
-		self.uptime = -1
+		self.last_update_hour = -1
 		self.add_cog(BaseCommands(self))
 		self._initialized = False
 
@@ -41,7 +42,10 @@ class ClientBase:
 		await self.db.connect()
 		await self.api.connect()
 		await self.log.logstream_init()
-		self.last_update = await get_last_update(self.project.config.git_branch)
+		self.version = await get_version(
+			self.project.config.git_branch,
+			self.project.config.start_commit,
+			self.project.config.base_version)
 		self._initialized = True
 
 	async def start(self) -> None:
@@ -81,7 +85,7 @@ class ClientBase:
 		embed = Embed(title='an error has occurred!',description='the issue has been automatically reported and should be fixed soon.',color=0xff6969)
 		embed.add_field(name='error',value=str(error))
 
-		# await ctx.respond(embed=embed,ephemeral=True)
+		await ctx.respond(embed=embed,ephemeral=True)
 
 		traceback = "".join(format_tb(error.original.__traceback__))
 		if DEV_MODE: print(traceback)
@@ -188,9 +192,9 @@ class ClientBase:
 	#! Tasks
 	@loop(minutes=1)
 	async def update_presence(self) -> None:
-		if (new:=round((time()-self.last_update.timestamp)/3600)) != self.uptime:
-			self.uptime = new
-			status = f'last update: {self.uptime} hours ago' if self.uptime else 'last update: just now'
+		if (new:=round((time()-self.version.timestamp)/3600)) != self.last_update_hour:
+			self.last_update_hour = new
+			status = f'last update: {self.last_update_hour} hours ago' if self.last_update_hour else 'last update: just now'
 			await self.change_presence(activity=Activity(
 				type=ActivityType.custom,name='a',state=status))
 			self.log.debug(f'updated status to "{status}"')

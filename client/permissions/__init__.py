@@ -14,10 +14,8 @@ class PermissionHandler:
 		self.client.log.debug(f'registered permission {permission}')
 
 	def unregister_permission(self,permission:str) -> None:
-		try:
-			self.permissions.remove(permission)
-			self.client.log.debug(f'unregistered permission {permission}')
-		except KeyError: pass
+		self.permissions.discard(permission)
+		self.client.log.debug(f'unregistered permission {permission}')
 
 	def matcher(self,pattern:str,check:Iterable[str]=None) -> set[str]:
 		check = check or self.permissions
