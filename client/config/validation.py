@@ -4,10 +4,10 @@ from .errors import ConfigValidationError
 from .models import ConfigOption
 from discord import User,Member
 
-#! all validation functions must be async and take the following arguments:
-#! client:Client,option:ConfigOption,value:str,user:User|Member
-#! they must return a tuple of (value:VALUE_TYPE,warning:str|None)
-#! if the value is invalid, raise ConfigValidationError
+#? all validation functions must be async and take the following arguments:
+#? client:Client,option:ConfigOption,value:str,user:User|Member
+#? they must return a tuple of (value:VALUE_TYPE,warning:str|None)
+#? if the value is invalid, raise ConfigValidationError
 
 async def user_general_no_track(client:'Client',option:ConfigOption,value:bool,user:User|Member) -> tuple[bool,str|None]:
 	if not value: return value,None

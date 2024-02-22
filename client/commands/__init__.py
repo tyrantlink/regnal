@@ -1,6 +1,8 @@
 from discord import Cog,slash_command,ApplicationContext,Embed
 from utils.tyrantlib import convert_time,format_bytes
 if not 'TYPE_HINT': from client import Client
+from utils.pycord_classes import MasterView
+from ..config.views import ConfigHomeView
 from time import time,perf_counter
 from ..api.views import ApiView
 from typing import NamedTuple
@@ -56,3 +58,15 @@ class BaseCommands(Cog):
 	async def slash_api(self,ctx:ApplicationContext) -> None:
 		view = ApiView(self.client,ctx.author)
 		await ctx.response.send_message(view=view,embed=view.embed,ephemeral=True)
+
+	@slash_command(
+		name='config',
+		description='set config')
+	async def slash_config(self,ctx:ApplicationContext) -> None:
+		mv = MasterView(self.client,await self.client.helpers.embed_color(ctx.guild_id))
+		view = mv.create_subview(ConfigHomeView,user=ctx.user)
+		await view.__ainit__()
+		await ctx.response.send_message(embed=view.embed,view=view,ephemeral=True)
+
+def setup(client:'Client') -> None:
+	client.add_cog(BaseCommands(client))

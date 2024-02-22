@@ -10,12 +10,14 @@ class ExtensionLoggingListeners(SubCog):
 		if payload.guild_id is None: return
 		log_channel = await self.get_logging_channel(payload.guild_id)
 		if log_channel is None: return
-		if not (await self.client.db.guild(payload.guild_id)).config.logging.edited_messages: return
+		guild_doc = await self.client.db.guild(payload.guild_id)
+		if not guild_doc.config.logging.edited_messages: return
 		if payload.data.get('author',None) is None: return
 		if int(payload.data['author']['id']) == self.client.user.id: return
-		before = payload.cached_message
+		before = payload.cached_message or await self.client.get_channel(payload.channel_id).fetch_message(payload.message_id)
 		after = await self.from_raw_edit(payload.data)
 		if after is None: return
+		if after.author.bot and not guild_doc.config.logging.log_bots: return
 		if before is not None and before.content == after.content: return
 		await log_channel.send(
 			embed=EditLogEmbed(after,before),
@@ -27,10 +29,12 @@ class ExtensionLoggingListeners(SubCog):
 		if guild is None: return
 		log_channel = await self.get_logging_channel(payload.guild_id)
 		if log_channel is None: return
-		if not (await self.client.db.guild(payload.guild_id)).config.logging.deleted_messages: return
-
+		guild_doc = await self.client.db.guild(payload.guild_id)
+		if not guild_doc.config.logging.deleted_messages: return
+		if guild_doc.config.logging.pluralkit_support and await self.deleted_by_pk(payload.message_id): return
 		if payload.cached_message is not None:
 			if payload.cached_message.author.id == self.client.user.id: return
+			if payload.cached_message.author.bot and not guild_doc.config.logging.log_bots: return
 			deleter = await self.find_deleter_from_message(payload.cached_message)
 			await log_channel.send(
 				embed=DeleteLogEmbedFromMessage(payload.cached_message,deleter),
@@ -39,8 +43,9 @@ class ExtensionLoggingListeners(SubCog):
 
 		deleter,author = await self.find_deleter_from_id(payload.message_id,guild,payload.channel_id)
 		if author is not None and author.id == self.client.user.id: return
+		if author is not None and author.bot and not guild_doc.config.logging.log_bots: return
 		await log_channel.send(
-			embed=DeleteLogEmbedFromID(payload.message_id,payload.channel_id,payload.guild_id,author,deleter),
+			embed=DeleteLogEmbedFromID(payload.message_id,payload.channel_id,author,deleter),
 			view=DeletedLogView(self.client,False))
 
 	@Cog.listener()

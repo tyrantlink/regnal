@@ -6,7 +6,7 @@ class CrAPI:
 	def __init__(self,client:'Client') -> None:
 		self.client = client
 		self.base_url = self.client.project.api.url
-		self.token = self.client.project.api.token
+		self.token = self.client.project.bot.api_token
 		self.session = ClientSession(self.base_url,headers={'token':self.token})
 		self._connected = False
 	
@@ -23,7 +23,10 @@ class CrAPI:
 			case 200: pass
 			case 403: raise ValueError('invalid crapi token!')
 			case 422: raise ValueError('invalid au_id!')
-			case status: raise ValueError(f'unknown response code: {status}')
+			case status:
+				try: json = await request.json()
+				except Exception: json = {}
+				raise ValueError(f'unknown response code: {status} | {json.get("detail","")}')
 
 		return await request.json()
 

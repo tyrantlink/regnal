@@ -17,7 +17,11 @@ class ExtensionAutoResponsesLogic(SubCog):
 		guild = await self.client.db.guild(message.guild.id)
 		user = await self.client.db.user(message.author.id)
 		# find matching response
-		au = await self.client.au.get_response(message,args,guild.config.auto_responses.allow_cross_guild_responses)
+		au = await self.client.au.get_response(
+			message = message,
+			args = args,
+			overrides = guild.data.auto_responses.overrides,
+			cross_guild = guild.config.auto_responses.allow_cross_guild_responses)
 		# if no response found, return
 		if au is None: return
 		# format response based on type

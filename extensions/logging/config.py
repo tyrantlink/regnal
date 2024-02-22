@@ -137,3 +137,17 @@ def register_config(config:'Config') -> None:
 			short_description = 'enable/disable logging of member unbans',
 			description= '''enable/disable logging of member unbans
 									 '''.replace('\t','')[:-2]))
+	
+	config.register_option(
+		category = 'guild',
+		subcategory = 'logging',
+		option = ConfigOption(
+			name = 'pluralkit_support',
+			type = OptionType.BOOL,
+			default = False,
+			short_description = 'suppress messages deleted by pluralkit',
+			description= '''suppress messages deleted by pluralkit
+											warning: this will add a delay to deleted message logs, as it requires waiting for the pluralkit api
+											it probably won't catch all messages, as the api can sometimes go down, but it should catch most
+											do not use unless you have <@466378653216014359> in your server.
+									 '''.replace('\t','')[:-2]))

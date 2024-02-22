@@ -15,16 +15,12 @@ class ConfigHomeView(SubView):
 		options = [
 			SelectOption(label='user',description='user config')]
 
-		is_dev = self.user.id in self.master.client.owner_ids and self.master.client.project.config.dev_bypass
-		is_bot_admin = (await self.master.client.db.user(self.user.id)).data.flags & UserFlags.ADMIN
+		is_dev = self.user.id in self.client.owner_ids and self.client.project.config.dev_bypass
+		is_bot_admin = (await self.client.db.user(self.user.id)).data.flags & UserFlags.ADMIN
 
 		if getattr(self.user,'guild',None) is not None:
-			match (await self.master.client.db.guild(self.user.guild.id)).config.permissions.advanced:
-				case True: has_permission = bool(await self.master.client.permissions.user(self.user,self.user.guild))
-				case False: has_permission = self.user.guild_permissions.manage_guild
-				case _: raise ValueError('thAT\'S NOT HOW BOOLEANS WORK')
-
-			if has_permission:# or is_dev or is_bot_admin:
+			if (bool(await self.client.permissions.user(self.user,self.user.guild)) or
+			 		self.user.guild_permissions.manage_guild):
 				options.append(SelectOption(label='guild',description='guild config'))
 		if is_dev or is_bot_admin:
 			options.append(SelectOption(label='dev',description='dev config'))

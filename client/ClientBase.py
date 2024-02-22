@@ -2,8 +2,8 @@ from discord import Interaction,ApplicationContext,Embed,Webhook,File,Activity,A
 from discord.errors import CheckFailure,ApplicationCommandInvokeError,HTTPException
 if not 'TYPE_HINT': from extensions.auto_responses import AutoResponses
 from .permissions import PermissionHandler,register_base_permissions
+from .config.base import register_config as register_base_config
 from utils.db import MongoDatabase,Guild as GuildDocument
-from .config import Config,register_base_config
 from traceback import format_exc,format_tb
 from utils.models import Project,BotType
 from utils.tyrantlib import get_version
@@ -12,11 +12,9 @@ from discord.ext.tasks import loop
 from .commands import BaseCommands
 from aiohttp import ClientSession
 from .Helper import ClientHelpers
-from datetime import datetime
-from functools import partial
 from utils.log import Logger
 from config import DEV_MODE
-from pytz import timezone
+from .config import Config
 from io import StringIO
 from .api import CrAPI
 
@@ -35,7 +33,7 @@ class ClientBase:
 		register_base_config(self.config)
 		register_base_permissions(self.permissions)
 		self.last_update_hour = -1
-		self.add_cog(BaseCommands(self))
+		self.load_extension('client.commands') # have to load as extension because python ownership bullshit
 		self._initialized = False
 
 	async def initialize(self) -> None:
@@ -56,7 +54,7 @@ class ClientBase:
 	async def _owner_init(self) -> None:
 		app = await self.application_info()
 		self.owner_ids = {m.id for m in app.team.members} if app.team else {app.owner.id}
-		self.owner_id = list(self.owner_ids)[0] # set because Bot.owner_id is given, never used in practice
+		self.owner_id = list(self.owner_ids)[0] # set because Bot.owner_id is given
 
 	async def on_connect(self) -> None:
 		await self.sync_commands()
@@ -126,7 +124,7 @@ class ClientBase:
 		self.update_presence.cancel()
 		await super().close()
 
-	#! Events
+	#? Events
 	async def on_guild_join(self,guild:Guild) -> GuildDocument:
 		if self.project.bot.type == BotType.SMALL and guild.id not in [*self.project.config.base_guilds,*self.project.bot.guilds]:
 			try: await guild.leave()
@@ -189,7 +187,7 @@ class ClientBase:
 		await user.save_changes()
 		await guild.save_changes()
 
-	#! Tasks
+	#? Tasks
 	@loop(minutes=1)
 	async def update_presence(self) -> None:
 		if (new:=round((time()-self.version.timestamp)/3600)) != self.last_update_hour:

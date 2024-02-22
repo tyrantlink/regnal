@@ -14,4 +14,4 @@ class ExtensionTalkingStickTasks(SubCog):
 				guild_doc.config.general.timezone)).strftime('%H:%M') != guild_doc.config.talking_stick.time: continue
 
 			self.client.log.debug(f'rolling talking stick',guild.id)
-			if await self.roll_talking_stick(guild,guild_doc): break
+			await self.roll_talking_stick(guild,guild_doc)

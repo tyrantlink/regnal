@@ -18,11 +18,11 @@ class EditLogEmbed(Embed):
 		self.set_footer(text=f'message: {after.id}\nauthor: {after.author.id}')
 
 class DeleteLogEmbedFromID(Embed):
-	def __init__(self,message_id:int,channel_id:int,guild_id:int,author:Member=None,deleter:Member=None) -> None:
+	def __init__(self,message_id:int,channel_id:int,author:Member=None,deleter:Member=None) -> None:
 		super().__init__()
 		self.description = f'''an uncached message by {
-			author.mention if author is not None else "an unknown user"} was deleted by {
-			deleter.mention if deleter is not None else "an unknown user"}'''
+			author.mention if author is not None else "an unknown user"} was deleted in <#{
+				channel_id}> by {deleter.mention if deleter is not None else "an unknown user"}'''
 		self.color = 0xff6969
 		if author is not None: self.set_author(name=author.name,icon_url=author.avatar.url)
 		self.add_field(name=f'DELETED <t:{int(time())}:t>',value='`original message not in cache; may be too old`',inline=False)

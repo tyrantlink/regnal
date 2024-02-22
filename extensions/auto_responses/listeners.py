@@ -6,26 +6,6 @@ from asyncio import create_task
 from .classes import ArgParser
 
 
-REACTION_MAP = {
-	'b':'🇧',
-	'c':'🇨',
-	'u':'🇺',
-	'm':'🇲',
-	'p':'🇵',
-	'0':'0️⃣',
-	'1':'1️⃣',
-	'2':'2️⃣',
-	'3':'3️⃣',
-	'4':'4️⃣',
-	'5':'5️⃣',
-	'6':'6️⃣',
-	'7':'7️⃣',
-	'8':'8️⃣',
-	'9':'9️⃣'
-}
-
-
-
 class ExtensionAutoResponsesListeners(SubCog):
 	@Cog.listener()
 	async def on_connect(self) -> None:
@@ -46,12 +26,9 @@ class ExtensionAutoResponsesListeners(SubCog):
 		log = await self.client.db.log(message.id)
 		if log is None or (triggerer:=log.data.get('triggerer',None)) is None: return
 
-		match payload.emoji.name:
+		match payload.emoji.name: # match case because i might add more or smth idk
 			case '❌' if payload.user_id == triggerer or payload.member.guild_permissions.manage_messages:
 				await message.delete()
-			case '❓'|'❔': pass #? disabled for now as i think it looks like yucky doo doo
-				# for char in log.data.get('au',[]):
-				# 	await message.add_reaction(REACTION_MAP[char])
 			case _: raise ValueError(f'unknown reaction {payload.emoji.name}!')
 
 	@Cog.listener()
@@ -84,8 +61,8 @@ class ExtensionAutoResponsesListeners(SubCog):
 			# handle mode
 			match guild.config.auto_responses.enabled:
 				case TWBFMode.false: return
-				case TWBFMode.whitelist if channel.id not in guild.config.auto_responses.channels: return
-				case TWBFMode.blacklist if channel.id in guild.config.auto_responses.channels: return
+				case TWBFMode.whitelist if channel.id not in guild.data.auto_responses.whitelist: return
+				case TWBFMode.blacklist if channel.id in guild.data.auto_responses.blacklist: return
 				case TWBFMode.true|_: pass
 			# handle cooldown
 			match guild.config.auto_responses.cooldown_mode:

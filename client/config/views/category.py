@@ -17,16 +17,18 @@ class ConfigCategoryView(SubView):
 	async def __ainit__(self) -> None:
 		self.add_item(self.back_button)
 		options = []
-		user_permissions = await self.master.client.permissions.user(self.user,self.user.guild)
-		is_dev = self.user.id in self.master.client.owner_ids and self.master.client.project.config.dev_bypass
-		is_bot_admin = (await self.master.client.db.user(self.user.id)).data.flags & UserFlags.ADMIN
 
 		for subcategory in self.config_category.subcategories:
-			if (
-				(is_dev or is_bot_admin) or 
-				not self.master.client.permissions.matcher(f'{subcategory.name}*',user_permissions)
-			):
-				options.append(SelectOption(label=subcategory.name,description=subcategory.description))
+			match self.config_category.name:
+				case 'user':
+					pass
+				case 'guild' if await self.client.permissions.check(f'{subcategory.name}*',self.user,self.user.guild):
+					pass
+				case 'dev' if await self.client.permissions.check('dev',self.user,self.user.guild):
+					pass
+				case _: continue
+
+			options.append(SelectOption(label=subcategory.name,description=subcategory.description))
 
 		if options:
 			self.get_item('subcategory_select').options = options
@@ -41,8 +43,14 @@ class ConfigCategoryView(SubView):
 		self.embed = Embed(
 			title=f'{self.config_category.name} config',color=self.master.embed_color)
 		match self.config_category.name:
-			case 'user': self.embed.set_author(name=self.user.display_name,icon_url=self.user.avatar.url)
-			case 'guild': self.embed.set_author(name=self.user.guild.name,icon_url=self.user.guild.icon.url)
+			case 'user':
+				self.embed.set_author(
+					name=self.user.display_name,
+					icon_url=self.user.avatar.url if self.user.avatar else self.user.default_avatar.url)
+			case 'guild':
+				self.embed.set_author(
+					name=self.user.guild.name,
+					icon_url=self.user.guild.icon.url if self.user.guild.icon else self.user.guild.me.display_avatar.url)
 			case 'dev': self.embed.set_author(name=self.client.user.display_name,icon_url=self.client.user.avatar.url)
 			case _: raise ValueError('improper config category name')
 		self.embed.set_footer(text=f'config.{self.config_category.name}')

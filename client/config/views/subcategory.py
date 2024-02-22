@@ -28,28 +28,24 @@ class ConfigSubcategoryView(SubView):
 			case 'dev': raise NotImplementedError('dev config not implemented yet!')
 		options = []
 
-		user_permissions = await self.master.client.permissions.user(self.user,self.user.guild)
-		is_dev = self.user.id in self.master.client.owner_ids and self.master.client.project.config.dev_bypass
-		is_bot_admin = (await self.master.client.db.user(self.user.id)).data.flags & UserFlags.ADMIN
-
 		for option in self.config_subcategory.options:
-			if not (is_dev or is_bot_admin):
-				if (
-					(f'{self.config_subcategory.name}' not in user_permissions and
-					f'{self.config_subcategory.name}.{option.name}' not in user_permissions)
-				): continue
+			match self.config_category.name:
+				case 'user':
+					pass
+				case 'guild' if await self.client.permissions.check(f'{self.config_subcategory.name}*',self.user,self.user.guild):
+					pass
+				case 'dev' if await self.client.permissions.check('dev',self.user,self.user.guild):
+					pass
+				case _: continue
 
-			if (
-				(is_dev or is_bot_admin) or
-				f'{self.config_subcategory.name}.{option.name}' in user_permissions
-			):
-				options.append(SelectOption(label=option.name,description=option.short_description))
+			options.append(SelectOption(label=option.name,description=option.short_description))
 			value = str(getattr(current_config,option.name))
-			match option.type:
-				case OptionType.CHANNEL: value = f'<#{value}>'
-				case OptionType.ROLE: value = f'<@&{value}>'
-				case OptionType.USER: value = f'<@{value}>'
-				case _: pass
+			if value not in  {'None',None}:
+				match option.type:
+					case OptionType.CHANNEL: value = f'<#{value}>'
+					case OptionType.ROLE: value = f'<@&{value}>'
+					case OptionType.USER: value = f'<@{value}>'
+					case _: pass
 			self.embed.add_field(name=option.name,value=value)
 
 		if options:
@@ -70,8 +66,14 @@ class ConfigSubcategoryView(SubView):
 		self.embed = Embed(
 			title=f'{self.config_subcategory.name} config',color=self.master.embed_color)
 		match self.config_category.name:
-			case 'user': self.embed.set_author(name=self.user.display_name,icon_url=self.user.avatar.url)
-			case 'guild': self.embed.set_author(name=self.user.guild.name,icon_url=self.user.guild.icon.url)
+			case 'user':
+				self.embed.set_author(
+					name=self.user.display_name,
+					icon_url=self.user.avatar.url if self.user.avatar else self.user.default_avatar.url)
+			case 'guild':
+				self.embed.set_author(
+					name=self.user.guild.name,
+					icon_url=self.user.guild.icon.url if self.user.guild.icon else self.user.guild.me.display_avatar.url)
 			case 'dev': self.embed.set_author(name=self.client.user.display_name,icon_url=self.client.user.avatar.url)
 			case _: raise ValueError('improper config category name')
 		self.embed.set_footer(text=f'config.{self.config_category.name}.{self.config_subcategory.name}')

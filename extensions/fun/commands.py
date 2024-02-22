@@ -51,20 +51,20 @@ class ExtensionFunCommands(SubCog):
 		found_description = []
 		user_found = set(doc.data.auto_responses.found)
 
-		if base_found:=(user_found & set([b.id for b in self.client.au.au.base])):
-			found_description.append(f'base: {len(base_found)}')
-		if mention_found:=(user_found & set([m.id for m in self.client.au.au.mention(user.id)])):
-			found_description.append(f'mention: {len(mention_found)}')
-		if personal_found:=(user_found & set([p.id for p in self.client.au.au.personal(user.id)])):
-			found_description.append(f'personal: {len(personal_found)}')
+		if base_found:=(user_found & (base_max:=set([b.id for b in self.client.au.au.base]))):
+			found_description.append(f'base: {len(base_found)}/{len(base_max)}')
+		if mention_found:=(user_found & (mention_max:=set([m.id for m in self.client.au.au.mention()]))):
+			found_description.append(f'mention: {len(mention_found)}/{len(mention_max)}')
+		if personal_found:=(user_found & (personal_max:=set([p.id for p in self.client.au.au.personal(user.id)]))):
+			found_description.append(f'personal: {len(personal_found)}/{len(personal_max)}')
 		if not ctx.guild:
 			await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
 			return
 
-		if unique_found:=(user_found & set([u.id for u in self.client.au.au.unique(ctx.guild.id)])):
-			found_description.append(f'unique: {len(unique_found)}')
-		if custom_found:=(user_found & set([c.id for c in self.client.au.au.custom(ctx.guild.id)])):
-			found_description.append(f'custom: {len(custom_found)}')
+		if unique_found:=(user_found & (unique_max:=set([u.id for u in self.client.au.au.unique(ctx.guild.id)]))):
+			found_description.append(f'unique: {len(unique_found)}/{len(unique_max)}')
+		if custom_found:=(user_found & (custom_max:=set([c.id for c in self.client.au.au.custom(ctx.guild.id)]))):
+			found_description.append(f'custom: {len(custom_found)}/{len(custom_max)}')
 
 		embed.add_field(name='auto responses found',value='\n'.join(found_description))
 

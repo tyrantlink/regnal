@@ -36,14 +36,6 @@ class AdditionalView(BaseModel):
 	button_id:str
 	view:type # uninstantiated utils.atomic_view.SubView subclass
 
-class ConfigOption(BaseModel):
-	name:str
-	type:'OptionType'
-	short_description:str|None = Field(None,max_length=100)
-	description:str|None = None
-	default:Any = None
-	attrs:Optional['ConfigAttrs'] = None
-
 class ConfigAttrs(BaseModel):
 	class Config:
 		arbitrary_types_allowed = True
@@ -51,10 +43,18 @@ class ConfigAttrs(BaseModel):
 	min_length:int|None = None # applicable to str,int,float #? min length of string version of value (enforced in modal)
 	placeholder:str|None = None # applicable to str,int,float #? placeholder in input modal
 	options:list[str|tuple[str,str]]|None = None # applicable to str #? if given, input type will be select, if tuples, first element is label, second is description
-	max_value:int|float|None = None # applicable to int,float #? max value of value
-	min_value:int|float|None = None # applicable to int,float #? min value of value
+	max_value:int|float|None = None # applicable to int,float,role,user,channel #? max value of value OR max number of options
+	min_value:int|float|None = None # applicable to int,float,role,user,channel #? min value of value OR max number of options
 	regex:str|None = None # applicable to str #? regex to match value against
 	validation:Callable = None # applicable to all #? additional validation function, takes value as argument, returns bool
+
+class ConfigOption(BaseModel):
+	name:str
+	type:'OptionType'
+	short_description:str|None = Field(None,max_length=100)
+	description:str|None = None
+	default:Any = None
+	attrs:ConfigAttrs = ConfigAttrs()
 
 class OptionType(Enum):
 	BOOL = 0 # adds true/false buttons
@@ -67,9 +67,10 @@ class OptionType(Enum):
 	USER = 7 # adds user select
 
 class ConfigData:
-	user = ConfigCategory(name='user')
-	guild = ConfigCategory(name='guild')
-	dev = ConfigCategory(name='dev')
+	def __init__(self) -> None:
+		self.user = ConfigCategory(name='user')
+		self.guild = ConfigCategory(name='guild')
+		self.dev = ConfigCategory(name='dev')
 
 	def __getitem__(self,key:str) -> ConfigCategory:
 		match key:

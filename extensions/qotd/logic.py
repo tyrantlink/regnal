@@ -1,6 +1,6 @@
 from utils.db.documents import Guild as GuildDocument
-from discord import Guild,Member,Embed
-from discord.errors import Forbidden
+from discord import Guild,Member,Embed,ChannelType
+from discord.errors import Forbidden,HTTPException
 from .__subcog__ import QOTDSubCog
 from typing import AsyncIterator
 from .views import QOTDAskLog
@@ -32,7 +32,7 @@ class ExtensionQOTDLogic(QOTDSubCog):
 			{'config.qotd.enabled':True,
 			'config.qotd.channel':{'$ne':None}}
 		):
-			# ensure guild is attached to current shard and not in recently rolled
+			# ensure guild is attached to current shard and not in recently asked
 			if guild['_id'] not in _client_guilds or guild['_id'] in self.recently_asked: continue
 			guild = self.client.get_guild(guild['_id']) or await self.client.fetch_guild(guild['_id'])
 			if guild is None: continue
@@ -63,15 +63,13 @@ class ExtensionQOTDLogic(QOTDSubCog):
 		if guild_doc.data.qotd.nextup:
 			question = guild_doc.data.qotd.nextup.pop(0)
 			embed.description = question.question
-			embed.set_author(name=question.author,icon_url=question.icon)
-			embed.set_footer(text='pack: custom')
+			embed.set_footer(text=f'custom question by {question.author}',icon_url=question.icon)
 			return guild_doc,embed
 		
 		if not guild_doc.data.qotd.packs:
 			raise ValueError(f'no qotd packs available for guild {guild_doc.name} ({guild_doc.id})')
 		
 		pack = choice(guild_doc.data.qotd.packs)
-		embed.set_footer(text=f'pack: {pack}')
 		# ensure pack asked data exists
 		if pack not in guild_doc.data.qotd.asked:
 			guild_doc.data.qotd.asked[pack] = '0'*len(self.packs[pack])
@@ -89,13 +87,14 @@ class ExtensionQOTDLogic(QOTDSubCog):
 		
 		embed.description = choice(options)
 		index = self.packs[pack].index(embed.description)
+		embed.set_footer(text=f'{pack}#{index+1}')
 		guild_doc.data.qotd.asked[pack] = f'{asked[:index]}1{asked[index+1:]}' # strings are immutable
 		return guild_doc,embed
 	
 	async def ask_qotd(self,guild:Guild,guild_doc:GuildDocument) -> None:
 		channel = guild.get_channel(guild_doc.config.qotd.channel
 			) or await self.client.fetch_channel(guild_doc.config.qotd.channel)
-		if channel is None: return False
+		if channel is None or channel.type != ChannelType.forum: return False
 		_roles = [i for i in guild.roles if i.name.lower() == 'qotd' and not i.is_bot_managed()]
 		ping_role = _roles[0].mention if _roles else None
 
@@ -112,7 +111,7 @@ class ExtensionQOTDLogic(QOTDSubCog):
 					title='❌❗️ QOTD failed to archive thread ❗️❌',
 					description=f'failed to archive thread\nplease give me the `Manage Posts` permission in <#{channel.id}>',
 					color=0xff6969))
-		
+
 		question = embed.description
 		msg = await channel.create_thread(
 			name=question if len(question) <= 100 else f'{question[:97]}...',
@@ -120,7 +119,12 @@ class ExtensionQOTDLogic(QOTDSubCog):
 			embed=embed,
 			auto_archive_duration=1440)
 
-		await msg.edit(pinned=True)
+		try: await msg.edit(pinned=True)
+		except HTTPException:
+			thread_message = await msg.fetch_message(msg.id)
+			await thread_message.edit(content=f'{thread_message.content}\n\nunable to pin this thread, please unpin and archive the previous thread manually')
+		self.recently_asked.add(guild.id)
+		self._rescan = True
 		guild_doc.data.qotd.last_thread = msg.id
 		guild_doc.data.qotd.last = guild_doc.get_current_day()
 		await guild_doc.save()

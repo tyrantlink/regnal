@@ -1,6 +1,9 @@
+from utils.db.documents.guild import Guild as GuildDoc
 from discord import Message,Member,TextChannel,Guild
 from datetime import datetime,timedelta
 from utils.pycord_classes import SubCog
+from aiohttp import ClientSession
+from asyncio import sleep
 
 class ExtensionLoggingLogic(SubCog):
 	async def get_logging_channel(self,guild_id:int) -> TextChannel|None:
@@ -45,4 +48,18 @@ class ExtensionLoggingLogic(SubCog):
 				return log.user,log.target
 		return None,None
 
-class GuildLogger: ...
+	async def deleted_by_pk(self,message_id:int,delay:int=2) -> bool:
+		await sleep(delay)
+		async with ClientSession(
+			base_url='https://api.pluralkit.me',
+			headers={
+				'Authorization':self.client.project.config.pluralkit_token,
+				'User-Agent':f'{self.client.user.display_name} Discord Bot/{self.client.version.semantic} (contact: {self.client.project.config.contact_email})'
+			}
+		) as session:
+			async with session.get(f'/v2/messages/{message_id}') as response:
+				match response.status:
+					case 200: return True
+					case 404: return False
+					case 429: return await self.deleted_by_pk(message_id,delay=(await response.json()).get('retry_after',2000)/1000)
+					case _: return False
