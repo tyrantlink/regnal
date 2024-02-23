@@ -8,6 +8,8 @@ from client import Client
 
 class au_view(EmptyView):
 	def __init__(self,back_view:EmptyView,user:Member,guild:Guild,client:Client,embed:Embed,au:AutoResponses,custom:bool) -> None:
+		self.stop()
+		return
 		super().__init__(timeout=0)
 		self.back_view = back_view
 		self.user    = user

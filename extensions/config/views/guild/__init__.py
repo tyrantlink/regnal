@@ -282,6 +282,8 @@ class guild_config(EmptyView):
 		label='custom auto responses',style=1,row=2,
 		custom_id='custom_au_button')
 	async def custom_au_button(self,button:Button,interaction:Interaction) -> None:
+		await interaction.response.send_message('due to the /reg/nal 4.0.0 beta, custom auto responses are currently disabled',ephemeral=True)
+		return
 		embed = Embed(title=f'custom auto responses',color=self.embed.color)
 		au = AutoResponses(self.client.db.auto_response(0)._col,{'custom':True,'guild':str(self.guild.id)})
 		await au.reload_au()
