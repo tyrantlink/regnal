@@ -32,33 +32,35 @@ class CrAPI(MessageHandler):
 		create_task(self._heartbeat())
 		self.client.log.info('connected to crAPI')
 		if reconnect: create_task(self._reconnection_handler())
-	
+
+	async def disconnect(self,message:str='no reason') -> None:
+		if not self.is_connected: return
+		self.client.log.info(f'disconnected from crAPI: {message}')
+		self._connected = False
+		await self.gateway_ws.close(message=message.encode())
+
 	async def _gateway_receive(self) -> BaseGatewayMessage:
-		while True:
+		while self.is_connected:
 			message = await self.gateway_ws.receive()
 			match message.type:
 				case WSMsgType.TEXT: await self._message_handler(message.json())
 				case WSMsgType.CLOSE:
-					extra = f': {message.extra}' if message.extra else ''
-					self.client.log.error(f'disconnected from crAPI{extra}')
-					self._connected = False
-					await self.gateway_ws.close()
-					break
-	
+					await self.disconnect(message.extra or 'no reason')
+
 	async def _heartbeat(self) -> None:
 		while True:
 			await sleep(30+29*random())
 			if not self.is_connected: break
 			self.client.log.debug(f'sending crAPI heartbeat seq {self.seq}')
-			try: await self._gateway_send(Heartbeat())
+			try: await self.gateway_send(Heartbeat())
 			except ValueError: break
-	
-	async def _gateway_send(self,message:BaseGatewayMessage) -> None:
+
+	async def gateway_send(self,message:BaseGatewayMessage) -> None:
 		if not self.is_connected: raise ValueError('not connected to crAPI gateway!')
 		self.inc_seq()
 		message.seq = self.seq
 		await self.gateway_ws.send_str(message.model_dump_json())
-	
+
 	async def _reconnection_handler(self) -> None:
 		while True:
 			await sleep(5)

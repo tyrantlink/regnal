@@ -115,7 +115,6 @@ class AutoResponses:
 	def random_choice(self,pool:list[tuple[A,int|None]]) -> A:
 		choices,weights = zip(*pool)
 		rand = random()*sum(weights)
-		#! re-move auto responses from /mass to crapi when you're less tired
 		cum = 0 # please, it stands for cumulative
 		for choice,weight in zip(choices,weights):
 			cum += weight

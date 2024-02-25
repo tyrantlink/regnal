@@ -1,9 +1,9 @@
 from client import ClientLarge,ClientSmall,Client
 from utils.update_handler import UpdateHandler
 from utils.models import BotType,BotData
+from utils.log import Logger,LogLevel
 from utils.models import Project
 from asyncio import run,gather
-from utils.log import Logger
 from tomllib import loads
 from aiofiles import open
 from os import walk
@@ -14,7 +14,11 @@ async def main() -> None:
 	async with open('project.toml','r') as f:
 		base_project = loads(await f.read())
 	# initialize logger
-	log = Logger(base_project['parseable']['base_url'],base_project['parseable']['logstream'],base_project['parseable']['token'])
+	log = Logger(
+		url = base_project['parseable']['base_url'],
+		logstream = base_project['parseable']['logstream'],
+		token = base_project['parseable']['token'],
+		log_level = LogLevel(base_project['config']['log_level']))
 	await log.logstream_init()
 
 	bots:dict[str,Client] = {}

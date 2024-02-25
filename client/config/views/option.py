@@ -1,6 +1,7 @@
-from discord.ui import button,InputText,user_select,channel_select,role_select
+from discord.ui import button,InputText,user_select,channel_select,role_select,Select
 from ..models import ConfigCategory,ConfigSubcategory,ConfigOption,OptionType
 from discord import User,Member,Embed,Button,ButtonStyle,Interaction,Role
+from .suboption_views.configure_channels import ConfigChannelsView
 from ..errors import ConfigValidationError,ConfigValidationWarning
 from utils.pycord_classes import SubView,MasterView,CustomModal
 from utils.db.documents.ext.enums import TWBFMode
@@ -109,6 +110,10 @@ class ConfigOptionView(SubView):
 			case TWBFMode.blacklist: self.get_item('button_blacklist').style = ButtonStyle.green
 			case TWBFMode.false: self.get_item('button_false').style = ButtonStyle.green
 			case _: raise ValueError('improper twbf mode')
+
+		if self.current_value() in {TWBFMode.whitelist,TWBFMode.blacklist}:
+			self.add_item(self.button_configure_channels)
+			self.get_item('button_configure_channels').label = f'configure {self.current_value().name}'
 
 	async def handle_string(self) -> None:
 		self.add_item(self.button_set) #! FINISH THIS (select for options)
@@ -243,7 +248,9 @@ class ConfigOptionView(SubView):
 		style=ButtonStyle.blurple,
 		custom_id='button_configure_channels')
 	async def button_configure_channels(self,button:Button,interaction:Interaction) -> None:
-		...
+		view = self.master.create_subview(ConfigChannelsView,self.config_category,self.config_subcategory,self.option,self.user)
+		await view.__ainit__()
+		await interaction.response.edit_message(view=view,embed=view.embed)
 
 	@button(
 		label='set',row=2,
@@ -269,7 +276,7 @@ class ConfigOptionView(SubView):
 	@channel_select(
 		placeholder='select a channel',
 		custom_id='select_channel',row=1,min_values=0)
-	async def select_channel(self,select,interaction) -> None:
+	async def select_channel(self,select:Select,interaction:Interaction) -> None:
 		warning = await self.write_config(
 			select.values if len(select.values) > 1 else select.values[0] if select.values else None)
 		await interaction.response.edit_message(embed=self.embed,view=self)
@@ -278,7 +285,7 @@ class ConfigOptionView(SubView):
 	@role_select(
 		placeholder='select a role',
 		custom_id='select_role',row=1,min_values=0)
-	async def select_role(self,select,interaction) -> None:
+	async def select_role(self,select:Select,interaction:Interaction) -> None:
 		warning = await self.write_config(
 			select.values if len(select.values) > 1 else select.values[0] if select.values else None)
 		await interaction.response.edit_message(embed=self.embed,view=self)
@@ -287,7 +294,7 @@ class ConfigOptionView(SubView):
 	@user_select(
 		placeholder='select a user',
 		custom_id='select_user',row=1,min_values=0)
-	async def select_user(self,select,interaction) -> None:
+	async def select_user(self,select:Select,interaction:Interaction) -> None:
 		warning = await self.write_config(
 			select.values if len(select.values) > 1 else select.values[0] if select.values else None)
 		await interaction.response.edit_message(embed=self.embed,view=self)

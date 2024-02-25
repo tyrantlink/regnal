@@ -37,7 +37,7 @@ class ExtensionAutoResponsesListeners(SubCog):
 		if message.author.bot or message.webhook_id: return
 		# ignore dms
 		if not message.guild:
-			await message.channel.send('https://regn.al/dm.png')
+			# await message.channel.send('https://regn.al/dm.png')
 			return
 		# ignore unknown users
 		user = await self.client.db.user(message.author.id)

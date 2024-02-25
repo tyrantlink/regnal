@@ -7,12 +7,12 @@ from utils.db import MongoDatabase,Guild as GuildDocument
 from traceback import format_exc,format_tb
 from utils.models import Project,BotType
 from utils.tyrantlib import get_version
+from utils.log import Logger,LogLevel
 from time import perf_counter,time
 from discord.ext.tasks import loop
 from .commands import BaseCommands
 from aiohttp import ClientSession
 from .Helper import ClientHelpers
-from utils.log import Logger
 from config import DEV_MODE
 from .config import Config
 from io import StringIO
@@ -24,7 +24,11 @@ class ClientBase:
 		self._st = perf_counter()
 		self.project = project_data
 		self.db = MongoDatabase(self.project.mongo.uri)
-		self.log = Logger(self.project.parseable.base_url,self.project.bot.logstream,self.project.parseable.token)
+		self.log = Logger(
+			url = self.project.parseable.base_url,
+			logstream = self.project.bot.logstream,
+			token = self.project.parseable.token,
+			log_level = LogLevel(self.project.config.log_level))
 		self.helpers = ClientHelpers(self)
 		self.au:AutoResponses = None # set by auto responses extension
 		self.api = CrAPI(self)
@@ -71,7 +75,7 @@ class ClientBase:
 		await interaction.response.send_message('u wot m8?',ephemeral=True)
 
 	async def on_application_command(self,ctx:ApplicationContext) -> None:
-		self.log.custom('command',f'{ctx.author.name} used {ctx.command.name}',ctx.guild_id)
+		self.log.info(f'{ctx.author.name} used {ctx.command.name}',ctx.guild_id)
 
 	async def on_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return
