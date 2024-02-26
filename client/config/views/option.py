@@ -191,7 +191,12 @@ class ConfigOptionView(SubView):
 
 		setattr(getattr(self.object_doc.config,self.config_subcategory.name),self.option.name,value)
 		await self.object_doc.save_changes()
-		self.client.log.info(f'{self.user.name} set {self.config_category.name}.{self.config_subcategory.name}.{self.option.name} to {value}',
+		match self.config_category.name:
+			case 'user': print_id = self.user.id
+			case 'guild': print_id = self.user.guild.id
+			case 'dev': print_id = self.client.user.id
+			case _: raise ValueError('improper config category name')
+		self.client.log.info(f'{self.user.name} set {self.config_category.name}[{print_id}].{self.config_subcategory.name}.{self.option.name} to {value}',
 													user=self.user.id,guild=getattr(getattr(self.user,'guild',None),'id',None),
 													option=f'{self.config_category.name}.{self.config_subcategory.name}.{self.option.name}',value=value)
 		await self.generate_embed()

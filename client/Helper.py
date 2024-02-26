@@ -9,9 +9,14 @@ class ClientHelpers:
 	def __init__(self,client:'Client') -> None:
 		self.client = client
 		self._cmd_ref_pattern = r'{cmd_ref\[([ -_\p{L}\p{N}]{1,32})\]}'
+		self.commands = set()
+	
+	def load_commands(self) -> None:
 		self.commands = {
-			command.qualified_name:command.qualified_id for command in self.client.walk_application_commands()}
-
+			command.qualified_name:command.qualified_id
+			for command in
+			self.client.walk_application_commands()
+			if command is not None}
 
 	async def embed_color(self,guild_id:int=None) -> int:
 		if guild_id is None: return int('69ff69',16)

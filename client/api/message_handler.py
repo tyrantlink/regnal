@@ -8,7 +8,7 @@ class MessageHandler(RequestHandler):
 		self.client:'Client'
 		self.seq:int
 		raise ValueError('do not instantiate MessageHandler directly, use it as a subclass')
-	
+
 	async def gateway_send(self,message:BaseGatewayMessage) -> None: ...
 	def inc_seq(self) -> None: ...
 
@@ -17,7 +17,7 @@ class MessageHandler(RequestHandler):
 		match Op(message['op']):
 			case Op.ACK: await self._handle_ack(Ack.model_validate(message))
 			case Op.REQUEST: await self._handle_request(Request.model_validate(message))
-	
+
 	async def _handle_ack(self,message:Ack) -> None:
 		if message.seq != self.seq:
 			await self.disconnect(f'invalid sequence number: {message.seq} | expected: {self.seq}')

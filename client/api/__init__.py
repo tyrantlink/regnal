@@ -13,13 +13,13 @@ class CrAPI(MessageHandler):
 		self.base_url = self.client.project.api.url
 		self.token = self.client.project.bot.api_token
 		self.session = ClientSession(self.base_url,headers={'token':self.token})
+		self.gateway_ws = None
 		self.seq = 0
-		self._connected = False
-	
+
 	@property
 	def is_connected(self) -> bool:
-		return self._connected
-	
+		return self.gateway_ws and not self.gateway_ws.closed
+
 	def inc_seq(self) -> None:
 		self.seq += 1
 		if self.seq == 8192: self.seq = 0
@@ -27,16 +27,14 @@ class CrAPI(MessageHandler):
 	async def connect(self,reconnect:bool=True) -> None:
 		self.gateway_ws = await self.session.ws_connect('/i/gateway')
 		self.seq = 0
-		self._connected = True
 		create_task(self._gateway_receive())
 		create_task(self._heartbeat())
 		self.client.log.info('connected to crAPI')
 		if reconnect: create_task(self._reconnection_handler())
 
 	async def disconnect(self,message:str='no reason') -> None:
-		if not self.is_connected: return
 		self.client.log.info(f'disconnected from crAPI: {message}')
-		self._connected = False
+		if not self.is_connected: return
 		await self.gateway_ws.close(message=message.encode())
 
 	async def _gateway_receive(self) -> BaseGatewayMessage:
@@ -46,6 +44,7 @@ class CrAPI(MessageHandler):
 				case WSMsgType.TEXT: await self._message_handler(message.json())
 				case WSMsgType.CLOSE:
 					await self.disconnect(message.extra or 'no reason')
+				case _: print(f'unknown message type: {message.type}')
 
 	async def _heartbeat(self) -> None:
 		while True:

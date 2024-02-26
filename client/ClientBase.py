@@ -27,6 +27,7 @@ class ClientBase:
 		self.log = Logger(
 			url = self.project.parseable.base_url,
 			logstream = self.project.bot.logstream,
+			logstream_padding = self.project.parseable.logstream_padding,
 			token = self.project.parseable.token,
 			log_level = LogLevel(self.project.config.log_level))
 		self.helpers = ClientHelpers(self)
@@ -37,7 +38,6 @@ class ClientBase:
 		register_base_config(self.config)
 		register_base_permissions(self.permissions)
 		self.last_update_hour = -1
-		self.load_extension('client.commands') # have to load as extension because python ownership bullshit
 		self._initialized = False
 
 	async def initialize(self) -> None:
@@ -69,6 +69,7 @@ class ClientBase:
 			self.update_presence.start()
 
 	async def on_ready(self) -> None:
+		self.helpers.load_commands() #? i have to delay this to here because it's stupid or something
 		self.log.info(f'{self.user.name} ready in {round(perf_counter()-self._st,2)} seconds')
 
 	async def on_unknown_application_command(self,interaction:Interaction) -> None:
