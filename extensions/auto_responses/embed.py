@@ -42,6 +42,7 @@ def _extra_embed(auto_response:AutoResponse,embed_color:int) -> Embed:
 		case 'u': au_data_type = f'unique ({auto_response.data.guild})'
 		case 'm': au_data_type = f'mention ({auto_response.trigger})'
 		case 'p': au_data_type = f'personal ({auto_response.data.user})'
+		case 's': au_data_type = 'scripted'
 		case  _ : au_data_type = 'unknown'
 	embed.add_field(
 		name='data type',inline=False,

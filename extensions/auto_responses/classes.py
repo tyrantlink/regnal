@@ -46,21 +46,25 @@ class AutoResponseCarrier:
 		self._unique = list(filter(lambda d: d.id.startswith('u'),au))
 		self._mention = list(filter(lambda d: d.id.startswith('m'),au))
 		self._personal = list(filter(lambda d: d.id.startswith('p'),au))
+		self._scripted = list(filter(lambda d: d.id.startswith('s'),au))
 
 	def custom(self,guild_id:int) -> list[AutoResponse]:
-		return list(filter(lambda d: d.data.guild == guild_id,self._custom))
+		return list(filter(lambda au: au.data.guild == guild_id,self._custom))
 
 	def unique(self,guild_id:int) -> list[AutoResponse]:
-		return list(filter(lambda d: d.data.guild == guild_id,self._unique))
+		return list(filter(lambda au: au.data.guild == guild_id,self._unique))
 
 	def mention(self,user_id:int=None,user_ids:list[int]=None) -> list[AutoResponse]:
 		if user_id and user_ids: raise ValueError('cannot specify both user_id and user_ids')
-		if user_id: return list(filter(lambda d: d.trigger == str(user_id),self._mention))
-		if user_ids: return list(filter(lambda d: d.trigger in [str(a) for a in user_ids],self._mention))
+		if user_id: return list(filter(lambda au: au.trigger == str(user_id),self._mention))
+		if user_ids: return list(filter(lambda au: au.trigger in [str(a) for a in user_ids],self._mention))
 		return self._mention
 
 	def personal(self,user_id:int) -> list[AutoResponse]:
-		return list(filter(lambda d: user_id == d.data.user,self._personal))
+		return list(filter(lambda au: au.data.user == user_id,self._personal))
+
+	def scripted(self,guild_imported:set[str]) -> list[AutoResponse]:
+		return list(filter(lambda au: au.id in guild_imported,self._scripted))
 
 class AutoResponses:
 	def __init__(self,client:Client|None=None) -> None:
@@ -134,6 +138,7 @@ class AutoResponses:
 				(response.data.guild in [message.guild.id,None] or cross_guild) or cross_guild)):
 					return response
 			create_task(self.notify_reaction(message))
+		imported_scripts = set((await self.client.db.guild(message.guild.id)).data.auto_responses.imported_scripts)
 		# gather matches
 		matches = [
 			*self.match(args.message,overrides,self.au.personal(message.author.id)), # personal responses
@@ -141,6 +146,7 @@ class AutoResponses:
 				user_ids=[a.id for a in message.mentions if f'<@{a.id}>' in args.message])), # mention responses
 			*self.match(args.message,overrides,self.au.custom(message.guild.id)), # custom responses
 			*self.match(args.message,overrides,self.au.unique(message.guild.id)), # unique responses
+			*self.match(args.message,overrides,self.au.scripted(imported_scripts)), # scripted responses
 			*self.match(args.message,overrides,self.au.base)] # base responses
 		if not matches: return None
 		if args.seed is not None:
