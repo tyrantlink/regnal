@@ -8,6 +8,7 @@ class ExtensionDMProxy(Cog,
 ):
 	def __init__(self,client:Client) -> None:
 		self.client = client
+		self.bot_info_cache = {}
 
 
 def setup(client:Client) -> None:

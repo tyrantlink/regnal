@@ -43,8 +43,19 @@ class RequestHandler:
 			await self._handle_send_message_channel(message)
 		if user is not None:
 			await self._handle_send_message_user(message)
-	
+
+	async def _handle_bot_info(self,message:Request) -> None:
+		self.client.log.info('received bot_info request')
+		await self.gateway_send(Response(data={
+				'id':self.client.user.id,
+				'name':self.client.user.name,
+				'avatar':(self.client.user.avatar or self.client.user.default_avatar).url,
+				'created_at':self.client.user.created_at.timestamp(),
+				'guilds':[guild.id for guild in self.client.guilds]
+		}))
+
 	async def _handle_request(self,message:Request) -> None:
 		match message.req:
 			case Req.RELOAD_AU: await self._handle_reload_au(message)
 			case Req.SEND_MESSAGE: await self._handle_send_message(message)
+			case Req.BOT_INFO: await self._handle_bot_info(message)

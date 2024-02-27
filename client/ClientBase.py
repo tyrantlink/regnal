@@ -32,6 +32,7 @@ class ClientBase:
 			log_level = LogLevel(self.project.config.log_level))
 		self.helpers = ClientHelpers(self)
 		self.au:AutoResponses = None # set by auto responses extension
+		self.logging_ignore:set = None # set by logging extension
 		self.api = CrAPI(self)
 		self.config = Config(self)
 		self.permissions = PermissionHandler(self)

@@ -27,6 +27,9 @@ class ExtensionLoggingListeners(SubCog):
 	async def on_raw_message_delete(self,payload:RawMessageDeleteEvent) -> None:
 		guild = self.client.get_guild(payload.guild_id)
 		if guild is None: return
+		if payload.message_id in self.client.logging_ignore:
+			self.client.logging_ignore.discard(payload.message_id)
+			return
 		log_channel = await self.get_logging_channel(payload.guild_id)
 		if log_channel is None: return
 		guild_doc = await self.client.db.guild(payload.guild_id)

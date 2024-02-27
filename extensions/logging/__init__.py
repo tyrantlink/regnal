@@ -12,6 +12,7 @@ class ExtensionLogging(Cog,
 ):
 	def __init__(self,client:Client) -> None:
 		self.client = client
+		self.client.logging_ignore = set()
 		register_config(self.client.config)
 		self.client.add_view(EditedLogView(self.client))
 		self.client.add_view(DeletedLogView(self.client))

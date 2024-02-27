@@ -1,5 +1,6 @@
 from utils.crapi.enums import GatewayRequestType as Req
 from discord import Message,ChannelType,User,Webhook
+from utils.tyrantlib import ArbitraryClass
 from utils.pycord_classes import SubCog
 from utils.crapi.models import Request
 from discord.ext.commands import Cog
@@ -12,6 +13,19 @@ class DumbSnowflake:
 
 
 class ExtensionDMProxyListeners(SubCog):
+	async def get_bot_info(self,identifier:str) -> ArbitraryClass:
+		if (bot_info:=self.bot_info_cache.get(identifier,None)) is None:
+			bot_info_data = await self.client.api.get_bot_info(identifier)
+			bot_info = ArbitraryClass(
+				id = bot_info_data['id'],
+				name = bot_info_data['name'],
+				avatar = bot_info_data['avatar'],
+				# created_at = bot_info_data['created_at'],
+				# guilds = bot_info_data['guilds']
+			)
+			self.bot_info_cache[identifier] = bot_info
+		return bot_info
+
 	async def get_user_thread(self,user:User) -> int|None:
 		user_doc = await self.client.db.user(user.id)
 		if user_doc is None: return
@@ -52,18 +66,25 @@ class ExtensionDMProxyListeners(SubCog):
 		if name_check is None: return
 		user = name_check.group(2)
 		forward = name_check.group(3)
-		
+
+		bot_info = await self.get_bot_info(forward)
+		async with ClientSession() as session:
+			wh = Webhook.from_url(self.client.project.webhooks.dm_proxy,session=session)
+			await wh.send(wait=True,
+				username=bot_info.name,
+				avatar_url=bot_info.avatar,
+				thread=message.channel,
+				content=f'{message.content}' if len(message.content) <= 2000 else f'{message.content[:1997]}...')
+		self.client.logging_ignore.add(message.id)
+		await message.delete()
+
 		await self.client.api.gateway_send(Request(
 			req=Req.SEND_MESSAGE,
 			forward=forward,
 			data={
 				'user':user,
 				'content':f'{message.content}' if len(message.content) <= 2000 else f'{message.content[:1997]}...'
-			}))
-
-		# await user.send(
-		# 	f'{message.content}' if len(message.content) <= 2000 else f'{message.content[:1997]}...',
-		# 	files=[await attachment.to_file() for attachment in message.attachments])
+		}))
 
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
