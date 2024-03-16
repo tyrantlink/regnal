@@ -1,8 +1,8 @@
 from discord import SlashCommandGroup,Permissions,Option,ApplicationContext,Embed
 from utils.db.documents.guild import GuildDataQOTDQuestion
-from .__subcog__ import QOTDSubCog
+from .subcog import ExtensionQOTDSubCog
 
-class ExtensionQOTDCommands(QOTDSubCog):
+class ExtensionQOTDCommands(ExtensionQOTDSubCog):
 	qotd = SlashCommandGroup('qotd','question of the day commands')
 
 	@qotd.command(
@@ -24,7 +24,7 @@ class ExtensionQOTDCommands(QOTDSubCog):
 			author=ctx.author.display_name,
 			icon=ctx.author.avatar.url)
 		guild_doc.data.qotd.nextup.append(question_data)
-		await guild_doc.save()
+		await guild_doc.save_changes()
 		embed = Embed(
 			title='custom question queued!',
 			description=f'your custom question will be asked {"next" if len(guild_doc.data.qotd.nextup) == 1 else f"in {len(guild_doc.data.qotd.nextup)} days"}!',

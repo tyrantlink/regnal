@@ -9,6 +9,13 @@ from aiofiles import open
 from os import walk
 
 
+try:
+	from regnalrb import is_compiled as regnalrb_is_compiled
+	assert regnalrb_is_compiled()
+except (ImportError,AssertionError):
+	print('ERROR: the /reg/nal rust bindings have not been compiled\nplease run `maturin develop -rm regnalrb/Cargo.toml`')
+	exit()
+
 async def main() -> None:
 	# grab project data
 	async with open('project.toml','r') as f:

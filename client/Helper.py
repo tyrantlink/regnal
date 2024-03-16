@@ -1,8 +1,8 @@
-from discord import ApplicationContext,Interaction,Embed
+from discord import ApplicationContext,Interaction,Message,HTTPException,Forbidden
 from utils.db.documents.ext.enums import TWBFMode
 if not 'TYPE_HINT': from client import Client
-from utils.db import MongoDatabase
 from regex import sub,finditer,UNICODE,sub
+from asyncio import sleep
 
 
 class ClientHelpers:
@@ -41,3 +41,14 @@ class ClientHelpers:
 				count=1,
 				flags=UNICODE)
 		return message
+
+	async def notify_reaction(self,
+		message:Message,
+		reaction:str='❌',
+		delay:int|float=1
+	) -> None:
+		try:
+			await message.add_reaction(reaction)
+			await sleep(delay)
+			await message.remove_reaction(reaction,self.client.user)
+		except (HTTPException,Forbidden): pass

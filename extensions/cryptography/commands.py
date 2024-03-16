@@ -1,10 +1,10 @@
 from discord import ApplicationContext,message_command,Message,File
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionCryptographySubCog
 from regnalrb import qr_code
 from io import BytesIO
 
 
-class ExtensionCryptographyCommands(SubCog):
+class ExtensionCryptographyCommands(ExtensionCryptographySubCog):
 	@message_command(
 		name='QR Code')
 	async def message_qr_code(self,ctx:ApplicationContext,message:Message) -> None:

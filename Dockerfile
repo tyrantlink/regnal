@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.11
 WORKDIR /app
 COPY . .
 RUN git config --global --add safe.directory /app && git config pull.rebase false
@@ -58,5 +58,6 @@ RUN mkdir -p ~/ffmpeg_sources ~/bin && cd ~/ffmpeg_sources && \
 	make install -j8 && \
 	hash -r
 RUN mv ~/bin/ffmpeg /usr/local/bin && mv ~/bin/ffprobe /usr/local/bin && mv ~/bin/ffplay /usr/local/bin
-RUN python3.10 -m pip install --no-cache-dir -r requirements.txt
-CMD ["python3.10","-u","main.py"]
+RUN python3.11 -m pip install --no-cache-dir -r requirements.txt
+RUN maturin develop -rm regnalrb/Cargo.toml
+CMD ["python3.11","-u","main.py"]

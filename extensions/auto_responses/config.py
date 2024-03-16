@@ -1,10 +1,7 @@
-from client.config.models import ConfigOption,ConfigSubcategory,OptionType,AdditionalView,ConfigAttrs
+from client.config.models import ConfigOption,ConfigSubcategory,OptionType,AdditionalView,ConfigAttrs,ConfigStringOption
+from .views import CustomAutoResponseView,AutoResponseOverridesView
 from utils.db.documents.ext.enums import TWBFMode,AUCooldownMode
-from .views.overrides import AutoResponseOverridesView
 if not 'TYPE_HINT': from client.config import Config
-from .views.custom import CustomAutoResponseView
-
-
 
 
 def register_config(config:'Config') -> None:
@@ -26,13 +23,15 @@ def register_config(config:'Config') -> None:
 			description='auto response options',
 			additional_views=[
 				AdditionalView(
+					required_permissions='auto_responses.custom',
 					button_label='custom auto responses',
-					button_row=0,
+					button_row=2,
 					button_id='custom_auto_responses',
 					view=CustomAutoResponseView),
 				AdditionalView(
+					required_permissions='auto_responses.override',
 					button_label='override auto responses',
-					button_row=0,
+					button_row=2,
 					button_id='override_auto_responses',
 					view=AutoResponseOverridesView)]))
 
@@ -73,11 +72,12 @@ def register_config(config:'Config') -> None:
 			type=OptionType.STRING,
 			default=AUCooldownMode.none.name,
 			attrs=ConfigAttrs(
+				enum=AUCooldownMode,
 				options=[
-					('none','ignore cooldown'),
-					('user','cooldown per user'),
-					('channel','cooldown per channel'),
-					('guild','cooldown applies to all channels')]),
+					ConfigStringOption('none','ignore cooldown',AUCooldownMode.none.name),
+					ConfigStringOption('user','cooldown per user',AUCooldownMode.user.name),
+					ConfigStringOption('channel','cooldown per channel',AUCooldownMode.channel.name),
+					ConfigStringOption('guild','cooldown applies to all channels',AUCooldownMode.guild.name)]),
 			short_description='configure cooldown mode',
 			description= '''cooldown mode for auto responses\n
 											- none: ignore cooldown

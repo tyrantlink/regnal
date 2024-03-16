@@ -1,23 +1,23 @@
 from discord.commands import Option,slash_command,user_command
 from discord import Embed,User,ApplicationContext,Role
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionFunSubCog
 from random import choice,randint
 from asyncio import sleep
 from time import time
 from re import sub
 
 
-class ExtensionFunCommands(SubCog):
+class ExtensionFunCommands(ExtensionFunSubCog):
 	@slash_command(
 		name='generate',
 		description='generate a sentence',
 		options=[
 			Option(str,name='type',description='type',choices=['insult','excuse'])])
 	async def slash_generate_insult(self,ctx:ApplicationContext,type:str) -> None:
-		data = (await getattr(self.client.db.inf,f'{type}s')()).value
+		data = await getattr(self.client.db.inf,f'{type}s')()
 		match type:
 			case 'insult': result = ' '.join([choice(data.adjective),choice(data.noun)])
-			case 'excuse': result = ' '.join([choice(data.intro),choice(data.scapegoat),choice(data.delays)])
+			case 'excuse': result = ' '.join([choice(data.intro),choice(data.scapegoat),choice(data.delay)])
 			case _: raise ValueError('invalid /generate type, discord shouldn\'t allow this')
 
 		await ctx.response.send_message(result,ephemeral=await self.client.helpers.ephemeral(ctx))
@@ -31,8 +31,8 @@ class ExtensionFunCommands(SubCog):
 											creation date: <t:{int(user.created_at.timestamp())}:f>
 											username: {user.name}
 											display name: {user.display_name}'''.replace('\t',''),
-			thumbnail=user.avatar.url,
 			color=await self.client.helpers.embed_color(ctx.guild_id))
+		embed.set_thumbnail(url=user.avatar.url)
 
 
 		if doc.config.general.private_profile:
@@ -40,9 +40,9 @@ class ExtensionFunCommands(SubCog):
 			return
 
 		embed.add_field(name='statistics',
-			value=f'''seen messages: {sum(doc.data.statistics.messages.values())}
-								tts characters used: {doc.data.statistics.tts_usage}
-								api calls made: {doc.data.statistics.api_usage}'''.replace('\t',''))
+			value=f'''seen messages: {sum(doc.data.statistics.messages.values()):,}
+								tts usage: {doc.data.statistics.tts_usage:,}
+								api usage: {doc.data.statistics.api_usage:,}'''.replace('\t',''))
 
 		if not doc.data.auto_responses.found:
 			await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
@@ -131,7 +131,7 @@ class ExtensionFunCommands(SubCog):
 		options=[
 			Option(str,name='question',description='question to ask',max_length=512)])
 	async def slash_8ball(self,ctx:ApplicationContext,question:str) -> None:
-		answer = choice((await self.client.db.inf.eight_ball()).value)
+		answer = choice(await self.client.db.inf.eight_ball())
 		embed = Embed(title=question,description=f'**{answer}**',color=await self.client.embed_color(ctx))
 		embed.set_author(name=f'{self.client.user.name}\'s eighth ball',icon_url='https://regn.al/8ball.png')
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.embed_color(ctx))
@@ -182,8 +182,8 @@ class ExtensionFunCommands(SubCog):
 			'why. you can\'t turn it off. this is going to go on for like, 2 hours, 44 minutes, and 30 seconds. why.',
 			ephemeral=await self.client.helpers.embed_color(ctx))
 		self.bees_running.add(ctx.guild.id)
-		for line in await self.client.db.inf.bees().value:
+		for line in await self.client.db.inf.bees():
 			try: await ctx.channel.send(line)
 			except Exception: pass
 			await sleep(5)
-		self.bees_running.remove(ctx.guild.id)
+		self.bees_running.discard(ctx.guild.id)

@@ -1,7 +1,8 @@
-from utils.db.documents.ext.enums import AutoResponseMethod
+from utils.db.documents.ext.enums import AutoResponseMethod,AutoResponseType
 from regex import search,fullmatch,escape,IGNORECASE
 from discord.errors import HTTPException,Forbidden
 from asyncio import sleep,create_task
+from argparse import ArgumentParser
 from utils.db import AutoResponse
 from discord import Message
 from typing import TypeVar
@@ -10,13 +11,18 @@ from client import Client
 
 A = TypeVar('A')
 
-class ArgParser:
+class ArgParser(ArgumentParser):
 	def __init__(self,message:str) -> None:
-		self.delete:bool  = False
+		super().__init__()
+		self.add_argument('--delete','-d',action='store_true')
+		self.add_argument('--seed','-s',type=int)
+		self.add_argument('--au','-a',type=str)
+		self.add_argument('--force','-f',action='store_true')
+		self.delete:bool   = False
 		self.seed:int|None = None
-		self.au:int|None  = None
-		self.force:bool   = False
-		self.message:str  = None
+		self.au:str|None   = None
+		self.force:bool    = False
+		self.message:str   = None
 		self.parse(message)
 
 	def __bool__(self) -> bool:
@@ -24,47 +30,42 @@ class ArgParser:
 						self.seed is not None or
 						self.au is not None or
 						self.force is True)
-
+	
 	def parse(self,message:str) -> None:
-		for _ in range(5):
-			s = search(r'(.*)(?:^|\s)((?:--delete|-d)|(?:--force-index|-i) \d+|(?:--au|-a) (?:b|c|u|m|p|g)\d+|(?:--force|-f))$',message,IGNORECASE)
-			if s is None: break
-			message = s.group(1)
-			match s.group(2).split(' '):
-				case ['--delete']|['-d']: self.delete = True
-				case ['--seed',a]|['-s',a]: self.seed = int(a)
-				case ['--au',a]|['-a',a]: self.au = a
-				case ['--force']|['-f']: self.force = True
-				case _: continue
-		self.message = message
+		args,message = self.parse_known_args(message.split(' '))
+		self.message = ' '.join(message)
+		self.delete  = args.delete
+		self.seed    = args.seed
+		self.au      = args.au
+		self.force   = args.force
 
 class AutoResponseCarrier:
 	def __init__(self,au:list[AutoResponse]) -> None:
-		self.all = au
-		self.base = list(filter(lambda d: d.id.startswith('b'),au))
-		self._custom = list(filter(lambda d: d.id.startswith('c'),au))
-		self._unique = list(filter(lambda d: d.id.startswith('u'),au))
-		self._mention = list(filter(lambda d: d.id.startswith('m'),au))
-		self._personal = list(filter(lambda d: d.id.startswith('p'),au))
-		self._scripted = list(filter(lambda d: d.id.startswith('s'),au))
+		self.all = set(au)
+		self.base = set(filter(lambda a: a.id.startswith('b'),self.all))
+		self._custom = set(filter(lambda a: a.id.startswith('c'),self.all))
+		self._unique = set(filter(lambda a: a.id.startswith('u'),self.all))
+		self._mention = set(filter(lambda a: a.id.startswith('m'),self.all))
+		self._personal = set(filter(lambda a: a.id.startswith('p'),self.all))
+		self._scripted = set(filter(lambda a: a.id.startswith('s'),self.all))
 
 	def custom(self,guild_id:int) -> list[AutoResponse]:
-		return list(filter(lambda au: au.data.guild == guild_id,self._custom))
+		return set(filter(lambda au: au.data.guild == guild_id,self._custom))
 
 	def unique(self,guild_id:int) -> list[AutoResponse]:
-		return list(filter(lambda au: au.data.guild == guild_id,self._unique))
+		return set(filter(lambda au: au.data.guild == guild_id,self._unique))
 
 	def mention(self,user_id:int=None,user_ids:list[int]=None) -> list[AutoResponse]:
 		if user_id and user_ids: raise ValueError('cannot specify both user_id and user_ids')
-		if user_id: return list(filter(lambda au: au.trigger == str(user_id),self._mention))
-		if user_ids: return list(filter(lambda au: au.trigger in [str(a) for a in user_ids],self._mention))
+		if user_id: return set(filter(lambda au: au.trigger == str(user_id),self._mention))
+		if user_ids: return set(filter(lambda au: au.trigger in [str(a) for a in user_ids],self._mention))
 		return self._mention
 
 	def personal(self,user_id:int) -> list[AutoResponse]:
-		return list(filter(lambda au: au.data.user == user_id,self._personal))
+		return set(filter(lambda au: au.data.user == user_id,self._personal))
 
 	def scripted(self,guild_imported:set[str]) -> list[AutoResponse]:
-		return list(filter(lambda au: au.id in guild_imported,self._scripted))
+		return set(filter(lambda au: au.id in guild_imported,self._scripted))
 
 class AutoResponses:
 	def __init__(self,client:Client|None=None) -> None:
@@ -79,21 +80,37 @@ class AutoResponses:
 
 	async def reload_au(self,use_cache:bool=True) -> None:
 		self.au = AutoResponseCarrier(await AutoResponse.find(ignore_cache=not use_cache).to_list())
+	
+	async def delete(self,au_id:str) -> None:
+		au = self.get(au_id)
+		if au is None:
+			raise ValueError(f'auto response {au_id} not found')
+		au.type = AutoResponseType.deleted
+		await au.save_changes()
+		new_all = self.au.all
+		new_all.discard(au)
+		new_all.add(au)
+		self.au = AutoResponseCarrier(new_all)
 
 	def find(self,attrs:dict=None,limit:int=None) -> list[AutoResponse]:
 		if attrs is None: return self.au
-		out = []
+		out = set()
 		for au in self.au.all:
 			if all(getattr(au,k) == v for k,v in attrs.items()):
-				out.append(au)
+				out.add(au)
 				if limit is not None and len(out) >= limit: break
-		return out
+		return list(out)
 
 	def get(self,_id:str) -> AutoResponse|None:
 		if res:=self.find({'id':_id},1): return res[0]
 		return None
+	
+	def get_with_overrides(self,_id:str,overrides:dict) -> AutoResponse|None:
+		if res:=self.find({'id':_id},1): return res[0].with_overrides(overrides)
+		return None
 
-	def match(self,message:str,overrides:dict,pool:list[AutoResponse]|None=None) -> list[AutoResponse]:
+	def match(self,message:str,overrides:dict|None=None,pool:set[AutoResponse]|None=None) -> set[AutoResponse]:
+		if overrides is None: overrides = {}
 		if pool is None: pool = self.au.all
 		found = []
 		for au in pool:
@@ -108,13 +125,6 @@ class AutoResponses:
 			if match is not None:
 				found.append(au)
 		return found
-
-	async def notify_reaction(self,message:Message) -> None:
-		try:
-			await message.add_reaction('❌')
-			await sleep(1)
-			await message.remove_reaction('❌',self.client.user)
-		except (HTTPException,Forbidden): pass
 
 	def random_choice(self,pool:list[tuple[A,int|None]]) -> A:
 		choices,weights = zip(*pool)
@@ -131,13 +141,24 @@ class AutoResponses:
 		# check if --au can be used, return if so
 		_user = await self.client.db.user(message.author.id)
 		user_found = _user.data.auto_responses.found if _user else []
-		if args.au is not None and not args.force:
+		if args.au is not None:
+			response = self.get_with_overrides(args.au,overrides.get(args.au,{}))
+
 			if (
-				(response:=self.get(args.au)) and 
-				(response.id in user_found and
-				(response.data.guild in [message.guild.id,None] or cross_guild) or cross_guild)):
+				response is not None and
+				(
+					args.force or not
+					(
+					response.id not in user_found or
+					response.data.guild not in [message.guild.id,None] and not cross_guild or
+					response.method == AutoResponseMethod.disabled or
+					response.type == AutoResponseType.deleted
+					)
+				)
+			):
 					return response
-			create_task(self.notify_reaction(message))
+			create_task(self.client.helpers.notify_reaction(message))
+
 		imported_scripts = set((await self.client.db.guild(message.guild.id)).data.auto_responses.imported_scripts)
 		# gather matches
 		matches = [
@@ -148,15 +169,25 @@ class AutoResponses:
 			*self.match(args.message,overrides,self.au.unique(message.guild.id)), # unique responses
 			*self.match(args.message,overrides,self.au.scripted(imported_scripts)), # scripted responses
 			*self.match(args.message,overrides,self.au.base)] # base responses
+		# strip user disabled
+		matches = [a for a in matches if a.id not in _user.data.auto_responses.disabled]
 		if not matches: return None
 		if args.seed is not None:
-			if not (args.seed > (len(matches)+1)):
-				alt = matches[args.seed]
-				if args.force or alt.id in user_found:
-					return alt
-			create_task(self.notify_reaction(message))
+			if not (args.seed >= len(matches)):
+				response = matches[args.seed]
+				if args.force or response.id in user_found:
+					return response
+			create_task(self.client.helpers.notify_reaction(message,delay=2))
 		# choose a match
-		response = self.random_choice([(a,a.data.weight) for a in matches])
+		options = [(a,a.data.weight) for a in matches]
+		while options:
+			choice = self.random_choice(options)
+			if args.force or choice.data.chance >= random()*100:
+				response = choice
+				break
+			options.remove((choice,choice.data.weight))
+		else:
+			return None
 		# insert regex groups
 		if response.data.regex and (match:=search(response.trigger,args.message,IGNORECASE)):
 			groups = {f'g{i}':'' for i in range(1,11)}

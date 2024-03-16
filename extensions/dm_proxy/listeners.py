@@ -1,7 +1,7 @@
 from utils.crapi.enums import GatewayRequestType as Req
 from discord import Message,ChannelType,User,Webhook
 from utils.tyrantlib import ArbitraryClass
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionDmProxySubCog
 from utils.crapi.models import Request
 from discord.ext.commands import Cog
 from aiohttp import ClientSession
@@ -11,11 +11,10 @@ class DumbSnowflake:
 	def __init__(self,id:int) -> None:
 		self.id = id
 
-
-class ExtensionDMProxyListeners(SubCog):
+class ExtensionDMProxyListeners(ExtensionDmProxySubCog):
 	async def get_bot_info(self,identifier:str) -> ArbitraryClass:
 		if (bot_info:=self.bot_info_cache.get(identifier,None)) is None:
-			bot_info_data = await self.client.api.get_bot_info(identifier)
+			bot_info_data = await self.client.api.internal.get_bot_info(identifier)
 			bot_info = ArbitraryClass(
 				id = bot_info_data['id'],
 				name = bot_info_data['name'],
@@ -40,7 +39,7 @@ class ExtensionDMProxyListeners(SubCog):
 			user_doc = await self.client.db.user(author.id)
 			if user_doc is None: return
 			user_doc.data.dm_threads[str(self.client.user.id)] = msg.id
-			await user_doc.save()
+			await user_doc.save_changes()
 		return msg.id
 	
 	async def handle_recieve(self,message:Message) -> None:
@@ -49,16 +48,15 @@ class ExtensionDMProxyListeners(SubCog):
 		if (thread_id:=user_doc.data.dm_threads.get(str(self.client.user.id),None)) is None:
 			thread_id = await self.create_user_thread(message.author)
 			if thread_id is None: return
-		thread = DumbSnowflake(thread_id)
 		async with ClientSession() as session:
 			wh = Webhook.from_url(self.client.project.webhooks.dm_proxy,session=session)
 			await wh.send(wait=True,
 				username=message.author.name,
 				avatar_url=(message.author.avatar or message.author.default_avatar).url,
-				thread=thread,
+				thread=DumbSnowflake(thread_id),
 				content=f'{message.content}' if len(message.content) <= 2000 else f'{message.content[:1997]}...',
 				files=[await attachment.to_file() for attachment in message.attachments])
-	
+
 	async def handle_send(self,message:Message) -> None:
 		name_check = match(
 			r'(.*) \[(\d+):(\d+)\]',

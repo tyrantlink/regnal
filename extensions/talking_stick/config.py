@@ -59,7 +59,7 @@ def register_config(config:'Config') -> None:
 
 	config.register_option('guild','talking_stick',ConfigOption(
 		name = 'time',type = OptionType.STRING,default = '09:00',
-		attrs = ConfigAttrs(min_length = 5,max_length = 5,pattern = r'^\d{2}:\d{2}$'),
+		attrs = ConfigAttrs(min_length = 5,max_length = 5,regex = r'^\d{2}:\d{2}$'),
 		short_description = 'time of day talking stick is announced',
 		description= '''time of day talking stick is announced
 		format: HH:MM (24 hour) (includes leading zeros)

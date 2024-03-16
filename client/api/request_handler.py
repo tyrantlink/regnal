@@ -43,6 +43,7 @@ class RequestHandler:
 			await self._handle_send_message_channel(message)
 		if user is not None:
 			await self._handle_send_message_user(message)
+		await self.gateway_send(Response(data={'success':True}))
 
 	async def _handle_bot_info(self,message:Request) -> None:
 		self.client.log.info('received bot_info request')

@@ -1,13 +1,12 @@
 from discord.ext.commands import slash_command
 from discord import ApplicationContext,File
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionDevSubCog
 from .models import ReportData
 from io import StringIO
 from json import dumps
 
 
-
-class ExtensionDevCommands(SubCog):
+class ExtensionDevCommands(ExtensionDevSubCog):
 	@slash_command(
 		name='suggest',
 		description='suggest a feature!')

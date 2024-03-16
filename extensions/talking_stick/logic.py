@@ -1,19 +1,18 @@
 from utils.db.documents import Guild as GuildDocument
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionTalkingStickSubCog
 from asyncio import sleep,create_task
 from time import perf_counter,time
 from typing import AsyncIterator
 from discord import Embed,Guild
 from random import choice
 
-class ExtensionTalkingStickLogic(SubCog):
+class ExtensionTalkingStickLogic(ExtensionTalkingStickSubCog):
 	async def find_guilds(self) -> AsyncIterator[tuple[Guild,GuildDocument]]:
-		_st = perf_counter()
 		if not self._rescan and time()-self._guilds[0] < 60:
 			for guild in self._guilds[1]:
+				if guild[1].id in self.recently_rolled: continue
 				yield guild
 			return
-
 		_client_guilds = {guild.id for guild in self.client.guilds}
 
 		guilds = list()
@@ -56,10 +55,10 @@ class ExtensionTalkingStickLogic(SubCog):
 		if current_stick is not None and current_stick.id in active: active.remove(current_stick.id)
 		# remove users without limit role
 		if guild_doc.config.talking_stick.limit is not None:
-			limit_role = guild.get_role(guild_doc.config.talking_stick.limit_role)
+			limit_role = guild.get_role(guild_doc.config.talking_stick.limit)
 			if limit_role is not None:
 				members = {member.id for member in limit_role.members}
-				options = {user_id for user_id in active if user_id not in members}
+				options = {user_id for user_id in active if user_id in members}
 		else: options = active.copy()
 		# remove users with talking stick disabled
 		for user_id in active:
@@ -69,10 +68,19 @@ class ExtensionTalkingStickLogic(SubCog):
 		# ensure there are options
 		if not options: return False
 		self.client.log.debug(f'ts options: {options}')
+
+		member_list = dict(
+			sorted({k:v for k,v in {
+				member_id:guild.get_member(member_id) or
+				await guild.fetch_member(member_id)
+				for member_id in active
+			}.items() if v is not None}.items(),
+			key=lambda m: len(m[1].display_name),
+			reverse=True))
 		# roll new stick
 		for _ in range(10): # looping shouldn't be necessary with the number of checks above, but i'm paranoid
 			rand = choice(list(options))
-			new_stick = guild.get_member(rand) or await guild.fetch_member(rand)
+			new_stick = member_list.get(rand,None)
 			if new_stick is None: continue
 			break
 		else: return False
@@ -86,9 +94,12 @@ class ExtensionTalkingStickLogic(SubCog):
 		await channel.send(
 			guild_doc.config.talking_stick.announcement_message.replace('{user}',new_stick.mention),
 			embed=Embed(
-				title=f'{1/len(active):.2%} chance (1/{len(active)})',
+				title=f'{1/len(member_list):.2%} chance (1/{len(member_list)})',
 				description='\n'.join(
-					{f'>>><@{member_id}><<<' if member_id == new_stick.id else f'<@{member_id}>' for member_id in active}),
+					[new_stick.mention,'']+
+					[f'{member.mention}'
+					for member in member_list.values()
+					if member.id != new_stick.id]),
 				color=await self.client.helpers.embed_color(guild.id)))
 		# update guild data
 		guild_doc.data.talking_stick.current = new_stick.id

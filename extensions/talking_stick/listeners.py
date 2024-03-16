@@ -1,8 +1,8 @@
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionTalkingStickSubCog
 from discord.ext.commands import Cog
 
 
-class ExtensionTalkingStickListeners(SubCog):
+class ExtensionTalkingStickListeners(ExtensionTalkingStickSubCog):
 	@Cog.listener()
 	async def on_ready(self) -> None:
 		if not self.talking_stick_loop.is_running():

@@ -15,7 +15,7 @@ class ApiView(View):
 	@button(label='reset token',style=4)
 	async def button_reset_token(self,_,interaction:Interaction) -> None:
 		assert self.user.id == interaction.user.id
-		new_token = await self.client.api.reset_user_token(self.user.id)
+		new_token = await self.client.api.user.reset_token(self.user.id)
 		embed = Embed(
 			title='api token reset!',
 			description='WARNING: this is the only time you will be able to see this token, make sure to save it somewhere safe!',

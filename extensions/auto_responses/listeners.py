@@ -1,12 +1,12 @@
-from utils.db.documents.ext.enums import TWBFMode,AUCooldownMode
 from discord import Cog,Message,Thread,RawReactionActionEvent
 from utils.db.documents.ext.flags import UserFlags
-from utils.pycord_classes import SubCog
+from utils.db.documents.ext.enums import TWBFMode
+from .subcog import ExtensionAutoResponsesSubCog
 from asyncio import create_task
 from .classes import ArgParser
 
 
-class ExtensionAutoResponsesListeners(SubCog):
+class ExtensionAutoResponsesListeners(ExtensionAutoResponsesSubCog):
 	@Cog.listener()
 	async def on_connect(self) -> None:
 		await self.client.au.reload_au()
@@ -49,11 +49,12 @@ class ExtensionAutoResponsesListeners(SubCog):
 		# parse args
 		args = ArgParser(message.content)
 		# validate usage of --force
-		if args.force and (
-			message.author.id not in self.client.owner_ids or
-			not user.data.flags & UserFlags.ADMIN):
-				create_task(self.client.au.notify_reaction(message))
-				args.force = False
+		if args.force and not (
+			message.author.id in self.client.owner_ids or
+			user.data.flags & UserFlags.ADMIN
+		):
+			create_task(self.client.helpers.notify_reaction(message))
+			args.force = False
 		# get channel, and guild
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
 		guild = await self.client.db.guild(message.guild.id)
@@ -64,10 +65,4 @@ class ExtensionAutoResponsesListeners(SubCog):
 				case TWBFMode.whitelist if channel.id not in guild.data.auto_responses.whitelist: return
 				case TWBFMode.blacklist if channel.id in guild.data.auto_responses.blacklist: return
 				case TWBFMode.true|_: pass
-			# handle cooldown
-			match guild.config.auto_responses.cooldown_mode:
-				case AUCooldownMode.none: pass
-				case AUCooldownMode.user if message.author.id in self._cooldowns: return
-				case AUCooldownMode.channel if channel.id in self._cooldowns: return
-				case AUCooldownMode.guild if message.guild.id in self._cooldowns: return
 		await self.auto_response_handler(message,args)

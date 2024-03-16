@@ -18,5 +18,7 @@ class ExtensionAutoResponses(Cog,
 		self._cooldowns = set()
 
 def setup(client:Client) -> None:
-	client.add_cog(ExtensionAutoResponses(client))
+	client.permissions.register_permission('auto_responses.custom')
+	client.permissions.register_permission('auto_responses.overrides')
 	register_config(client.config)
+	client.add_cog(ExtensionAutoResponses(client))

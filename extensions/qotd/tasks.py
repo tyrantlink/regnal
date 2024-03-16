@@ -1,9 +1,9 @@
+from .subcog import ExtensionQOTDSubCog
 from discord.ext.tasks import loop
 from datetime import datetime
 from pytz import timezone
-from .__subcog__ import QOTDSubCog
 
-class ExtensionQOTDTasks(QOTDSubCog):
+class ExtensionQOTDTasks(ExtensionQOTDSubCog):
 	@loop(seconds=1)
 	async def qotd_loop(self) -> None:
 		if not self.client.is_ready(): return

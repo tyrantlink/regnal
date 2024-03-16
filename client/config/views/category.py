@@ -1,6 +1,6 @@
 from discord import Interaction,SelectOption,User,Member,Embed
-from utils.db.documents.ext.flags import UserFlags
 from utils.pycord_classes import SubView,MasterView
+from .additional_view import AdditionalViewButton
 from .subcategory import ConfigSubcategoryView
 from discord.ui import string_select,Select
 from ..models import ConfigCategory
@@ -15,7 +15,21 @@ class ConfigCategoryView(SubView):
 		self.generate_embed()
 
 	async def __ainit__(self) -> None:
-		self.add_item(self.back_button)
+		if len(self.master.views) > 1: self.add_item(self.back_button)
+
+		for view in self.config_category.additional_views:
+			if view.required_permissions is not None:
+				match self.config_category.name:
+					case 'user':
+						pass
+					case 'guild' if await self.client.permissions.check(view.required_permissions,self.user,self.user.guild):
+						pass
+					case 'dev' if await self.client.permissions.check('dev',self.user,self.user.guild):
+						pass
+					case _: continue
+			view_button = AdditionalViewButton(self,view)
+			self.add_item(view_button)
+
 		options = []
 
 		for subcategory in self.config_category.subcategories:

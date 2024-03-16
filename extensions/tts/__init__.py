@@ -1,2 +1,26 @@
-def setup(client) -> None:
-	...
+from google.cloud.texttospeech import TextToSpeechAsyncClient
+from .listeners import ExtensionTTSListeners
+from .commands import ExtensionTTSCommands
+from discord.ext.commands import Cog
+from .logic import ExtensionTTSLogic
+from .config import register_config
+from .models import GuildTTS
+from client import Client
+
+
+class ExtensionTTS(Cog,
+	ExtensionTTSLogic,
+	ExtensionTTSListeners,
+	ExtensionTTSCommands
+):
+	def __init__(self,client:Client) -> None:
+		self.client = client
+		self.tts = TextToSpeechAsyncClient.from_service_account_info(self.client.project.google_cloud.model_dump())
+		self.guilds:dict[int,GuildTTS] = {}
+		self.text_corrections:dict[str,str] = {}
+
+
+def setup(client:Client) -> None:
+	client.permissions.register_permission('tts.ban')
+	register_config(client.config)
+	client.add_cog(ExtensionTTS(client))

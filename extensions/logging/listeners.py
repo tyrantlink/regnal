@@ -1,10 +1,10 @@
-from discord import RawMessageUpdateEvent,RawMessageDeleteEvent,RawBulkMessageDeleteEvent,Embed
-from .embeds import EditLogEmbed,DeleteLogEmbedFromMessage,DeleteLogEmbedFromID
+from .embeds import EditLogEmbed,DeleteLogEmbedFromMessage,DeleteLogEmbedFromID,MemberJoinLogEmbed,MemberLeaveLogEmbed,MemberBanLogEmbed,MemberUnbanLogEmbed
+from discord import RawMessageUpdateEvent,RawMessageDeleteEvent,RawBulkMessageDeleteEvent,Embed,Member,User,Guild
 from .views import EditedLogView,DeletedLogView,BulkDeletedLogView
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionLoggingSubCog
 from discord.ext.commands import Cog
 
-class ExtensionLoggingListeners(SubCog):
+class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 	@Cog.listener()
 	async def on_raw_message_edit(self,payload:RawMessageUpdateEvent) -> None:
 		if payload.guild_id is None: return
@@ -14,7 +14,7 @@ class ExtensionLoggingListeners(SubCog):
 		if not guild_doc.config.logging.edited_messages: return
 		if payload.data.get('author',None) is None: return
 		if int(payload.data['author']['id']) == self.client.user.id: return
-		before = payload.cached_message or await self.client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+		before = payload.cached_message
 		after = await self.from_raw_edit(payload.data)
 		if after is None: return
 		if after.author.bot and not guild_doc.config.logging.log_bots: return
@@ -62,7 +62,7 @@ class ExtensionLoggingListeners(SubCog):
 			title=f'{len(payload.message_ids)} messages bulk deleted in <#{payload.channel_id}>',
 			color=0x69ff69)
 		message_ids = ','.join([str(i) for i in payload.message_ids])
-		if not len(message_ids) > 4096:
+		if len(message_ids) <= 4096:
 			embed.description = message_ids
 			await log_channel.send(embed=embed,view=BulkDeletedLogView(self.client))
 			return
@@ -82,3 +82,35 @@ class ExtensionLoggingListeners(SubCog):
 			field.name += f'/{index}'
 		
 		await log_channel.send(embed=embed,view=BulkDeletedLogView(self.client))
+	
+	@Cog.listener()
+	async def on_member_join(self,member:Member) -> None:
+		guild_doc = await self.client.db.guild(member.guild.id)
+		if not guild_doc.config.logging.member_join: return
+		log_channel = await self.get_logging_channel(member.guild.id)
+		if log_channel is None: return
+		await log_channel.send(embed=MemberJoinLogEmbed(member))
+	
+	@Cog.listener()
+	async def on_member_remove(self,member:Member) -> None:
+		guild_doc = await self.client.db.guild(member.guild.id)
+		if not guild_doc.config.logging.member_leave: return
+		log_channel = await self.get_logging_channel(member.guild.id)
+		if log_channel is None: return
+		await log_channel.send(embed=MemberLeaveLogEmbed(member))
+	
+	@Cog.listener()
+	async def on_member_ban(self,guild:Guild,member:User) -> None:
+		guild_doc = await self.client.db.guild(guild.id)
+		if not guild_doc.config.logging.member_ban: return
+		log_channel = await self.get_logging_channel(guild.id)
+		if log_channel is None: return
+		await log_channel.send(embed=MemberBanLogEmbed(member,await self.find_ban_entry(guild,member.id)))
+	
+	@Cog.listener()
+	async def on_member_unban(self,guild:Guild,member:User) -> None:
+		guild_doc = await self.client.db.guild(guild.id)
+		if not guild_doc.config.logging.member_unban: return
+		log_channel = await self.get_logging_channel(guild.id)
+		if log_channel is None: return
+		await log_channel.send(embed=MemberUnbanLogEmbed(member,await self.find_ban_entry(guild,member.id,True)))

@@ -1,11 +1,10 @@
-from utils.db.documents.guild import Guild as GuildDoc
-from discord import Message,Member,TextChannel,Guild
+from discord import Message,Member,TextChannel,Guild,AuditLogEntry
+from .subcog import ExtensionLoggingSubCog
 from datetime import datetime,timedelta
-from utils.pycord_classes import SubCog
 from aiohttp import ClientSession
 from asyncio import sleep
 
-class ExtensionLoggingLogic(SubCog):
+class ExtensionLoggingLogic(ExtensionLoggingSubCog):
 	async def get_logging_channel(self,guild_id:int) -> TextChannel|None:
 		if (guild:=self.client.get_guild(guild_id)) is None: return None
 		logging_config = (await self.client.db.guild(guild.id)).config.logging
@@ -34,6 +33,9 @@ class ExtensionLoggingLogic(SubCog):
 			):
 				self.cached_counts.update({f'{message.channel.id}{log.target.id}':log.extra.count})
 				return log.user
+		if message.id in self.client.recently_deleted:
+			self.client.recently_deleted.discard(message.id)
+			return message.guild.me
 		return message.author
 
 	async def find_deleter_from_id(self,message:int,guild:Guild,channel_id:int) -> tuple[Member,Member]|tuple[None,None]:
@@ -46,10 +48,24 @@ class ExtensionLoggingLogic(SubCog):
 			):
 				self.cached_counts.update({f'{channel_id}{log.target.id}':log.extra.count})
 				return log.user,log.target
+		if message.id in self.client.recently_deleted:
+			self.client.recently_deleted.discard(message.id)
+			return message.guild.me
 		return None,None
+	
+	async def find_ban_entry(self,guild:Guild,user_id:int,unban:bool=False) -> AuditLogEntry|None:
+		if guild.me.guild_permissions.view_audit_log is False: return None
+		async for log in guild.audit_logs(after=datetime.now()-timedelta(minutes=5),oldest_first=False):
+			if (
+				log.action.name == 'unban' if unban else 'ban' and
+				log.target.id == user_id and
+				datetime.now().timestamp()-log.created_at.timestamp()<300
+			):
+				return log
+		return None
 
-	async def deleted_by_pk(self,message_id:int,delay:int=2) -> bool:
-		await sleep(delay)
+	async def deleted_by_pk(self,message_id:int,delay:int|None=None) -> bool:
+		if delay: await sleep(delay)
 		async with ClientSession(
 			base_url='https://api.pluralkit.me',
 			headers={
@@ -57,9 +73,12 @@ class ExtensionLoggingLogic(SubCog):
 				'User-Agent':f'{self.client.user.display_name} Discord Bot/{self.client.version.semantic} (contact: {self.client.project.config.contact_email})'
 			}
 		) as session:
-			async with session.get(f'/v2/messages/{message_id}') as response:
-				match response.status:
-					case 200: return True
-					case 404: return False
-					case 429: return await self.deleted_by_pk(message_id,delay=(await response.json()).get('retry_after',2000)/1000)
-					case _: return False
+			try:
+				async with session.get(f'/v2/messages/{message_id}') as response:
+					match response.status:
+						case 200: return True
+						case 404: return False
+						case 429: return await self.deleted_by_pk(message_id,delay=(await response.json()).get('retry_after',2000)/1000)
+						case _: return False
+			except TimeoutError: #? pk api is down
+				return False

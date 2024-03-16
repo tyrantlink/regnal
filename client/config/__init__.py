@@ -1,10 +1,12 @@
 from .models import ConfigData,ConfigOption,ConfigSubcategory
+from .base import register_config as register_base_config
 if not 'TYPE_HINT': from client import Client
 
 class Config:
 	def __init__(self,client:'Client') -> None:
 		self.client = client
 		self.data = ConfigData()
+		register_base_config(self)
 
 	def register_option(self,category:str,subcategory:str,option:ConfigOption,register_permission:bool=True) -> None:
 		if any((option.name == o.name for o in self.data[category][subcategory].options)):
@@ -12,6 +14,7 @@ class Config:
 		self.data[category][subcategory].options.append(option)
 		self.client.log.debug(f'registered config option {category}.{subcategory}.{option.name}')
 		if not (category == 'guild' and register_permission): return
+		self.client.permissions.register_permission(f'{subcategory}.{option.name}')
 
 	def unregister_option(self,category:str,subcategory:str,option:str) -> None:
 		option_data = next((o for o in self.data[category][subcategory].options if o.name == option),None)

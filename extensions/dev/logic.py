@@ -1,12 +1,12 @@
 from discord import InputTextStyle,Embed,ApplicationContext,Webhook
 from utils.pycord_classes import CustomModal
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionDevSubCog
 from aiohttp import ClientSession
 from discord.ui import InputText
 from .models import ReportData
 
 
-class ExtensionDevLogic(SubCog):
+class ExtensionDevLogic(ExtensionDevSubCog):
 	async def report(self,ctx:ApplicationContext,data:ReportData) -> None:
 		modal = CustomModal(
 			title=data.modal_title,

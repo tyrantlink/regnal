@@ -1,10 +1,10 @@
-from utils.pycord_classes import SubCog
+from .subcog import ExtensionTalkingStickSubCog
 from discord.ext.tasks import loop
 from datetime import datetime
 from pytz import timezone
 
 
-class ExtensionTalkingStickTasks(SubCog):
+class ExtensionTalkingStickTasks(ExtensionTalkingStickSubCog):
 	@loop(seconds=1)
 	async def talking_stick_loop(self) -> None:
 		if not self.client.is_ready(): return
@@ -13,5 +13,6 @@ class ExtensionTalkingStickTasks(SubCog):
 			if datetime.now(timezone(
 				guild_doc.config.general.timezone)).strftime('%H:%M') != guild_doc.config.talking_stick.time: continue
 
-			self.client.log.debug(f'rolling talking stick',guild.id)
-			await self.roll_talking_stick(guild,guild_doc)
+			self.client.log.debug(f'rolling talking stick for {guild.name}',guild.id)
+			if not await self.roll_talking_stick(guild,guild_doc):
+				self.recently_rolled.add(guild.id)

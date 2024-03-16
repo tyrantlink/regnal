@@ -1,11 +1,8 @@
-from discord.ui import button,InputText,user_select,channel_select,role_select,Select
-from ...models import ConfigCategory,ConfigSubcategory,ConfigOption,OptionType
-from discord import User,Member,Embed,Button,ButtonStyle,Interaction,Role
-from utils.pycord_classes import SubView,MasterView,CustomModal
-from utils.db.documents.ext.enums import TWBFMode
+from client.config.models import ConfigCategory,ConfigSubcategory,ConfigOption
+from discord import User,Member,Embed,Button,ButtonStyle,Interaction
+from utils.pycord_classes import SubView,MasterView
+from discord.ui import button,channel_select,Select
 from discord.abc import GuildChannel
-from re import match,IGNORECASE
-from typing import Any
 
 
 class ConfigChannelsView(SubView):
@@ -44,9 +41,8 @@ class ConfigChannelsView(SubView):
 					self.object_doc.data,self.config_subcategory.name),
 				self.option_value(),
 				list(self.get_channel_ids() - deleted_channels))
-			await self.object_doc.save()
+			await self.object_doc.save_changes()
 		self.generate_embed()
-				
 
 	def option_value(self) -> str:
 		return getattr(getattr(self.object_doc.config,self.config_subcategory.name),self.option.name).name
@@ -85,7 +81,7 @@ class ConfigChannelsView(SubView):
 				self.object_doc.data,self.config_subcategory.name),
 			self.option_value(),
 			list(self.get_channel_ids() | self.selected))
-		await self.object_doc.save()
+		await self.object_doc.save_changes()
 		self.generate_embed()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 
@@ -101,6 +97,6 @@ class ConfigChannelsView(SubView):
 				self.object_doc.data,self.config_subcategory.name),
 			self.option_value(),
 			list(self.get_channel_ids() - self.selected))
-		await self.object_doc.save()
+		await self.object_doc.save_changes()
 		self.generate_embed()
 		await interaction.response.edit_message(embed=self.embed,view=self)

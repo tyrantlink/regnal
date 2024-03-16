@@ -1,13 +1,14 @@
 from utils.db.documents import Guild as GuildDocument
 from .listeners import ExtensionQOTDListeners
+from .commands import ExtensionQOTDCommands
 from .logic import ExtensionQOTDLogic
 from .tasks import ExtensionQOTDTasks
-from .commands import ExtensionQOTDCommands
 from discord.ext.commands import Cog
 from .config import register_config
+from .views import QOTDAskLog
+from .models import QOTDPack
 from discord import Guild
 from client import Client
-from .views import QOTDAskLog
 
 
 class ExtensionQOTD(Cog,
@@ -19,7 +20,7 @@ class ExtensionQOTD(Cog,
 	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.recently_asked = set()
-		self.packs:dict[str,list[str]] = {}
+		self.packs:dict[str,QOTDPack] = {}
 		self._guilds:tuple[int,list[tuple[Guild,GuildDocument]]] = (0,set())
 		self._rescan = False
 		self.client.add_view(QOTDAskLog(self.client))

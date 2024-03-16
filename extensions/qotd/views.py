@@ -27,7 +27,7 @@ class QOTDAskLog(View):
 			author=embed.author.name.removesuffix(' asked a custom question!'),
 			icon=embed.author.icon_url)
 		guild_doc.data.qotd.nextup.remove(question)
-		await guild_doc.save()
+		await guild_doc.save_changes()
 
 		embed.color = 0xff6969
 		embed.add_field(

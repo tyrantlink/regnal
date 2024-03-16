@@ -66,6 +66,10 @@ class BaseCommands(Cog):
 		mv = MasterView(self.client,await self.client.helpers.embed_color(ctx.guild_id))
 		view = mv.create_subview(ConfigHomeView,user=ctx.user)
 		await view.__ainit__()
+		view_options = [option.value for option in view.get_item('category_select').options]
+		if len(view_options) == 1:
+			mv.views.pop()
+			view = await view.get_view(view_options[0])
 		await ctx.response.send_message(embed=view.embed,view=view,ephemeral=True)
 
 def setup(client:'Client') -> None:

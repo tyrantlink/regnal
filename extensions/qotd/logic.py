@@ -1,22 +1,22 @@
 from utils.db.documents import Guild as GuildDocument
-from discord import Guild,Member,Embed,ChannelType
 from discord.errors import Forbidden,HTTPException
-from .__subcog__ import QOTDSubCog
+from discord import Guild,Member,Embed,ChannelType
+from .subcog import ExtensionQOTDSubCog
 from typing import AsyncIterator
 from .views import QOTDAskLog
+from .models import QOTDPack
 from random import choice
 from aiofiles import open
-from json import loads
 from time import time
 from os import walk
 
 
-class ExtensionQOTDLogic(QOTDSubCog):
+class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 	async def reload_packs(self) -> None:
 		files = next(walk('extensions/qotd/packs'),(None,None,[]))[2]
 		for file in files:
 			async with open(f'extensions/qotd/packs/{file}') as f:
-				self.packs[file.removesuffix('.json')] = loads(await f.read())
+				self.packs[file.removesuffix('.json')] = QOTDPack.model_validate_json(await f.read())
 
 	async def find_guilds(self) -> AsyncIterator[tuple[Guild,GuildDocument]]:
 		if not self._rescan and time()-self._guilds[0] < 60:
@@ -70,23 +70,24 @@ class ExtensionQOTDLogic(QOTDSubCog):
 			raise ValueError(f'no qotd packs available for guild {guild_doc.name} ({guild_doc.id})')
 		
 		pack = choice(guild_doc.data.qotd.packs)
+		pack_data = self.packs[pack]
 		# ensure pack asked data exists
 		if pack not in guild_doc.data.qotd.asked:
-			guild_doc.data.qotd.asked[pack] = '0'*len(self.packs[pack])
+			guild_doc.data.qotd.asked[pack] = '0'*len(pack_data.questions)
 
 		# ensure equal length
-		if len(guild_doc.data.qotd.asked[pack]) != len(self.packs[pack]):
-			guild_doc.data.qotd.asked[pack] = '0'*len(self.packs[pack])
+		if len(guild_doc.data.qotd.asked[pack]) != len(pack_data.questions):
+			guild_doc.data.qotd.asked[pack] = '0'*len(pack_data.questions)
 		
 		asked = guild_doc.data.qotd.asked[pack]
-		options = [q for i,q in enumerate(self.packs[pack]) if not int(asked[i])]
+		options = [q for i,q in enumerate(pack_data.questions) if not int(asked[i])]
 
 		if not options:
-			guild_doc.data.qotd.asked[pack] = '0'*len(self.packs[pack])
-			options = self.packs[pack]
+			guild_doc.data.qotd.asked[pack] = '0'*len(pack_data.questions)
+			options = pack_data
 		
 		embed.description = choice(options)
-		index = self.packs[pack].index(embed.description)
+		index = pack_data.questions.index(embed.description)
 		embed.set_footer(text=f'{pack}#{index+1}')
 		guild_doc.data.qotd.asked[pack] = f'{asked[:index]}1{asked[index+1:]}' # strings are immutable
 		return guild_doc,embed
@@ -127,4 +128,4 @@ class ExtensionQOTDLogic(QOTDSubCog):
 		self._rescan = True
 		guild_doc.data.qotd.last_thread = msg.id
 		guild_doc.data.qotd.last = guild_doc.get_current_day()
-		await guild_doc.save()
+		await guild_doc.save_changes()

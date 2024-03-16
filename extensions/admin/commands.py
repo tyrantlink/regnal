@@ -1,10 +1,7 @@
 from discord import slash_command,Permissions,Option,ApplicationContext,Embed,message_command,Message
-from utils.pycord_classes import SubCog
-from client import Client
+from .subcog import ExtensionAdminSubCog
 
-
-
-class ExtensionAdminCommands(SubCog):
+class ExtensionAdminCommands(ExtensionAdminSubCog):
 	@slash_command(
 		name='purge',
 		description='bulk delete messages from current channel',

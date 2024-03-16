@@ -8,6 +8,7 @@ class PermissionHandler:
 	def __init__(self,client:'Client') -> None:
 		self.client = client
 		self.permissions = set()
+		register_base_permissions(self)
 
 	def register_permission(self,permission:str) -> None:
 		self.permissions.add(permission)

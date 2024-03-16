@@ -16,7 +16,7 @@ class ExtensionTalkingStick(Cog,
 	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.recently_rolled = set()
-		self._guilds:tuple[int,list[tuple[Guild,GuildDocument]]] = (0,set())
+		self._guilds:tuple[int,list[tuple[Guild,GuildDocument]]] = (0,[])
 		self._rescan = False
 
 

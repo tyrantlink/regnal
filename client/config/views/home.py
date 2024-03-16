@@ -1,6 +1,6 @@
 from discord import Interaction,SelectOption,User,Member,Embed
-from utils.db.documents.ext.flags import UserFlags
 from utils.pycord_classes import SubView,MasterView
+from utils.db.documents.ext.flags import UserFlags
 from discord.ui import string_select,Select
 from .category import ConfigCategoryView
 
@@ -28,18 +28,22 @@ class ConfigHomeView(SubView):
 		self.embed = Embed(
 			title='config',color=self.master.embed_color)
 		self.embed.set_footer(text=f'config')
+	
+	async def get_view(self,value:str) -> ConfigCategoryView:
+		match value:
+				case 'user':
+					view = self.master.create_subview(ConfigCategoryView,self.client.config.data.user,user=self.user)
+				case 'guild':
+					view = self.master.create_subview(ConfigCategoryView,self.client.config.data.guild,user=self.user)
+				case 'dev':
+					view = self.master.create_subview(ConfigCategoryView,self.client.config.data.dev,user=self.user)
+				case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
+		await view.__ainit__()
+		return view
 
 	@string_select(
 		placeholder='select a config category',
 		custom_id='category_select')
 	async def category_select(self,select:Select,interaction:Interaction) -> None:
-		match select.values[0]:
-			case 'user':
-				view = self.master.create_subview(ConfigCategoryView,self.client.config.data.user,user=self.user)
-			case 'guild':
-				view = self.master.create_subview(ConfigCategoryView,self.client.config.data.guild,user=self.user)
-			case 'dev':
-				view = self.master.create_subview(ConfigCategoryView,self.client.config.data.dev,user=self.user)
-			case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
-		await view.__ainit__()
+		view = await self.get_view(select.values[0])
 		await interaction.response.edit_message(view=view,embed=view.embed)

@@ -1,7 +1,7 @@
 from client.config.models import ConfigOption,ConfigSubcategory,OptionType,ConfigAttrs
-from discord import Member,TextChannel,ChannelType,Role,ForumChannel
 from client.config.errors import ConfigValidationError
 if not 'TYPE_HINT': from client import Client,Config
+from discord import Member,ChannelType,ForumChannel
 from discord.abc import GuildChannel
 
 async def validate_channel(
@@ -65,7 +65,7 @@ def register_config(config:'Config') -> None:
 			name = 'time',
 			type = OptionType.STRING,
 			default = '09:00',
-			attrs = ConfigAttrs(min_length = 5,max_length = 5,pattern = r'^\d{2}:\d{2}$'),
+			attrs = ConfigAttrs(min_length = 5,max_length = 5,regex = r'^\d{2}:\d{2}$'),
 			short_description = 'time of day qotd is asked',
 			description= '''time of day qotd is asked
 											format: HH:MM (24 hour) (includes leading zeros)

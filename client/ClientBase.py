@@ -1,9 +1,8 @@
 from discord import Interaction,ApplicationContext,Embed,Webhook,File,Activity,ActivityType,Guild,Message
 from discord.errors import CheckFailure,ApplicationCommandInvokeError,HTTPException
 if not 'TYPE_HINT': from extensions.auto_responses import AutoResponses
-from .permissions import PermissionHandler,register_base_permissions
-from .config.base import register_config as register_base_config
 from utils.db import MongoDatabase,Guild as GuildDocument
+from .permissions import PermissionHandler
 from traceback import format_exc,format_tb
 from utils.models import Project,BotType
 from utils.tyrantlib import get_version
@@ -33,11 +32,10 @@ class ClientBase:
 		self.helpers = ClientHelpers(self)
 		self.au:AutoResponses = None # set by auto responses extension
 		self.logging_ignore:set = None # set by logging extension
+		self.recently_deleted:set = set() # used by logging extension
 		self.api = CrAPI(self)
-		self.config = Config(self)
 		self.permissions = PermissionHandler(self)
-		register_base_config(self.config)
-		register_base_permissions(self.permissions)
+		self.config = Config(self)
 		self.last_update_hour = -1
 		self._initialized = False
 
@@ -155,6 +153,8 @@ class ClientBase:
 		guild = await self.db.guild(message.guild.id)
 		# create doc if it doesn't exist
 		guild = await self.on_guild_join(message.guild) if guild is None else guild
+		# keep guild name updated
+		guild.name = message.guild.name
 		# ignore webhooks
 		if message.webhook_id is not None: return
 		# grab user document

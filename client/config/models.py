@@ -1,7 +1,7 @@
+from client.permissions.views import PermissionManagerView
 from pydantic import BaseModel as _BaseModel,Field
-from typing import Optional,Any
-from typing import Callable
-from enum import Enum
+from typing import Callable,Any,NamedTuple
+from enum import Enum,EnumType
 
 
 class BaseModel(_BaseModel):
@@ -30,30 +30,40 @@ class ConfigSubcategory(BaseModel):
 		else: raise KeyError(f'no subcategory with name `{key}` found. has it been registered?')
 
 class AdditionalView(BaseModel):
+	required_permissions:str|None = None
 	button_label:str
 	# button_style:int set to 1
 	button_row:int
 	button_id:str
 	view:type # uninstantiated utils.atomic_view.SubView subclass
 
-class ConfigAttrs(BaseModel):
-	class Config:
-		arbitrary_types_allowed = True
+class ConfigStringOption(NamedTuple):
+	label:str
+	description:str|None
+	value:str
+
+class ConfigAttrs(NamedTuple):
 	max_length:int|None = None # applicable to str,int,float #? max length of string version of value (enforced in modal)
 	min_length:int|None = None # applicable to str,int,float #? min length of string version of value (enforced in modal)
 	placeholder:str|None = None # applicable to str,int,float #? placeholder in input modal
-	options:list[str|tuple[str,str]]|None = None # applicable to str #? if given, input type will be select, if tuples, first element is label, second is description
+	options:list[ConfigStringOption] = [] # applicable to str #? if given, input type will be select
 	max_value:int|float|None = None # applicable to int,float,role,user,channel #? max value of value OR max number of options
 	min_value:int|float|None = None # applicable to int,float,role,user,channel #? min value of value OR max number of options
 	regex:str|None = None # applicable to str #? regex to match value against
-	validation:Callable = None # applicable to all #? additional validation function, takes value as argument, returns bool
+	multi:bool = False # applicable to channel,role,user #? adds add/remove buttons, stored value must be list
+	enum:Enum|EnumType|None = None # applicable to str #? enum to get int value from
+	validation:Callable|None = None # applicable to all #? additional validation function, takes value as argument, returns bool
 
 class ConfigOption(BaseModel):
+	class Config:
+		arbitrary_types_allowed = True
+
 	name:str
 	type:'OptionType'
 	short_description:str|None = Field(None,max_length=100)
 	description:str|None = None
 	default:Any = None
+	nullable:bool = False
 	attrs:ConfigAttrs = ConfigAttrs()
 
 class OptionType(Enum):
@@ -69,7 +79,15 @@ class OptionType(Enum):
 class ConfigData:
 	def __init__(self) -> None:
 		self.user = ConfigCategory(name='user')
-		self.guild = ConfigCategory(name='guild')
+		self.guild = ConfigCategory(name='guild',
+			additional_views=[
+				AdditionalView(
+					required_permissions='admin.manage_permissions',
+					button_label='manage permissions',
+					button_row=2,
+					button_id='manage_permissions',
+					view=PermissionManagerView),
+			])
 		self.dev = ConfigCategory(name='dev')
 
 	def __getitem__(self,key:str) -> ConfigCategory:

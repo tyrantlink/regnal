@@ -3,6 +3,7 @@ from .logic import ExtensionDevLogic
 from discord.ext.commands import Cog
 from client import Client
 
+
 class ExtensionDev(Cog,
 	ExtensionDevLogic,
 	ExtensionDevCommands

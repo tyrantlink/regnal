@@ -1,8 +1,8 @@
+from .subcog import ExtensionQOTDSubCog
 from discord.ext.commands import Cog
-from .__subcog__ import QOTDSubCog
 
 
-class ExtensionQOTDListeners(QOTDSubCog):
+class ExtensionQOTDListeners(ExtensionQOTDSubCog):
 	@Cog.listener()
 	async def on_ready(self) -> None:
 		await self.reload_packs()

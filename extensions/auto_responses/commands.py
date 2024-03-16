@@ -1,15 +1,17 @@
 from discord import Message,slash_command,ApplicationContext,message_command
-from utils.pycord_classes import SubCog
-from .embed import au_info_embed
+from .views import AutoResponseBrowserView,AutoResponseInfoView
+from .subcog import ExtensionAutoResponsesSubCog
 
 
-class ExtensionAutoResponsesCommands(SubCog):
+class ExtensionAutoResponsesCommands(ExtensionAutoResponsesSubCog):
 	@slash_command(
 			name='auto_responses',
 			description='browse auto responses you\'ve found',
 			guild_only=True)
 	async def slash_auto_responses(self,ctx:ApplicationContext) -> None:
-		print('in app command')
+		view = AutoResponseBrowserView(self.client,ctx.author)
+		await view.__ainit__()
+		await ctx.response.send_message(embed=view.embed,view=view,ephemeral=True)
 
 	@message_command(
 		name='au info',
@@ -23,9 +25,7 @@ class ExtensionAutoResponsesCommands(SubCog):
 		if au is None:
 			await ctx.response.send_message('auto response not found!',ephemeral=True)
 			return
-		_user = await self.client.db.user(ctx.author.id)
-		extra_info = _user.config.general.developer_mode if _user else False
-		embed_color = await self.client.helpers.embed_color(ctx.guild_id)
-		embed = au_info_embed(au,embed_color,extra_info)
+		view = AutoResponseInfoView(self.client,ctx.author,au)
+		await view.__ainit__()
 
-		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
+		await ctx.response.send_message(embed=view.embed,view=view,ephemeral=True)
