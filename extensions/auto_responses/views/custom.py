@@ -4,6 +4,7 @@ from utils.pycord_classes import SubView,MasterView,CustomModal
 from utils.db.documents.auto_response import AutoResponse
 from utils.db.documents.ext.enums import AutoResponseType
 from ..embed import au_info_embed,auto_response_404
+from .editor import AutoResponseEditorView
 
 
 class CustomAutoResponseView(SubView):
@@ -12,8 +13,14 @@ class CustomAutoResponseView(SubView):
 		self.user = user
 		self.au:list[AutoResponse]
 		self.selected:AutoResponse|None = None
-	
+
 	async def __ainit__(self) -> None:
+		await self.reload_au()
+		await self.reload_items()
+		await self.reload_embed()
+
+	async def __on_back__(self) -> None:
+		await self.client.api.internal.reload_au()
 		await self.reload_au()
 		await self.reload_items()
 		await self.reload_embed()
@@ -81,7 +88,9 @@ class CustomAutoResponseView(SubView):
 		row = 2,
 		custom_id = 'button_new')
 	async def button_new(self,button:Button,interaction:Interaction) -> None:
-		... #! aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa editor
+		view = self.master.create_subview(AutoResponseEditorView,self.user,None)
+		await view.__ainit__()
+		await interaction.response.edit_message(embed=view.embed,view=view)
 	
 	@button(
 		label = 'import script',
@@ -194,7 +203,9 @@ class CustomAutoResponseView(SubView):
 		row = 2,
 		custom_id = 'button_edit')
 	async def button_edit(self,button:Button,interaction:Interaction) -> None:
-		... #! aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa editor
+		view = self.master.create_subview(AutoResponseEditorView,self.user,self.selected)
+		await view.__ainit__()
+		await interaction.response.edit_message(embed=view.embed,view=view)
 
 	@button(
 		label = 'delete',

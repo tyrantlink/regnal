@@ -7,3 +7,4 @@ venv
 !__init__.py
 !subcog.py
 regnalrb/target
+doc_build

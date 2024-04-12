@@ -14,12 +14,23 @@ class AutoResponses(CrAPIRouter):
 				raise ValueError(f'unknown response code: {status} | {json.get("detail","")}')
 
 		return await request.json()
-	
+
 	async def new(self,au:AutoResponse) -> AutoResponse:
-		request = await self.session.post('/au',json=au.model_dump())
+		data = au.model_dump(mode='json')
+		# pydantic is stupid
+		data['method'] = data['method'].value
+		data['type'] = data['type'].value
+		print(data)
+		request = await self.session.post('/au/',json=data)
 		match request.status:
 			case 200: pass
 			case 403: raise ValueError('invalid crapi token!')
 			case 400: raise ValueError('auto response id must be "unset"!')
-		
-		return AutoResponse.model_validate_json(await request.text())
+			case status:
+				try: json = await request.json()
+				except Exception: json = {}
+				raise ValueError(f'unknown response code: {status} | {json.get("detail","")}')
+		text = await request.text()
+
+		print(text)
+		return AutoResponse.model_validate_json(text)

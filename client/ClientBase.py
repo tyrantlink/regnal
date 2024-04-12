@@ -149,6 +149,8 @@ class ClientBase:
 	async def on_message(self,message:Message) -> None:
 		# ignore DMs
 		if message.guild is None: return
+		# stupid variable because dict.pop isn't counted as a change
+		save_guild_changes = True
 		# grab guild document
 		guild = await self.db.guild(message.guild.id)
 		# create doc if it doesn't exist
@@ -182,16 +184,17 @@ class ClientBase:
 		day = str(guild.get_current_day())
 		# check if day is in activity dict
 		if day not in guild.data.activity.keys():
-			guild.data.activity[day] = {}
 			# remove oldest day if activity dict is too long
 			while len(guild.data.activity.keys()) > 30:
 				guild.data.activity.pop(sorted(list(guild.data.activity.keys()))[0])
+				save_guild_changes = False
+			guild.data.activity[day] = {}
 		if str(message.author.id) not in guild.data.activity[day].keys():
 			guild.data.activity[day][str(message.author.id)] = 0
 		guild.data.activity[day][str(message.author.id)] += 1
 		# save user and guild data to db
 		await user.save_changes()
-		await guild.save_changes()
+		await (guild.save_changes() if save_guild_changes else guild.save())
 
 	#? Tasks
 	@loop(minutes=1)

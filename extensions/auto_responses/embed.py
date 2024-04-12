@@ -53,14 +53,16 @@ async def _extra_embed(
 		title=f'auto response {auto_response.id}',
 		color=embed_color)
 	guild = await client.db.guild(auto_response.data.guild) if auto_response.data.guild else None
-	match auto_response.id[0]:
-		case 'b': au_data_type = 'base'
-		case 'c': au_data_type = f'custom ({guild.name})'
-		case 'u': au_data_type = f'unique ({guild.name})'
-		case 'm': au_data_type = f'mention (<@{auto_response.trigger}>)'
-		case 'p': au_data_type = f'personal (<@{auto_response.data.user}>)'
-		case 's': au_data_type = f'scripted by <@{auto_response.trigger}>'
-		case  _ : au_data_type = 'unknown'
+	au_data_type = 'unset'
+	if auto_response.id != 'unset':
+		match auto_response.id[0]:
+			case 'b': au_data_type = 'base'
+			case 'c': au_data_type = f'custom ({guild.name})'
+			case 'u': au_data_type = f'unique ({guild.name})'
+			case 'm': au_data_type = f'mention (<@{auto_response.trigger}>)'
+			case 'p': au_data_type = f'personal (<@{auto_response.data.user}>)'
+			case 's': au_data_type = f'scripted by <@{auto_response.trigger}>'
+			case  _ : au_data_type = 'unknown'
 	embed.add_field(
 		name='data type',inline=False,
 		value=au_data_type)

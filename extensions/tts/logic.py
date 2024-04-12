@@ -76,7 +76,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 		# pronounce emojis
 		message = sub(r'<a?:(\w+):\d+>',r'\g<1>',message)
 		# pronounce urls
-		message = sub(r'(?:^|\ )https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.',r'a \g<1> link',message)
+		message = sub(r'(?:^|\ )<?https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.>?',r'a \g<1> link',message)
 		# replace timestamps
 		message = sub(r'<t:\d+(:[tTdDfFR])?>','a timestamp',message)
 		return message
