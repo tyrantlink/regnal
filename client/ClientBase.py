@@ -192,7 +192,7 @@ class ClientBase:
 				save_changes = False
 			guild.data.activity[day] = {}
 
-		if not await (self.db.user(message.author.id)).config.general.no_track:
+		if not (await self.db.user(message.author.id)).config.general.no_track:
 			if str(message.author.id) not in guild.data.activity[day].keys():
 				guild.data.activity[day][str(message.author.id)] = 0
 			guild.data.activity[day][str(message.author.id)] += 1
