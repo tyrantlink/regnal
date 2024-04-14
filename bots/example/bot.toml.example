@@ -1,0 +1,8 @@
+enabled = false
+type = 0 # 0 for normal, 1 for sharded
+logstream = 'tet' # logstream name, must be unique
+token = '' # discord bot token
+api_token = '' # CrAPI token
+guilds = [] # restrict to these guilds, or leave empty for unrestricted
+disabled_extensions = [] # extensions to disable by name
+custom_extension = false # loads custom extension from __init__.py in the same directory
