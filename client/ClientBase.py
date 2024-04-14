@@ -135,7 +135,7 @@ class ClientBase:
 
 	#? Events
 	async def on_guild_join(self,guild:Guild) -> GuildDocument:
-		if self.project.bot.type == BotType.SMALL and guild.id not in [*self.project.config.base_guilds,*self.project.bot.guilds]:
+		if self.project.bot.guilds and guild.id not in [*self.project.config.base_guilds,*self.project.bot.guilds]:
 			try: await guild.leave()
 			except HTTPException: self.log.error(f'failed to leave guild {guild.id}')
 			return
