@@ -10,7 +10,7 @@ class EditedLogView(View):
 		super().__init__()
 		self.client = client
 		self.add_item(self.button_clear)
-	
+
 	@button(
 		label='clear',custom_id='button_clear',
 		style=ButtonStyle.red)

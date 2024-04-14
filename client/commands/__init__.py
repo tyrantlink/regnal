@@ -51,7 +51,7 @@ class BaseCommands(Cog):
 		embed.set_footer(text=f'version {self.client.version.semantic} ({self.client.version.commit})')
 
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
-	
+
 	@slash_command(
 		name='api',
 		description='utilize the api!')

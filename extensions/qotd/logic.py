@@ -45,7 +45,7 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 			yield guild,guild_doc
 		self._guilds = (time(),guilds)
 		self._rescan = False
-	
+
 	async def log_ask_custom(self,author:Member,question:str) -> None:
 		guild_doc = await self.client.db.guild(author.guild.id)
 		if None in (
@@ -57,7 +57,7 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 		embed = Embed(description=question,color=await self.client.helpers.embed_color(author.guild.id))
 		embed.set_author(name=f'{author.display_name} asked a custom question!',icon_url=author.avatar.url)
 		await channel.send(embed=embed,view=QOTDAskLog(self.client))
-	
+
 	async def get_question(self,guild_doc:GuildDocument) -> tuple[GuildDocument,Embed]:
 		embed = Embed(title='❓❔ Question of the Day ❔❓',color=await self.client.helpers.embed_color(guild_doc.id))
 		if guild_doc.data.qotd.nextup:
@@ -91,7 +91,7 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 		embed.set_footer(text=f'{pack}#{index+1}')
 		guild_doc.data.qotd.asked[pack] = f'{asked[:index]}1{asked[index+1:]}' # strings are immutable
 		return guild_doc,embed
-	
+
 	async def ask_qotd(self,guild:Guild,guild_doc:GuildDocument) -> None:
 		channel = guild.get_channel(guild_doc.config.qotd.channel
 			) or await self.client.fetch_channel(guild_doc.config.qotd.channel)
@@ -128,4 +128,5 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 		self._rescan = True
 		guild_doc.data.qotd.last_thread = msg.id
 		guild_doc.data.qotd.last = guild_doc.get_current_day()
+		guild_doc.data.statistics.questions += 1
 		await guild_doc.save_changes()

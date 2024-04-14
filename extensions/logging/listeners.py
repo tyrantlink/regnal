@@ -82,7 +82,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 			field.name += f'/{index}'
 		
 		await log_channel.send(embed=embed,view=BulkDeletedLogView(self.client))
-	
+
 	@Cog.listener()
 	async def on_member_join(self,member:Member) -> None:
 		guild_doc = await self.client.db.guild(member.guild.id)
@@ -90,7 +90,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 		log_channel = await self.get_logging_channel(member.guild.id)
 		if log_channel is None: return
 		await log_channel.send(embed=MemberJoinLogEmbed(member))
-	
+
 	@Cog.listener()
 	async def on_member_remove(self,member:Member) -> None:
 		guild_doc = await self.client.db.guild(member.guild.id)
@@ -98,7 +98,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 		log_channel = await self.get_logging_channel(member.guild.id)
 		if log_channel is None: return
 		await log_channel.send(embed=MemberLeaveLogEmbed(member))
-	
+
 	@Cog.listener()
 	async def on_member_ban(self,guild:Guild,member:User) -> None:
 		guild_doc = await self.client.db.guild(guild.id)
@@ -106,7 +106,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 		log_channel = await self.get_logging_channel(guild.id)
 		if log_channel is None: return
 		await log_channel.send(embed=MemberBanLogEmbed(member,await self.find_ban_entry(guild,member.id)))
-	
+
 	@Cog.listener()
 	async def on_member_unban(self,guild:Guild,member:User) -> None:
 		guild_doc = await self.client.db.guild(guild.id)

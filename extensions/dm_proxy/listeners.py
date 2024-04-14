@@ -41,7 +41,7 @@ class ExtensionDMProxyListeners(ExtensionDmProxySubCog):
 			user_doc.data.dm_threads[str(self.client.user.id)] = msg.id
 			await user_doc.save_changes()
 		return msg.id
-	
+
 	async def handle_recieve(self,message:Message) -> None:
 		user_doc = await self.client.db.user(message.author.id)
 		if user_doc is None: return

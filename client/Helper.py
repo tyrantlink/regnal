@@ -10,7 +10,7 @@ class ClientHelpers:
 		self.client = client
 		self._cmd_ref_pattern = r'{cmd_ref\[([ -_\p{L}\p{N}]{1,32})\]}'
 		self.commands = set()
-	
+
 	def load_commands(self) -> None:
 		self.commands = {
 			command.qualified_name:command.qualified_id
@@ -31,7 +31,7 @@ class ClientHelpers:
 				case TWBFMode.blacklist if ctx.channel_id not in guild.data.hide_commands.blacklist: return True
 				case TWBFMode.false: pass
 		return (await self.client.db.user(ctx.user.id)).config.general.hide_commands
-	
+
 	def handle_cmd_ref(self,message:str) -> str:
 		for match in finditer(pattern=self._cmd_ref_pattern,string=message,flags=UNICODE):
 			message = sub(

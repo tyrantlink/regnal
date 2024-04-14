@@ -134,13 +134,13 @@ class ConfigOptionView(
 		custom_id='select_channel',row=1,min_values=0)
 	async def select_channel(self,select:Select,interaction:Interaction) -> None:
 		await self._select(select,interaction)
-	
+
 	@role_select(
 		placeholder='select a role',
 		custom_id='select_role',row=1,min_values=0)
 	async def select_role(self,select:Select,interaction:Interaction) -> None:
 		await self._select(select,interaction)
-	
+
 	@user_select(
 		placeholder='select a user',
 		custom_id='select_user',row=1,min_values=0)

@@ -36,7 +36,7 @@ class AutoResponseOverridesView(SubView):
 				self.client.au.au.unique(self.user.guild.id)|
 				self.client.au.au.mention())
 			if au.type != AutoResponseType.deleted]
-	
+
 	async def reload_items(self) -> None:
 		self.clear_items()
 		self.add_items(
@@ -47,7 +47,7 @@ class AutoResponseOverridesView(SubView):
 		if self.selected is not None:
 			self.add_items(
 				self.button_edit)	
-	
+
 	async def reload_embed(self) -> None:
 		if self.selected is None:
 			self.embed = Embed(
@@ -91,7 +91,7 @@ class AutoResponseOverridesView(SubView):
 		await self.reload_items()
 		await self.reload_embed()
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label = '🔎 by message',
 		style = ButtonStyle.blurple,

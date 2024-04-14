@@ -247,7 +247,7 @@ class AutoResponseEditorView(SubView):
 		self.au.data.ignore_cooldown = not self.au.data.ignore_cooldown
 		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label = 'regex matching',
 		style = ButtonStyle.secondary,
@@ -257,7 +257,7 @@ class AutoResponseEditorView(SubView):
 		self.au.data.regex = not self.au.data.regex
 		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label = 'nsfw',
 		style = ButtonStyle.secondary,
@@ -267,7 +267,7 @@ class AutoResponseEditorView(SubView):
 		self.au.data.nsfw = not self.au.data.nsfw
 		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label = 'case sensitive',
 		style = ButtonStyle.secondary,
@@ -277,7 +277,7 @@ class AutoResponseEditorView(SubView):
 		self.au.data.case_sensitive = not self.au.data.case_sensitive
 		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label = 'delete trigger',
 		style = ButtonStyle.secondary,
@@ -287,7 +287,7 @@ class AutoResponseEditorView(SubView):
 		self.au.data.delete_trigger = not self.au.data.delete_trigger
 		await self.reload()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	async def save_override(self,interaction:Interaction) -> None:
 		guild_doc = await self.client.db.guild(self.user.guild.id)
 		original_au = self.client.au.get(self.au.id)
@@ -308,7 +308,7 @@ class AutoResponseEditorView(SubView):
 		
 		guild_doc.data.auto_responses.overrides[self.au.id] = override_data
 		await guild_doc.save() # has to be hard save because messing with dictionaries doesn't count as a change
-	
+
 	@button(
 		label = 'save',
 		style = ButtonStyle.green,

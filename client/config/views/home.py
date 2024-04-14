@@ -28,7 +28,7 @@ class ConfigHomeView(SubView):
 		self.embed = Embed(
 			title='config',color=self.master.embed_color)
 		self.embed.set_footer(text=f'config')
-	
+
 	async def get_view(self,value:str) -> ConfigCategoryView:
 		match value:
 				case 'user':

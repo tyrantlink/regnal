@@ -76,6 +76,11 @@ class ClientBase:
 
 	async def on_application_command(self,ctx:ApplicationContext) -> None:
 		self.log.info(f'{ctx.author.name} used {ctx.command.name}',ctx.guild_id)
+		if ctx.guild_id is None: return
+		guild_doc = await self.db.guild(ctx.guild_id)
+		if guild_doc is None: return
+		guild_doc.data.statistics.commands += 1
+		await guild_doc.save_changes()
 
 	async def on_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return
@@ -146,55 +151,70 @@ class ClientBase:
 		self.log.info(f'joined guild {guild.name} ({guild.id})')
 		return guild_doc
 
-	async def on_message(self,message:Message) -> None:
-		# ignore DMs
-		if message.guild is None: return
-		# stupid variable because dict.pop isn't counted as a change
-		save_guild_changes = True
-		# grab guild document
-		guild = await self.db.guild(message.guild.id)
-		# create doc if it doesn't exist
-		guild = await self.on_guild_join(message.guild) if guild is None else guild
-		# keep guild name updated
-		guild.name = message.guild.name
-		# ignore webhooks
-		if message.webhook_id is not None: return
-		# grab user document
-		user = await self.db.user(message.author.id)
-		# create doc if it doesn't exist
-		if user is None:
-			user = self.db.new.user(
-				id=message.author.id,
-				username=message.author.name)
-			await user.save()
-		# return if user has no_track enabled
-		if user.config.general.no_track: return
-		# update username if changed
-		if user.username != message.author.name:
-			user.username = message.author.name
-		# increment message count
+	async def on_guild_remove(self,guild:Guild) -> None:
+		guild_doc = await self.db.guild(guild.id)
+		if guild_doc is None: return
+		guild_doc.attached_bot = None
+		await guild_doc.save_changes()
+
+	async def handle_user_message(self,message:Message) -> None:
+		user = await self.db.user(message.author.id,create_if_not_found=True)
+		user.username = message.author.name
+		if user.config.general.no_track:
+			await user.save_changes()
+			return
+
 		if str(message.guild.id) not in user.data.statistics.messages.keys():
 			user.data.statistics.messages[str(message.guild.id)] = 0
 		user.data.statistics.messages[str(message.guild.id)] += 1
-		# bots aren't counted in activity stats
-		if message.author.bot:
-			await user.save_changes()
-			return
-		# increment guild activity stats
+
+		await user.save_changes()
+
+	async def handle_guild_message(self,message:Message) -> None:
+		guild = await self.db.guild(message.guild.id,create_if_not_found=True)
+
+		if guild.attached_bot != self.user.id:
+			if guild.attached_bot is not None:
+				self.log.error(f'guild {guild.name} ({guild.id}) is attached to a different bot ({guild.attached_bot})',guild.id)
+				# await message.guild.leave()
+				return
+			guild.attached_bot = self.user.id
+		guild.name = message.guild.name
+		guild.owner = message.guild.owner_id
+
 		day = str(guild.get_current_day())
-		# check if day is in activity dict
+		save_changes = True
+
+		guild.data.statistics.messages += 1
 		if day not in guild.data.activity.keys():
-			# remove oldest day if activity dict is too long
 			while len(guild.data.activity.keys()) > 30:
 				guild.data.activity.pop(sorted(list(guild.data.activity.keys()))[0])
-				save_guild_changes = False
+				save_changes = False
 			guild.data.activity[day] = {}
-		if str(message.author.id) not in guild.data.activity[day].keys():
-			guild.data.activity[day][str(message.author.id)] = 0
-		guild.data.activity[day][str(message.author.id)] += 1
-		# save user and guild data to db
-		await user.save_changes()
-		await (guild.save_changes() if save_guild_changes else guild.save())
+
+		if not await (self.db.user(message.author.id)).config.general.no_track:
+			if str(message.author.id) not in guild.data.activity[day].keys():
+				guild.data.activity[day][str(message.author.id)] = 0
+			guild.data.activity[day][str(message.author.id)] += 1
+
+			if 'messages' not in guild.data.leaderboards.keys():
+				guild.data.leaderboards['messages'] = {}
+
+			if str(message.author.id) not in guild.data.leaderboards['messages'].keys():
+				guild.data.leaderboards['messages'][str(message.author.id)] = 0
+			guild.data.leaderboards['messages'][str(message.author.id)] += 1
+
+		await (guild.save_changes() if save_changes else guild.save())
+
+	async def on_message(self,message:Message) -> None:
+		if (
+			message.guild is None or
+			message.author.bot or
+			message.webhook_id
+		):
+			return
+		await self.handle_user_message(message)
+		await self.handle_guild_message(message)
 
 	#? Tasks
 	@loop(minutes=1)

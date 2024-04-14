@@ -22,7 +22,7 @@ class AutoResponseInfoView(View):
 		self.guild_overrides:dict = {}
 		self.with_overrides:bool = False
 		self.has_guild_permissions:bool = False
-	
+
 	async def __ainit__(self) -> None:
 		if getattr(self.user,'guild',None) is None:
 			raise ValueError('AutoResponseInfoView must be used in a guild!')
@@ -81,7 +81,7 @@ class AutoResponseInfoView(View):
 		await user_doc.save_changes()
 		await self.reload_buttons(user_doc)
 		await interaction.response.edit_message(view=self)
-	
+
 	@button(
 		label='disable',
 		style=ButtonStyle.red,
@@ -92,7 +92,7 @@ class AutoResponseInfoView(View):
 		await user_doc.save_changes()
 		await self.reload_buttons(user_doc)
 		await interaction.response.edit_message(view=self)
-	
+
 	@button(
 		label='enable (server-wide)',
 		style=ButtonStyle.green,
@@ -106,7 +106,7 @@ class AutoResponseInfoView(View):
 		await guild_doc.save_changes()
 		await self.reload_buttons(user_doc,guild_doc)
 		await interaction.response.edit_message(view=self)
-	
+
 	@button(
 		label='disable (server-wide)',
 		style=ButtonStyle.red,

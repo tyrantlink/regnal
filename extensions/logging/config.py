@@ -137,7 +137,7 @@ def register_config(config:'Config') -> None:
 			short_description = 'enable/disable logging of member unbans',
 			description= '''enable/disable logging of member unbans
 									 '''.replace('\t','')[:-2]))
-	
+
 	config.register_option(
 		category = 'guild',
 		subcategory = 'logging',

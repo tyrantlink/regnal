@@ -58,7 +58,7 @@ def register_user_config(config:'Config') -> None:
 											- always: speak every message
 											- never: never speak messages
 									 '''.replace('\t','')[:-1]))
-	
+
 	config.register_option(
 		category = 'user',
 		subcategory = 'tts',
@@ -82,7 +82,7 @@ def register_user_config(config:'Config') -> None:
 			description ='''join tts channel when you send a message
 											- you must be in a voice channel
 									 '''.replace('\t','')[:-2]))
-	
+
 	config.register_option(
 		category = 'user',
 		subcategory = 'tts',
@@ -110,7 +110,7 @@ def register_user_config(config:'Config') -> None:
 											  - news    : 80ms
 											- if set to None, the current server's default voice will be used
 									 '''.replace('\t','')[:-2]))
-	
+
 	config.register_option(
 		category = 'user',
 		subcategory = 'tts',
@@ -128,7 +128,7 @@ def register_user_config(config:'Config') -> None:
 											- 1.0 is normal speed
 											- 4.0 is 4x normal speed
 									 '''.replace('\t','')[:-2]))
-	
+
 	config.register_option(
 		category = 'user',
 		subcategory = 'tts',
@@ -181,7 +181,7 @@ def register_guild_config(config:'Config') -> None:
 			description ='''configure tts channels
 											users will be able to send tts messages from all these channels *in addition to* the current voice channel
 									 '''.replace('\t','')[:-2]))
-	
+
 	config.register_option(
 		category = 'guild',
 		subcategory = 'tts',

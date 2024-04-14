@@ -9,7 +9,7 @@ class TTSBanningView(SubView):
 		super().__init__(master)
 		self.user = user
 		self.selected_users:set[int] = set()
-	
+
 	async def __ainit__(self) -> None:
 		assert await self.client.permissions.check('tts.ban',self.user,self.user.guild)
 		await self.reload_embed()
@@ -18,7 +18,7 @@ class TTSBanningView(SubView):
 			self.back_button,
 			self.button_ban,
 			self.button_unban)
-	
+
 	async def reload_embed(self,guild_doc:GuildDoc|None=None) -> None:
 		guild_doc = guild_doc or await self.client.db.guild(self.user.guild.id)
 		self.embed = Embed(
@@ -33,7 +33,7 @@ class TTSBanningView(SubView):
 				if len(banned_users) < 1024
 				else f'{banned_users[:1021]}...')
 				or 'None')
-	
+
 	@user_select(
 		placeholder = 'select a users to ban',
 		row = 0,

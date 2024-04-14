@@ -8,5 +8,5 @@ class ExtensionDevSubCog(SubCog):
 	def __init__(self) -> None:
 		self.client:Client
 		super().__init__()
-	
+
 	async def report(self,ctx:ApplicationContext,data:ReportData) -> None: ...

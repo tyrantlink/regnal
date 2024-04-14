@@ -30,7 +30,7 @@ class CustomAutoResponseView(SubView):
 			au for au in
 			self.client.au.au.custom(self.user.guild.id)
 			if au.type != AutoResponseType.deleted]
-	
+
 	async def reload_items(self) -> None:
 		self.clear_items()
 		self.add_items(
@@ -64,7 +64,7 @@ class CustomAutoResponseView(SubView):
 			self.add_items(
 				self.button_edit,
 				self.button_delete)	
-	
+
 	async def reload_embed(self) -> None:
 		if self.selected is None:
 			self.embed = Embed(
@@ -72,7 +72,7 @@ class CustomAutoResponseView(SubView):
 				color = self.master.embed_color)
 			return
 		self.embed = await au_info_embed(self.selected,self.client,self.master.embed_color,True)
-	
+
 	@string_select(
 		row = 0,
 		custom_id='select_auto_response')
@@ -91,7 +91,7 @@ class CustomAutoResponseView(SubView):
 		view = self.master.create_subview(AutoResponseEditorView,self.user,None)
 		await view.__ainit__()
 		await interaction.response.edit_message(embed=view.embed,view=view)
-	
+
 	@button(
 		label = 'import script',
 		style = ButtonStyle.blurple,
@@ -155,7 +155,7 @@ class CustomAutoResponseView(SubView):
 		await self.reload_items()
 		await self.reload_embed()
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label = '🔎 by message',
 		style = ButtonStyle.blurple,

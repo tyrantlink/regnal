@@ -30,7 +30,7 @@ class ArgParser(ArgumentParser):
 						self.seed is not None or
 						self.au is not None or
 						self.force is True)
-	
+
 	def parse(self,message:str) -> None:
 		args,message = self.parse_known_args(message.split(' '))
 		self.message = ' '.join(message)
@@ -80,7 +80,7 @@ class AutoResponses:
 
 	async def reload_au(self,use_cache:bool=True) -> None:
 		self.au = AutoResponseCarrier(await AutoResponse.find(ignore_cache=not use_cache).to_list())
-	
+
 	async def delete(self,au_id:str) -> None:
 		au = self.get(au_id)
 		if au is None:
@@ -104,7 +104,7 @@ class AutoResponses:
 	def get(self,_id:str) -> AutoResponse|None:
 		if res:=self.find({'id':_id},1): return res[0]
 		return None
-	
+
 	def get_with_overrides(self,_id:str,overrides:dict) -> AutoResponse|None:
 		if res:=self.find({'id':_id},1): return res[0].with_overrides(overrides)
 		return None

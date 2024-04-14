@@ -42,7 +42,7 @@ def register_user_config(config:'Config') -> None:
 			description= '''whether or not all commands are sent ehpemerally (only you can see them)
 											NOTE: sensitive commands, like {cmd_ref[config]}, {cmd_ref[auto_responses]}, and {cmd_ref[get_data]} are always ephemeral
 									 '''.replace('\t','')[:-2]))
-	
+
 	config.register_option(
 		category = 'user',
 		subcategory = 'general',

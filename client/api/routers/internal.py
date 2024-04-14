@@ -10,7 +10,7 @@ class Internal(CrAPIRouter):
 			case status: raise ValueError(f'unknown response code: {status}')
 
 		return await request.json()
-	
+
 	async def reload_au(self) -> None:
 		#? this might have speed issues at scale
 		request = await self.session.post('/i/reload_au')

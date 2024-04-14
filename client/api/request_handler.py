@@ -7,28 +7,28 @@ class RequestHandler:
 		self.client:'Client'
 		self.seq:int
 		raise ValueError('do not instantiate RequestHandler directly, use it as a subclass')
-	
+
 	async def gateway_send(self,message:BaseGatewayMessage) -> None: ...
-	
+
 	async def _handle_reload_au(self,message:Request) -> None:
 		self.client.log.info('received reload_au request')
 		await self.client.au.reload_au(use_cache=False)
 		await self.gateway_send(Response(data={'success':True}))
-	
+
 	async def _handle_send_message_channel(self,message:Request) -> None:
 		channel = self.client.get_channel(int(message.data['channel']))
 		if channel is None:
 			await self.gateway_send(Response(data={'success':False,'error':'channel not found'}))
 			return
 		await channel.send(message.data['content'])
-	
+
 	async def _handle_send_message_user(self,message:Request) -> None:
 		user = self.client.get_user(int(message.data['user']))
 		if user is None:
 			await self.gateway_send(Response(data={'success':False,'error':'user not found'}))
 			return
 		await user.send(message.data['content'])
-	
+
 	async def _handle_send_message(self,message:Request) -> None:
 		self.client.log.info('received send_message request')
 		channel = message.data.get('channel',None)

@@ -1,9 +1,15 @@
 [config]
+log_level = 4 # log level # 0 = none, 1 = critical, 2 = error, 3 = warning, 4 = info, 5 = debug
 dev_bypass = true # bot owner bypasses all permission checks
 base_guilds = [] # additional guilds that small are allowed in (e.g. emote server)
 git_branch = 'master' # git branch to pull from
 github_secret = '' # github webhook secret
-base_version = [0,0,0] # base version to start with when counting commits
+pluralkit_token = ''
+contact_email = '' # email used in pk user agent
+dm_proxy_channel = 0 # channel to proxy dms to, must be forum channel
+primary_bot_id = 0 # primary bot id, should be the only bot with access to dm proxy channel
+scripted_auto_response_repo = '' # repo to pull scripted auto responses from and to direct users to
+base_version = [4,0,0] # base version to start with when counting commits
 start_commit = '' # commit to start counting from
 
 [webhooks]
@@ -12,18 +18,31 @@ support_issue_tag = 0 # tag id for issues
 support_suggestion_tag = 0 # tag id for suggestions
 updates = '' # announcement channel where updates and change-logs are sent
 errors = '' # error channel where errors are sent
-
-[env]
-saucenao_key = '' # saucenao api key
+dm_proxy = '' # webhook to send dms to
 
 [mongo]
-uri = 'mongodb://localhost:27017'
+uri = ''
 
 [api]
-url = 'https://localhost:8080' # crapi backend server
-token = ''
+url = 'http://localhost:8080' # crapi backend server
 
 [parseable]
-base_url = 'https://logs.regn.al/api/v1/logstream' # parseable logstream uri
+base_url = '' # parseable logstream uri
 token = '' # parseable auth token
 logstream = 'dev1'
+logstream_padding = -1 # padding to keep all loggers the same length; -1 = auto
+
+[saucenao]
+api_key = '' # saucenao api key
+
+[google_cloud] # required for tts extension
+type = 'service_account'
+project_id = ''
+private_key_id = ''
+private_key = ""
+client_email = ''
+client_id = ''
+auth_uri = 'https://accounts.google.com/o/oauth2/auth'
+token_uri = 'https://oauth2.googleapis.com/token'
+auth_provider_x509_cert_url = 'https://www.googleapis.com/oauth2/v1/certs'
+client_x509_cert_url = ''

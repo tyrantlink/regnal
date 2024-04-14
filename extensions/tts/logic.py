@@ -28,7 +28,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 			]
 		]
 		valid_voices.value = set(self.voices)
-	
+
 	async def get_user_profile(self,user:Member) -> UserTTSProfile:
 		user_doc = await self.client.db.user(user.id)
 		voice = (
@@ -67,7 +67,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 		if guild.id not in self.guilds:
 			raise ValueError(f'guild {guild.name} ({guild.id}) does not have a tts queue, please run create_queue')
 		self.guilds[guild.id].queue.put_nowait(message)
-	
+
 	def process_message(self,message:str) -> str:
 		# strip markdown
 		message = sub(r'(?:\~\~|\_\_\*\*\*|\_\_\*\*|\_\_\*|\_\_|\_|\*\*\*|\*\*|\*)(.*?)(?:\~\~|\*\*\*\_\_|\*\*\_\_|\*\_\_|\_\_|\_|\*\*\*|\*\*|\*)',r'\g<1>',message)
@@ -80,25 +80,24 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 		# replace timestamps
 		message = sub(r'<t:\d+(:[tTdDfFR])?>','a timestamp',message)
 		return message
-	
+
 	def process_text_correction(self,message:str) -> str:
 		return ' '.join([
-			sub(
+			word.replace(
 				punctuation_removed,
 				self.text_corrections.get(
 					punctuation_removed,
-					punctuation_removed),
-				word)
+					punctuation_removed))
 			for word in message.split(' ')
 			if (punctuation_removed:=sub(r'\,|\.','',word))
 			is not None])
-	
+
 	async def create_queue(self,guild_id:int) -> None:
 		if guild_id not in self.guilds:
 			self.guilds[guild_id] = GuildTTS(
 				queue = Queue(),
 				last_name = None)
-	
+
 	async def process_queue(self,guild:Guild) -> None:
 		if guild.id not in self.guilds:
 			await self.create_queue(guild.id)

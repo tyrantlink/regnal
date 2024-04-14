@@ -11,7 +11,7 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 	async def on_connect(self) -> None:
 		self.text_corrections = await self.client.db.inf.text_correction()
 		await self.reload_voices()
-	
+
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
 		if (
@@ -44,7 +44,10 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		# check user voice state
 		match user_doc.config.tts.mode:
 			case TTSMode.never: return
-			case TTSMode.only_when_muted if not message.author.voice.self_mute: return
+			case TTSMode.only_when_muted if (
+				not message.author.voice.self_mute and
+				not message.content.startswith('+')
+			): return
 			case TTSMode.always|_: pass
 		# join channel if user has auto join, and client is not in a voice channel
 		if self.guilds.get(message.guild.id,None) is None:
@@ -58,9 +61,16 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		):
 			return
 		# begin processing message
-		text = ''
-		if message.content:
-			text += self.process_message(message.content)
+		text = message.content
+		if text:
+			if (
+				user_doc.config.tts.mode == TTSMode.only_when_muted
+				and message.content.startswith('+')
+			):
+				text = text.removeprefix('+')
+
+			text = self.process_message(text)
+
 			if user_doc.config.tts.text_correction:
 				text = self.process_text_correction(text)
 
@@ -87,6 +97,9 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		audio = await self.generate_audio(text,profile)
 		# add message to queue
 		await self.add_message_to_queue(audio,message.guild)
+		# update statistics
+		guild_doc.data.statistics.tts += len(text)
+		await guild_doc.save_changes()
 
 	@Cog.listener()
 	async def on_voice_state_update(self,member:Member,before:VoiceState,after:VoiceState):

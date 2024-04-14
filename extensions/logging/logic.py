@@ -52,7 +52,7 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
 			self.client.recently_deleted.discard(message.id)
 			return message.guild.me
 		return None,None
-	
+
 	async def find_ban_entry(self,guild:Guild,user_id:int,unban:bool=False) -> AuditLogEntry|None:
 		if guild.me.guild_permissions.view_audit_log is False: return None
 		async for log in guild.audit_logs(after=datetime.now()-timedelta(minutes=5),oldest_first=False):

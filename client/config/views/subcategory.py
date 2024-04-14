@@ -81,7 +81,7 @@ class ConfigSubcategoryView(SubView):
 		self.get_item('option_select').options = [SelectOption(label='None')]
 		self.get_item('option_select').placeholder = 'no access'
 		self.get_item('option_select').disabled = True
-	
+
 	def _convert_to_mention(self,value:Any,option_type:OptionType) -> str:
 		if value not in {'None',None}:
 			match option_type:

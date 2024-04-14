@@ -13,12 +13,12 @@ class PermissionManagerView(SubView):
 	async def __ainit__(self) -> None:
 		await self.reload_embed()
 		await self.reload_items()
-	
+
 	@property
 	def value_id(self) -> str:
 		if self.selected_value is None: return None
 		return '@everyone' if self.selected_value == self.user.guild.default_role else str(self.selected_value.id)
-	
+
 	async def reload_embed(self,guild_doc:GuildDoc|None=None) -> None:
 		guild_doc = guild_doc or await self.client.db.guild(self.user.guild.id)
 		self.embed = Embed(
@@ -48,7 +48,7 @@ class PermissionManagerView(SubView):
 			for i in guild_doc.data.permissions
 			if guild_doc.data.permissions[i]
 		}) or 'None'
-	
+
 	async def reload_items(self) -> None:
 		self.add_items(
 			self.back_button,
@@ -59,7 +59,7 @@ class PermissionManagerView(SubView):
 			self.add_items(
 				self.button_modify,
 				self.button_remove_all)
-	
+
 	@mentionable_select(
 		placeholder = 'select a user/role to manage',
 		row = 0,
@@ -79,7 +79,7 @@ class PermissionManagerView(SubView):
 		await self.reload_embed()
 		await self.reload_items()
 		await interaction.response.edit_message(embed=self.embed,view=self)
-	
+
 	@button(
 		label = '@everyone',
 		row = 2,
