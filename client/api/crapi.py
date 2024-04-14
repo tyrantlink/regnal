@@ -52,7 +52,7 @@ class CrAPI(MessageHandler):
 				case WSMsgType.TEXT: await self._message_handler(message.json())
 				case WSMsgType.CLOSE|WSMsgType.CLOSED|WSMsgType.CLOSING:
 					await self.disconnect(message.extra or 'no reason')
-				case _: print(f'unknown message type: {message.type} | {message.extra}')
+				case _: self.client.log.info(f'unknown message type: {message.type} | {message.extra}')
 
 	async def _heartbeat(self) -> None:
 		while True:

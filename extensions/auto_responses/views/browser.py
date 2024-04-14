@@ -31,7 +31,6 @@ class AutoResponseBrowserView(View):
 			'script': self._au_sort([a for a in user_doc.data.auto_responses.found if a[0] == 's'])
 		}
 		self.au_found = [au for category in self.au_found_dict.values() for au in category]
-		print(self.au_found)
 
 		# remove any auto responses that have been deleted
 		self.au_found = [

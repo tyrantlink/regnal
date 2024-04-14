@@ -20,7 +20,6 @@ class AutoResponses(CrAPIRouter):
 		# pydantic is stupid
 		data['method'] = data['method'].value
 		data['type'] = data['type'].value
-		print(data)
 		request = await self.session.post('/au/',json=data)
 		match request.status:
 			case 200: pass
@@ -32,5 +31,4 @@ class AutoResponses(CrAPIRouter):
 				raise ValueError(f'unknown response code: {status} | {json.get("detail","")}')
 		text = await request.text()
 
-		print(text)
 		return AutoResponse.model_validate_json(text)
