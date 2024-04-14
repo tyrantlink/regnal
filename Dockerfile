@@ -2,7 +2,7 @@ FROM python:3.11
 WORKDIR /app
 COPY . .
 RUN git config --global --add safe.directory /app && git config pull.rebase false
-RUN sed -i -e's/ main/ main contrib non-free/g' /etc/apt/sources.list
+RUN sed -i -e's/ main/ main contrib non-free/g' /etc/apt/sources.list.d/debian.sources
 RUN apt-get update -qq && apt-get -y install \
 	autoconf \
 	automake \
@@ -32,6 +32,8 @@ RUN apt-get update -qq && apt-get -y install \
 	libopus-dev \
 	libx264-dev \
 	libfdk-aac-dev
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 RUN mkdir -p ~/ffmpeg_sources ~/bin && cd ~/ffmpeg_sources && \
 	wget -O ffmpeg-4.2.2.tar.bz2 https://ffmpeg.org/releases/ffmpeg-4.2.2.tar.bz2 && \
 	tar xjvf ffmpeg-4.2.2.tar.bz2 && \
@@ -57,7 +59,9 @@ RUN mkdir -p ~/ffmpeg_sources ~/bin && cd ~/ffmpeg_sources && \
 	PATH="$HOME/bin:$PATH" make -j8 && \
 	make install -j8 && \
 	hash -r
-RUN mv ~/bin/ffmpeg /usr/local/bin && mv ~/bin/ffprobe /usr/local/bin && mv ~/bin/ffplay /usr/local/bin
+RUN mv ~/bin/ffmpeg /usr/local/bin && mv ~/bin/ffprobe /usr/local/bin
 RUN python3.11 -m pip install --no-cache-dir -r requirements.txt
+# hacky bullshit for maturin
+ENV VIRTUAL_ENV="/usr/local"
 RUN maturin develop -rm regnalrb/Cargo.toml
-CMD ["python3.11","-u","main.py"]
+CMD mkdocs build -d doc_build && python3.11 -u main.py

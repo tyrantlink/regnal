@@ -4,6 +4,7 @@ from utils.models import BotType,BotData
 from utils.log import Logger,LogLevel
 from utils.models import Project
 from asyncio import run,gather
+from os.path import exists
 from tomllib import loads
 from aiofiles import open
 from os import walk
@@ -18,6 +19,9 @@ except (ImportError,AssertionError):
 
 async def main() -> None:
 	# grab project data
+	if not exists('project.toml'):
+		print('ERROR: project.toml not found, please copy it from project.toml.example and fill it out!')
+		exit()
 	async with open('project.toml','r') as f:
 		base_project = loads(await f.read())
 	# initialize logger
@@ -39,6 +43,9 @@ async def main() -> None:
 	bot_dirs = next(walk('bots'))[1]
 	bot_data_array:dict[str,BotData] = {}
 	for dir in bot_dirs:
+		if not exists(f'bots/{dir}/bot.toml'):
+			log.error(f'bot.toml not found in bots/{dir}')
+			continue
 		async with open(f'bots/{dir}/bot.toml','r') as f:
 			bot_data = BotData.model_validate(loads(await f.read()))
 

@@ -5,7 +5,7 @@ from .message_handler import MessageHandler
 from aiohttp import ClientSession,WSMsgType
 from asyncio import create_task,sleep
 from random import random
-
+from aiohttp.client_exceptions import ClientError
 
 class CrAPI(MessageHandler):
 	def __init__(self,client:'Client') -> None:
@@ -29,11 +29,15 @@ class CrAPI(MessageHandler):
 		if self.seq == 8192: self.seq = 0
 
 	async def connect(self,reconnect:bool=True) -> None:
-		self.gateway_ws = await self.session.ws_connect('/i/gateway')
-		self.seq = 0
-		create_task(self._gateway_receive())
-		create_task(self._heartbeat())
-		self.client.log.info('connected to crAPI')
+		try:
+			self.gateway_ws = await self.session.ws_connect('/i/gateway')
+			self.seq = 0
+			create_task(self._gateway_receive())
+			create_task(self._heartbeat())
+			self.client.log.info('connected to crAPI')
+		except ClientError:
+			self.client.log.info('failed to connect to crAPI')
+			pass
 		if reconnect: create_task(self._reconnection_handler())
 
 	async def disconnect(self,message:str='no reason') -> None:
