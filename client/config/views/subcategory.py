@@ -47,16 +47,16 @@ class ConfigSubcategoryView(SubView):
 		options = []
 
 		for option in self.config_subcategory.options:
-			read_only = False
+			read_only = True
 			match self.config_category.name:
 				case 'user':
-					pass
+					read_only = False
 				case 'guild' if await self.client.permissions.check(f'{self.config_subcategory.name}.{option.name}',self.user,self.user.guild):
 					read_only = False
 				case 'guild' if self.config_subcategory.name in user_permissions:
 					pass
 				case 'dev' if await self.client.permissions.check('dev',self.user,self.user.guild):
-					pass
+					read_only = False
 				case _: continue
 
 			value = getattr(current_config,option.name)

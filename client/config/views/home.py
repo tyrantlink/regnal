@@ -19,7 +19,7 @@ class ConfigHomeView(SubView):
 		is_bot_admin = (await self.client.db.user(self.user.id)).data.flags & UserFlags.ADMIN
 
 		if getattr(self.user,'guild',None) is not None:
-			if (bool(await self.client.permissions.user(self.user,self.user.guild)) or
+			if (bool(await self.client.permissions.user(self.user,self.user.guild)-{'dev'}) or
 			 		self.user.guild_permissions.manage_guild):
 				options.append(SelectOption(label='guild',description='guild config'))
 		if is_dev or is_bot_admin:
