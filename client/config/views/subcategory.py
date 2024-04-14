@@ -47,7 +47,7 @@ class ConfigSubcategoryView(SubView):
 		options = []
 
 		for option in self.config_subcategory.options:
-			read_only = True
+			read_only = False
 			match self.config_category.name:
 				case 'user':
 					pass
