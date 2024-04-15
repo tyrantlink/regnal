@@ -48,10 +48,11 @@ def register_user_config(config:'Config') -> None:
 			type = OptionType.STRING,
 			default = TTSMode.only_when_muted.name,
 			attrs = ConfigAttrs(
+				enum = TTSMode,
 				options = [
 					ConfigStringOption('only when muted','speak message only when you\'re muted',TTSMode.only_when_muted.name),
 					ConfigStringOption('always','speak every message',TTSMode.always.name),
-					ConfigStringOption('never','never speak messages',TTSMode.never.name)]),
+					ConfigStringOption('never','never speak messages',TTSMode.never.name)],),
 			short_description = 'tts mode',
 			description ='''when to use tts
 											- only when muted: speak message only when you're muted
