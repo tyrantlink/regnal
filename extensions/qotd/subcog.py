@@ -11,6 +11,7 @@ class ExtensionQOTDSubCog(SubCog):
 	def __init__(self) -> None:
 		self.client:Client
 		self.recently_asked:set
+		self.session_questions:dict[int,str]
 		self.packs:dict[str,QOTDPack]
 		self._guilds:tuple[int,list[tuple[Guild,GuildDocument]]]
 		self._rescan:bool

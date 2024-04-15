@@ -114,19 +114,24 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 					color=0xff6969))
 
 		question = embed.description
-		msg = await channel.create_thread(
+		thread = await channel.create_thread(
 			name=question if len(question) <= 100 else f'{question[:97]}...',
 			content=ping_role,
 			embed=embed,
 			auto_archive_duration=1440)
 
-		try: await msg.edit(pinned=True)
+		try: await thread.edit(pinned=True)
 		except HTTPException:
-			thread_message = await msg.fetch_message(msg.id)
+			thread_message = await thread.fetch_message(thread.id)
 			await thread_message.edit(content=f'{thread_message.content}\n\nunable to pin this thread, please unpin and archive the previous thread manually')
 		self.recently_asked.add(guild.id)
+		self.session_questions[thread.id] = embed.footer.text
+		if not embed.footer.text.startswith('custom question'):
+			metric = await self.client.db.qotd_metric(embed.footer.text)
+			metric.asked += 1
+			await metric.save_changes()
 		self._rescan = True
-		guild_doc.data.qotd.last_thread = msg.id
+		guild_doc.data.qotd.last_thread = thread.id
 		guild_doc.data.qotd.last = guild_doc.get_current_day()
 		guild_doc.data.statistics.questions += 1
 		await guild_doc.save_changes()

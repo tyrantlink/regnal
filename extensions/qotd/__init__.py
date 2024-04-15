@@ -20,6 +20,7 @@ class ExtensionQOTD(Cog,
 	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.recently_asked = set()
+		self.session_questions:dict[int,str] = {}
 		self.packs:dict[str,QOTDPack] = {}
 		self._guilds:tuple[int,list[tuple[Guild,GuildDocument]]] = (0,set())
 		self._rescan = False
