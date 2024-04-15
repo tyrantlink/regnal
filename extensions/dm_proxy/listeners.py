@@ -87,6 +87,7 @@ class ExtensionDMProxyListeners(ExtensionDmProxySubCog):
 	@Cog.listener()
 	async def on_message(self,message:Message) -> None:
 		if message.author.bot: return
+		if not message.content or not message.attachments: return
 		match message.channel.type:
 			case ChannelType.private:
 				await self.handle_recieve(message)
