@@ -50,7 +50,7 @@ async def main() -> None:
 			bot_data = BotData.model_validate(loads(await f.read()))
 
 		bot_data_array.update({dir:bot_data})
-		if auto_logstream_padding:
+		if auto_logstream_padding and bot_data.enabled:
 			auto_logstream_padding.append(bot_data.logstream)
 
 	if auto_logstream_padding:
