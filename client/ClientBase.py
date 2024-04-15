@@ -74,13 +74,23 @@ class ClientBase:
 	async def on_unknown_application_command(self,interaction:Interaction) -> None:
 		await interaction.response.send_message('u wot m8?',ephemeral=True)
 
-	async def on_application_command(self,ctx:ApplicationContext) -> None:
-		self.log.info(f'{ctx.author.name} used {ctx.command.name}',ctx.guild_id)
-		if ctx.guild_id is None: return
+	async def stat_user_command(self,ctx:ApplicationContext) -> None:
+		user = await self.db.user(ctx.author.id,create_if_not_found=True)
+		if user.config.general.no_track: return
+		user.data.statistics.command_usage += 1
+		await user.save_changes()
+	
+	async def stat_guild_command(self,ctx:ApplicationContext) -> None:
 		guild_doc = await self.db.guild(ctx.guild_id)
 		if guild_doc is None: return
 		guild_doc.data.statistics.commands += 1
 		await guild_doc.save_changes()
+
+	async def on_application_command(self,ctx:ApplicationContext) -> None:
+		self.log.info(f'{ctx.author.name} used {ctx.command.name}',ctx.guild_id)
+		await self.stat_user_command(ctx)
+		if ctx.guild_id:
+			await self.stat_guild_command(ctx)
 
 	async def on_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return

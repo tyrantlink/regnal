@@ -13,7 +13,7 @@ async def user_general_no_track(client:'Client',option:ConfigOption,value:bool,u
 	if not value: return value,None
 	user_doc = await client.db.user(user.id)
 	user_doc.data.statistics.messages = {}
-	user_doc.data.statistics.commands = {}
+	user_doc.data.statistics.commands = 0
 	user_doc.data.statistics.tts_usage = 0
 	user_doc.data.auto_responses.found = []
 	await user_doc.save_changes()
