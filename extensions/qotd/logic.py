@@ -125,7 +125,6 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 			thread_message = await thread.fetch_message(thread.id)
 			await thread_message.edit(content=f'{thread_message.content}\n\nunable to pin this thread, please unpin and archive the previous thread manually')
 		self.recently_asked.add(guild.id)
-		self.session_questions[thread.id] = embed.footer.text
 		if not embed.footer.text.startswith('custom question'):
 			metric = await self.client.db.qotd_metric(embed.footer.text)
 			metric.asked += 1
