@@ -68,6 +68,10 @@ def register_user_config(config:'Config') -> None:
 			type = OptionType.STRING,
 			default = None,
 			short_description = 'tts name',
+			nullable = True,
+			attrs = ConfigAttrs(
+				min_length = 1,
+				max_length = 32),
 			description ='''voice name to use for tts
 											- if not set, your display name will be used
 									 '''.replace('\t','')[:-2]))
@@ -92,6 +96,8 @@ def register_user_config(config:'Config') -> None:
 			type = OptionType.STRING,
 			default = None,
 			attrs = ConfigAttrs(
+				min_length = 1,
+				max_length = 32,
 				validation = validate_voice),
 			short_description = 'tts voice',
 			nullable=True,
