@@ -11,9 +11,13 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
 		guild_only = True)
 	async def join(self,ctx:ApplicationContext) -> None:
 		if ctx.author.voice is None:
-			error = ValueError('you are not in a voice channel!')
-			error.add_note('suppress')
-			raise error
+			await ctx.response.send_message(
+				embed = Embed(
+					title = 'ERROR',
+					description = 'you must be in a voice channel to use this command!',
+					color = 0xff6969),
+				ephemeral = True)
+			return
 		await self.join_channel(ctx.author.voice.channel)
 		tts_channels = '\n'+'\n'.join([
 			f'<#{channel_id}>'
@@ -39,6 +43,14 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
 		description = 'leave the current voice channel',
 		guild_only = True)
 	async def leave(self,ctx:ApplicationContext) -> None:
+		if ctx.guild.voice_client is None:
+			await ctx.response.send_message(
+				embed = Embed(
+					title = 'ERROR',
+					description = 'i am not in a voice channel!',
+					color = 0xff6969),
+				ephemeral = True)
+			return
 		await self.disconnect(ctx.guild.id)
 		await ctx.response.send_message(
 			embed = Embed(
