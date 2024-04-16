@@ -29,6 +29,7 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
 				title = f'connected to {ctx.guild.voice_client.channel.mention}',
 				description = f'''- by default, i will only read you messages if you're muted, you can change this with {config_command}
 													- prepend messages with "-" and i won't read them.
+													- prepend messages with "+" and i will read them even if you're not muted.
 													- use {config_command} and enable tts auto join to have me join automagically when you send a message.
 													- you must send a message in the active voice channel{
 														' or any of the following channels'
@@ -56,4 +57,5 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
 			embed = Embed(
 				title = 'disconnected',
 				description = 'have fun~',
-				color = await self.client.helpers.embed_color(ctx.guild.id)))
+				color = await self.client.helpers.embed_color(ctx.guild.id)),
+			ephemeral=True)
