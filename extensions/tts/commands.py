@@ -27,7 +27,7 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
 		await ctx.response.send_message(
 			embed = Embed(
 				title = f'connected to {ctx.guild.voice_client.channel.mention}',
-				description = f'''- by default, i will only read you messages if you're muted, you can change this with {config_command}
+				description = f'''- by default, i will only read your messages if you're muted, you can change this with {config_command}
 													- prepend messages with "-" and i won't read them.
 													- prepend messages with "+" and i will read them even if you're not muted.
 													- use {config_command} and enable tts auto join to have me join automagically when you send a message.
