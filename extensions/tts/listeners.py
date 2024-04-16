@@ -94,7 +94,9 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		# add message to queue
 		await self.add_message_to_queue(audio,message.guild)
 		# update statistics
+		user_doc.data.statistics.tts_usage += len(text)
 		guild_doc.data.statistics.tts += len(text)
+		await user_doc.save_changes()
 		await guild_doc.save_changes()
 
 	@Cog.listener()
