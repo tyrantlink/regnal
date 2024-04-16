@@ -43,6 +43,7 @@ def register_config(config:'Config') -> None:
 			name = 'channel',
 			type = OptionType.CHANNEL,
 			default = None,
+			nullable = True,
 			short_description = 'channel used for some logging',
 			description= '''channel used for some logging
 											full logs still visible on https://logs.regn.al
