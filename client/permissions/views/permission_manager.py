@@ -112,7 +112,7 @@ class PermissionManagerView(SubView):
 		await modal.wait()
 		new_value = modal.children[0].value.split('\n') if modal.children[0].value else None
 		for permission in new_value or []:
-			if not self.client.permissions.matcher(permission):
+			if not self.client.permissions.matcher(permission[1:] if permission.startswith('!') else permission):
 				await modal.interaction.response.send_message(
 					embed = Embed(
 						title = 'error!',
@@ -175,6 +175,9 @@ class PermissionManagerView(SubView):
 									- if a user has the discord permission `administrator`, they will have all permissions
 									- if a user has a single permission, for example, `general.embed_color`, they will only be able to see that option
 									- if a user has a category permission, for example, `general`, they will be able to see all options, but only modify the ones they have permissions for
+									- prefix a permission with `!` to negate it, for example, `!tts.ban` will remove the permission `tts.ban`
+									- negated permissions will be applied after all other permissions
+									- for example, if a user has the permission `tts.*` and the permission `!tts.ban`, they will have all tts permissions except `tts.ban`
 									'''.replace('\t','')[:-1]
 		await interaction.response.send_message(
 			embed = Embed(

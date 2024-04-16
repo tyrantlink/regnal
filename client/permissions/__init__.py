@@ -28,9 +28,15 @@ class PermissionHandler:
 		user_roles = {str(r.id) for r in user.roles if str(r.id) in guild_patterns}
 		if str(user.id) in guild_patterns: user_roles.add(str(user.id))
 		is_dev = user.id in self.client.owner_ids and self.client.project.config.dev_bypass
-		user_patterns = {p for s in [guild_patterns.get(r,[]) for r in user_roles] for p in s}
-		if is_dev: user_patterns.add('*')
-		user_permissions = {p for s in [self.matcher(pattern) for pattern in user_patterns] for p in s}
+		raw_patterns = {p for s in [guild_patterns.get(r,[]) for r in user_roles] for p in s}
+		patterns = {p for p in raw_patterns if not p.startswith('!')}
+		antipatterns = {p[1:] for p in raw_patterns if p.startswith('!')}
+		if is_dev:
+			patterns.add('*')
+			antipatterns.clear()
+		permissions = {p for s in [self.matcher(pattern) for pattern in patterns] for p in s}
+		antipermissions = {p for s in [self.matcher(pattern) for pattern in antipatterns] for p in s}
+		user_permissions = permissions - antipermissions
 		if is_dev: user_permissions.add('dev')
 		return user_permissions
 
