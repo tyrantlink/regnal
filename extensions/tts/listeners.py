@@ -29,17 +29,11 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 
 		user_doc = await self.client.db.user(message.author.id)
 		guild_doc = await self.client.db.guild(message.guild.id)
-		# ignore if not in a voice channel, and not in a tts channel
-		if not (
-			message.author.voice.channel.id == message.channel.id or
-			message.author.voice.channel.id ==
-			(
-				message.guild.voice_client.channel.id
-				if message.guild.voice_client else
-				None
-			) or
-			message.channel.id in guild_doc.config.tts.channels
-		):
+		# ignore if not in voice channel or a tts channel
+		if not message.channel.id in [
+			message.author.voice.channel.id,
+			*guild_doc.config.tts.channels
+		]:
 			return
 		# check user voice state
 		match user_doc.config.tts.mode:
