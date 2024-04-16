@@ -118,7 +118,8 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 		playing = Event()
 		voice_client:VoiceClient = guild.voice_client
 		while True:
-			message = await self.guilds[guild.id].queue.get()
+			try: message = await self.guilds[guild.id].queue.get()
+			except KeyError: break # disconnected from voice channel
 			if not voice_client.is_connected():
 				voice_client = await voice_client.channel.connect()
 				self.client.log.debug(f'no voice client for {guild.name} ({guild.id}), deleting queue')
