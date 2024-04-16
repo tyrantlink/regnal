@@ -33,7 +33,7 @@ class ExtensionDevCommands(ExtensionDevSubCog):
 		name='get_data',
 		description='get all the data that is stored about you')
 	async def slash_get_data(self,ctx:ApplicationContext) -> None:
-		user_data = (await self.client.db.user(ctx.author.id)).model_dump_json(indent=2)
+		user_data = (await self.client.db.user(ctx.author.id)).model_dump_json(indent=2,exclude='revision_id')
 		if len(user_data)+12 > 2000:
 			await ctx.response.send_message(file=File(StringIO(user_data),f'user{ctx.author.id}.json'),ephemeral=True)
 			return
