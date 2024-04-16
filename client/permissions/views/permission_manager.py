@@ -28,7 +28,7 @@ class PermissionManagerView(SubView):
 			permissions = '\n'.join(guild_doc.data.permissions.get(self.value_id,[]))
 
 			self.embed.add_field(
-				name = 'selected user/role',
+				name = f'selected {"user" if isinstance(self.selected_value,Member) else "role"}',
 				value = self.selected_value.mention,
 				inline = False)
 
