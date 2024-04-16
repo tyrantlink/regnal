@@ -41,5 +41,8 @@ class PermissionHandler:
 		return user_permissions
 
 	async def check(self,pattern:str,user:Member,guild:Guild) -> bool:
-		return user.guild_permissions.administrator or bool(self.matcher(pattern,await self.user(user,guild)))
-		return bool(self.matcher(pattern,await self.user(user,guild)))
+		return ((
+				user.guild_permissions.administrator if
+				pattern != 'dev' else None
+			) or
+			bool(self.matcher(pattern,await self.user(user,guild))))
