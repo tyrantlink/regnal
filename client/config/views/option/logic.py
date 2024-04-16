@@ -78,7 +78,7 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 		):
 			embed.add_field(
 				name='note',
-				value='this value can effect printing this log, future config changes may not be logged',
+				value='this value can affect printing this log, future config changes may not be logged',
 				inline=False)
 		embed.set_footer(text=f'config.{self.config_category.name}.{self.config_subcategory.name}.{self.option.name}')
 		await channel.send(embed=embed)
