@@ -36,6 +36,8 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		]:
 			return
 		# check user voice state
+		if message.author.voice.deaf or message.author.voice.self_deaf:
+			return
 		match user_doc.config.tts.mode:
 			case TTSMode.never: return
 			case TTSMode.only_when_muted if (
@@ -103,9 +105,6 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		if member.guild.id not in self.guilds:
 			return
 		if before.channel is not None:
-			if (
-				len(before.channel.voice_states) == 1 and
-				self.client.user.id in before.channel.voice_states
-			):
+			if {self.client.user.id} == set(before.channel.voice_states.keys()):
 				await self.disconnect(member.guild)
 				return
