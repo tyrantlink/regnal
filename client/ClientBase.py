@@ -4,15 +4,13 @@ if not 'TYPE_HINT': from extensions.auto_responses import AutoResponses
 from utils.db import MongoDatabase,Guild as GuildDocument
 from .permissions import PermissionHandler
 from traceback import format_exc,format_tb
-from utils.models import Project,BotType
 from utils.tyrantlib import get_version
 from utils.log import Logger,LogLevel
 from time import perf_counter,time
 from discord.ext.tasks import loop
-from .commands import BaseCommands
 from aiohttp import ClientSession
 from .Helper import ClientHelpers
-from config import DEV_MODE
+from utils.models import Project
 from .config import Config
 from io import StringIO
 from .api import CrAPI
@@ -95,7 +93,6 @@ class ClientBase:
 	async def on_command_error(self,ctx:ApplicationContext,error:Exception) -> None:
 		if isinstance(error,CheckFailure): return
 		await self.log.error(str(error),ctx.guild_id,traceback="".join(format_tb(error.original.__traceback__)))
-		if DEV_MODE: "".join(format_tb(error.original.__traceback__))
 
 	async def on_application_command_error(self,ctx:ApplicationContext|Interaction,error:ApplicationCommandInvokeError) -> None:
 		if isinstance(error,CheckFailure): return
@@ -105,7 +102,7 @@ class ClientBase:
 		await ctx.respond(embed=embed,ephemeral=True)
 
 		traceback = "".join(format_tb(error.original.__traceback__))
-		if DEV_MODE: print(traceback)
+		print(traceback)
 		self.log.error(str(error),guild_id=ctx.guild_id,traceback=traceback)
 
 		async with ClientSession() as session:
@@ -123,7 +120,7 @@ class ClientBase:
 		async with ClientSession() as session:
 			wh = Webhook.from_url(self.project.webhooks.errors,session=session)
 			error = format_exc()
-			if DEV_MODE: print(error)
+			print(error)
 			if len(error)+8 > 2000: await wh.send(
 				username=self.user.name,
 				avatar_url=self.user.avatar.url,

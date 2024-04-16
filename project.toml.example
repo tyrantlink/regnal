@@ -11,6 +11,7 @@ primary_bot_id = 0 # primary bot id, should be the only bot with access to dm pr
 scripted_auto_response_repo = '' # repo to pull scripted auto responses from and to direct users to
 base_version = [4,0,0] # base version to start with when counting commits
 start_commit = '' # commit to start counting from
+live_reload  = false # reloads extensions on file change
 
 [webhooks]
 support = '' # forum channel where issues and suggestions are sent
