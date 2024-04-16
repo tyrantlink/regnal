@@ -51,6 +51,38 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 		self.embed.add_field(name='current value',value=self.current_value_printable(),inline=False)
 		self.embed.set_footer(text=f'config.{self.config_category.name}.{self.config_subcategory.name}.{self.option.name}')
 
+	async def create_log(self,old_value:Any,channel_id:int) -> None:
+		channel = self.user.guild.get_channel(channel_id)
+		if channel is None: return
+		embed = Embed(
+			title=f'config changed!',
+			color=0xffff69)
+		embed.set_author(
+			name=self.user.display_name,
+			icon_url=self.user.avatar.url if self.user.avatar else self.user.default_avatar.url)
+		embed.add_field(
+			name='old value',
+			value=old_value,
+			inline=True)
+		embed.add_field(
+			name='new value',
+			value=self.current_value_printable(),
+			inline=True)
+		if (
+			self.config_subcategory.name == 'logging' and 
+			self.option.name in {
+				'enabled',
+				'channel',
+				'log_commands'} and
+			not bool(self.current_value())
+		):
+			embed.add_field(
+				name='note',
+				value='this value can effect printing this log, future config changes may not be logged',
+				inline=False)
+		embed.set_footer(text=f'config.{self.config_category.name}.{self.config_subcategory.name}.{self.option.name}')
+		await channel.send(embed=embed)
+
 	async def write_config(self,value:Any,interaction:Interaction) -> str|None:
 		try:
 			warning = None
@@ -77,6 +109,8 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 			and not self.option.attrs.multi
 		): value = value.id if value else None
 
+		old_value_raw = self.current_value()
+		old_value = self.current_value_printable()
 		setattr(getattr(self.object_doc.config,self.config_subcategory.name),self.option.name,value)
 		await self.object_doc.save_changes()
 		match self.config_category.name:
@@ -91,3 +125,15 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 		await self.handle_option()
 		await interaction.response.edit_message(embed=self.embed,view=self)
 		await self.give_warning(interaction,warning)
+		if (self.config_category.name == 'guild' and
+			self.object_doc.config.logging and
+			(
+				self.object_doc.config.logging.channel or
+				f'{self.config_subcategory.name}.{self.option.name}' == 'logging.channel' and
+				old_value_raw
+			) and
+			(
+				self.object_doc.config.logging.log_commands or
+				f'{self.config_subcategory.name}.{self.option.name}' == 'logging.log_commands'
+		)):
+			await self.create_log(old_value,self.object_doc.config.logging.channel or old_value_raw)
