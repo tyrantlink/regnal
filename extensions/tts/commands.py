@@ -51,7 +51,7 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
 					color = 0xff6969),
 				ephemeral = True)
 			return
-		await self.disconnect(ctx.guild.id)
+		await self.disconnect(ctx.guild)
 		await ctx.response.send_message(
 			embed = Embed(
 				title = 'disconnected',
