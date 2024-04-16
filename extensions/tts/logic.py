@@ -6,8 +6,8 @@ from asyncio.subprocess import DEVNULL
 from .valid_voices import valid_voices
 from .subcog import ExtensionTTSSubCog
 from time import perf_counter
+from re import sub,finditer
 from io import BytesIO
-from re import sub
 
 
 class ExtensionTTSLogic(ExtensionTTSSubCog):
@@ -68,7 +68,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 			raise ValueError(f'guild {guild.name} ({guild.id}) does not have a tts queue, please run create_queue')
 		self.guilds[guild.id].queue.put_nowait(message)
 
-	def process_message(self,message:str) -> str:
+	def process_message(self,message:str,guild:Guild) -> str:
 		# strip markdown
 		message = sub(r'(?:\~\~|\_\_\*\*\*|\_\_\*\*|\_\_\*|\_\_|\_|\*\*\*|\*\*|\*)(.*?)(?:\~\~|\*\*\*\_\_|\*\*\_\_|\*\_\_|\_\_|\_|\*\*\*|\*\*|\*)',r'\g<1>',message)
 		# pronounce slash commands
@@ -79,6 +79,20 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 		message = sub(r'(?:^|\ )<?https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.>?',r'a \g<1> link',message)
 		# replace timestamps
 		message = sub(r'<t:\d+(:[tTdDfFR])?>','a timestamp',message)
+		# replace users
+		for match in finditer(r'<@!?(\d+)>',message):
+			user = (
+				guild.get_member(int(match.group(1))) or
+				self.client.get_user(int(match.group(1))))
+			message = message.replace(match.group(0),f'at {user.display_name if user else "a user"}')
+		# replace roles
+		for match in finditer(r'<@&(\d+)>',message):
+			role = guild.get_role(int(match.group(1)))
+			message = message.replace(match.group(0),f'at {role.name if role else "a role"}')
+		# replace channels
+		for match in finditer(r'<#(\d+)>',message):
+			channel = guild.get_channel(int(match.group(1)))
+			message = message.replace(match.group(0),f'{channel.name if channel else "a channel"}')
 		return message
 
 	def process_text_correction(self,message:str) -> str:

@@ -63,7 +63,7 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 			):
 				text = text.removeprefix('+')
 
-			text = self.process_message(text)
+			text = self.process_message(text,message.guild)
 
 			if user_doc.config.tts.text_correction:
 				text = self.process_text_correction(text)
