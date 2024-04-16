@@ -48,9 +48,10 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 
 	async def log_ask_custom(self,author:Member,question:str) -> None:
 		guild_doc = await self.client.db.guild(author.guild.id)
-		if None in (
-			guild_doc.config.logging.enabled,
-			guild_doc.config.logging.channel
+		if (
+			not guild_doc.config.logging.enabled or
+			guild_doc.config.logging.channel is None or
+			not guild_doc.config.logging.log_commands
 		): return
 		channel = author.guild.get_channel(guild_doc.config.logging.channel) or await self.client.fetch_channel(guild_doc.config.logging.channel)
 		if channel is None: return
