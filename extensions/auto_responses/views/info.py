@@ -29,7 +29,7 @@ class AutoResponseInfoView(View):
 		user_doc = await self.client.db.user(self.user.id)
 		self.has_guild_permissions = (
 			getattr(self.user,'guild',None) is not None and
-			await self.client.permissions.check('auto_responses.overrides',self.user,self.user.guild))
+			await self.client.permissions.check('auto_responses.override',self.user,self.user.guild))
 		
 		guild_doc = await self.client.db.guild(self.user.guild.id)
 		self.guild_overrides = guild_doc.data.auto_responses.overrides.get(self.au.id,{})

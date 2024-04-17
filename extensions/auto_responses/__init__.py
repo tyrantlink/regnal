@@ -19,6 +19,6 @@ class ExtensionAutoResponses(Cog,
 
 def setup(client:Client) -> None:
 	client.permissions.register_permission('auto_responses.custom')
-	client.permissions.register_permission('auto_responses.overrides')
+	client.permissions.register_permission('auto_responses.override')
 	register_config(client.config)
 	client.add_cog(ExtensionAutoResponses(client))
