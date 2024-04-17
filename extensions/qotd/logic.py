@@ -115,11 +115,19 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 					color=0xff6969))
 
 		question = embed.description
-		thread = await channel.create_thread(
-			name=question if len(question) <= 100 else f'{question[:97]}...',
-			content=ping_role,
-			embed=embed,
-			auto_archive_duration=1440)
+		try:
+			thread = await channel.create_thread(
+				name=question if len(question) <= 100 else f'{question[:97]}...',
+				content=ping_role,
+				embed=embed,
+				auto_archive_duration=1440)
+		except Forbidden:
+			if logging_channel:=guild.get_channel(guild_doc.config.logging.channel):
+				await logging_channel.send(embed=Embed(
+					title='❌❗️ QOTD failed to create thread ❗️❌',
+					description=f'failed to create thread\nplease give me the `Create Threads` permission in <#{channel.id}>',
+					color=0xff6969))
+			return False
 
 		try: await thread.edit(pinned=True)
 		except HTTPException:
