@@ -22,7 +22,8 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
 			message = message,
 			args = args,
 			overrides = guild.data.auto_responses.overrides,
-			cross_guild = guild.config.auto_responses.allow_cross_guild_responses)
+			cross_guild = guild.config.auto_responses.allow_cross_guild_responses,
+			custom_only=guild.config.auto_responses.custom_only)
 		# if no response found, return
 		if au is None: return
 		# handle cooldown

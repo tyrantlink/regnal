@@ -99,3 +99,13 @@ def register_config(config:'Config') -> None:
 										use at your own risk.
 									 '''.replace('\t','')[:-2]))
 
+	config.register_option(
+		category='guild',
+		subcategory='auto_responses',
+		option=ConfigOption(
+			name='custom_only',
+			type=OptionType.BOOL,
+			default=False,
+			short_description='only use custom auto responses',
+			description= '''only use custom auto responses, ignoring all other types
+									 '''.replace('\t','')[:-2]))

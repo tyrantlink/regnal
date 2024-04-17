@@ -135,7 +135,13 @@ class AutoResponses:
 			if rand <= cum: return choice
 		raise ValueError(f'random choice failed with {rand=}, {cum=}, {sum(weights)=}')
 
-	async def get_response(self,message:Message,args:ArgParser,overrides:dict[str,dict],cross_guild:bool=False) -> AutoResponse|None:
+	async def get_response(self,
+		message:Message,
+		args:ArgParser,
+		overrides:dict[str,dict],
+		cross_guild:bool=False,
+		custom_only:bool=False
+	) -> AutoResponse|None:
 		if self.client is None: raise ValueError('AutoResponses object must have client set to get response')
 		if message.guild is None: raise ValueError('message must be from a guild!')
 		# check if --au can be used, return if so
@@ -161,14 +167,17 @@ class AutoResponses:
 
 		imported_scripts = set((await self.client.db.guild(message.guild.id)).data.auto_responses.imported_scripts)
 		# gather matches
-		matches = [
-			*self.match(args.message,overrides,self.au.personal(message.author.id)), # personal responses
-			*self.match(args.message,overrides,self.au.mention(
-				user_ids=[a.id for a in message.mentions if f'<@{a.id}>' in args.message])), # mention responses
-			*self.match(args.message,overrides,self.au.custom(message.guild.id)), # custom responses
-			*self.match(args.message,overrides,self.au.unique(message.guild.id)), # unique responses
-			*self.match(args.message,overrides,self.au.scripted(imported_scripts)), # scripted responses
-			*self.match(args.message,overrides,self.au.base)] # base responses
+		if custom_only:
+			matches = [*self.match(args.message,overrides,self.au.custom(message.guild.id))]
+		else:
+			matches = [
+				*self.match(args.message,overrides,self.au.personal(message.author.id)), # personal responses
+				*self.match(args.message,overrides,self.au.mention(
+					user_ids=[a.id for a in message.mentions if f'<@{a.id}>' in args.message])), # mention responses
+				*self.match(args.message,overrides,self.au.custom(message.guild.id)), # custom responses
+				*self.match(args.message,overrides,self.au.unique(message.guild.id)), # unique responses
+				*self.match(args.message,overrides,self.au.scripted(imported_scripts)), # scripted responses
+				*self.match(args.message,overrides,self.au.base)] # base responses
 		# strip user disabled
 		matches = [a for a in matches if a.id not in _user.data.auto_responses.disabled]
 		if not matches: return None
