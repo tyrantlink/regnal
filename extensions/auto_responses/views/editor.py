@@ -35,12 +35,15 @@ class AutoResponseEditorView(SubView):
 		super().__init__(master)
 		self.user = user
 		self.override = override
-		self.au = auto_response.model_copy() or AutoResponse(
-			id='unset',
-			method=AutoResponseMethod.exact,
-			trigger='None',
-			response='None',
-			type=AutoResponseType.text)
+		self.au = (
+			auto_response.model_copy()
+			if auto_response is not None else
+			AutoResponse(
+				id='unset',
+				method=AutoResponseMethod.exact,
+				trigger='None',
+				response='None',
+				type=AutoResponseType.text))
 
 		if not self.override:
 			self.au.data.custom = True
