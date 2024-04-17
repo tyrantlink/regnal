@@ -1,5 +1,5 @@
+from discord import Message,ChannelType,NotFound
 from .subcog import ExtensionQOTDSubCog
-from discord import Message,ChannelType,Thread
 from discord.ext.commands import Cog
 
 
@@ -14,12 +14,17 @@ class ExtensionQOTDListeners(ExtensionQOTDSubCog):
 	async def on_message(self,message:Message) -> None:
 		if (
 			not message.channel.type == ChannelType.public_thread or
+			message.channel.owner_id != self.client.user.id or
 			message.author.bot):
 			return
 
-		starting_message = (
-			message.channel.starting_message or
-			await message.channel.fetch_message(message.channel.id))
+		try:
+			starting_message = (
+				message.channel.starting_message or
+				await message.channel.fetch_message(message.channel.id))
+		except NotFound:
+			return
+
 		if starting_message.author.id != self.client.user.id or not starting_message.embeds:
 			return
 
