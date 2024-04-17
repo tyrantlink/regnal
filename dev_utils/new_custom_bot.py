@@ -119,7 +119,7 @@ async def create_bot_user(bot_name:str,token:str) -> str:
 		async with session.post(f'https://api.regn.al/user/{bot_id}/reset_token') as response:
 			match response.status:
 				case 200:
-					bot_crapi_token = await response.text()
+					bot_crapi_token = await response.json()
 					print('created CrAPI token')
 				case _:
 					print(f'{response.status} | {await response.text()}')
