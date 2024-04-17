@@ -51,7 +51,12 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 		self.embed.add_field(name='current value',value=self.current_value_printable(),inline=False)
 		self.embed.set_footer(text=f'config.{self.config_category.name}.{self.config_subcategory.name}.{self.option.name}')
 
-	async def create_log(self,old_value:Any,channel_id:int) -> None:
+	async def create_log(self,
+		old_value:Any,
+		old_value_printable:str,
+		channel_id:int
+	) -> None:
+		if old_value == self.current_value(): return
 		channel = self.user.guild.get_channel(channel_id)
 		if channel is None: return
 		embed = Embed(
@@ -62,7 +67,7 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 			icon_url=self.user.avatar.url if self.user.avatar else self.user.default_avatar.url)
 		embed.add_field(
 			name='old value',
-			value=old_value,
+			value=old_value_printable,
 			inline=True)
 		embed.add_field(
 			name='new value',
@@ -110,7 +115,7 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 		): value = value.id if value else None
 
 		old_value_raw = self.current_value()
-		old_value = self.current_value_printable()
+		old_value_printable = self.current_value_printable()
 		setattr(getattr(self.object_doc.config,self.config_subcategory.name),self.option.name,value)
 		await self.object_doc.save_changes()
 		match self.config_category.name:
@@ -136,4 +141,6 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 				self.object_doc.config.logging.log_commands or
 				f'{self.config_subcategory.name}.{self.option.name}' == 'logging.log_commands'
 		)):
-			await self.create_log(old_value,self.object_doc.config.logging.channel or old_value_raw)
+			await self.create_log(old_value_raw,
+				old_value_printable,
+				self.object_doc.config.logging.channel or old_value_raw)
