@@ -26,7 +26,7 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 
 	async def give_warning(self,interaction:Interaction,warning:str|None) -> None:
 		if warning is None: return
-		await interaction.followup.send(Embed(
+		await interaction.followup.send(embed=Embed(
 			title='warning!',color=0xffff69,
 			description=warning),ephemeral=True)
 
