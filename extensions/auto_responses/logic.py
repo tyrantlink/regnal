@@ -75,8 +75,8 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
 				case AUCooldownMode.guild: cooldown_id = message.guild.id
 				case _: cooldown_id = None
 			create_task(self.cooldown(cooldown_id,guild.config.auto_responses.cooldown))
-		# add to user found if no arguments were passed
-		if not args and au.id not in user.data.auto_responses.found:
+		# add to user found if no arguments were passed and user no track is disabled
+		if not args and au.id not in user.data.auto_responses.found and not user.config.general.no_track:
 			user.data.auto_responses.found = list(set(
 				user.data.auto_responses.found)|{au.id})
 			await user.save_changes()
