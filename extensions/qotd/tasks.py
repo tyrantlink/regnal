@@ -11,5 +11,7 @@ class ExtensionQOTDTasks(ExtensionQOTDSubCog):
 			# ensure it's the right time
 			if datetime.now(timezone(
 				guild_doc.config.general.timezone)).strftime('%H:%M') != guild_doc.config.qotd.time: continue
-			await self.ask_qotd(guild,guild_doc)
+			try: await self.ask_qotd(guild,guild_doc)
+			except Exception as e:
+				self.client.log.error(f'failed to ask qotd | {e}',guild_id=guild.id)
 			if self._rescan: break
