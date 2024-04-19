@@ -56,11 +56,10 @@ class AutoResponseInfoView(View):
 		if self.embed.title == 'this auto response has been deleted':
 			return
 		user_doc = user_doc or await self.client.db.user(self.user.id)
-		if self.au.id not in user_doc.data.auto_responses.found:
-			return
-		match self.au.id in user_doc.data.auto_responses.disabled:
-			case True: self.add_item(self.button_enable)
-			case False: self.add_item(self.button_disable)
+		self.add_item(
+			self.button_enable
+			if self.au.id in user_doc.data.auto_responses.disabled else
+			self.button_disable)
 		if not self.has_guild_permissions: return
 		guild_doc = guild_doc or await self.client.db.guild(self.user.guild.id)
 		match guild_doc.data.auto_responses.overrides.get(self.au.id,{}).get('method',None):
