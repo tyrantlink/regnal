@@ -27,7 +27,11 @@ class ExtensionAutoResponsesListeners(ExtensionAutoResponsesSubCog):
 		if log is None or (triggerer:=log.data.get('triggerer',None)) is None: return
 
 		match payload.emoji.name: # match case because i might add more or smth idk
-			case '❌' if payload.user_id == triggerer or payload.member.guild_permissions.manage_messages:
+			case '❌' if (
+				payload.user_id == triggerer or
+				payload.member.guild_permissions.manage_messages or
+				payload.member.id in self.client.owner_ids and self.client.project.config.dev_bypass
+			):
 				await message.delete()
 			case _: raise ValueError(f'unknown reaction {payload.emoji.name}!')
 
