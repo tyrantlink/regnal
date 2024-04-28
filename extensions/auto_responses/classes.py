@@ -187,6 +187,8 @@ class AutoResponses:
 				if args.force or response.id in user_found:
 					return response
 			create_task(self.client.helpers.notify_reaction(message,delay=2))
+		# strip user restricted
+		matches = [a for a in matches if a.data.user in {None,message.author.id}]
 		# choose a match
 		options = [(a,a.data.weight) for a in matches]
 		while options:
