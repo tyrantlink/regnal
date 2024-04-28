@@ -38,7 +38,7 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
 			return message.guild.me
 		return message.author
 
-	async def find_deleter_from_id(self,message:int,guild:Guild,channel_id:int) -> tuple[Member,Member]|tuple[None,None]:
+	async def find_deleter_from_id(self,message_id:int,guild:Guild,channel_id:int) -> tuple[Member,Member]|tuple[None,None]:
 		if guild.me.guild_permissions.view_audit_log is False: return None
 		async for log in guild.audit_logs(after=datetime.now()-timedelta(minutes=5),oldest_first=False):
 			if (
@@ -48,9 +48,8 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
 			):
 				self.cached_counts.update({f'{channel_id}{log.target.id}':log.extra.count})
 				return log.user,log.target
-		if message.id in self.client.recently_deleted:
-			self.client.recently_deleted.discard(message.id)
-			return message.guild.me
+		if message_id in self.client.recently_deleted:
+			self.client.recently_deleted.discard(message_id.id)
 		return None,None
 
 	async def find_ban_entry(self,guild:Guild,user_id:int,unban:bool=False) -> AuditLogEntry|None:
