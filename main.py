@@ -40,6 +40,8 @@ async def main() -> None:
 	bots:dict[str,Client] = {}
 
 	extensions = next(walk('extensions'))[1]
+	if base_project['developer']['dev_mode']:
+		extensions = list(set(extensions) & set(base_project['developer']['dev_extensions']))
 	bot_dirs = next(walk('bots'))[1]
 	bot_data_array:dict[str,BotData] = {}
 	for dir in bot_dirs:
