@@ -53,6 +53,7 @@ def register_config(config:'Config') -> None:
 			type = OptionType.CHANNEL,
 			default = None,
 			attrs = ConfigAttrs(validation = validate_channel),
+			nullable = True,
 			short_description = 'channel where qotd is sent',
 			description= '''channel where qotd is sent
 											channel *must* be a forum channel with no required tags

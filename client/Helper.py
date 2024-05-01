@@ -1,4 +1,4 @@
-from discord import ApplicationContext,Interaction,Message,HTTPException,Forbidden
+from discord import ApplicationContext,Interaction,Message,HTTPException,Forbidden,Embed
 from utils.db.documents.ext.enums import TWBFMode
 if not 'TYPE_HINT': from client import Client
 from regex import sub,finditer,UNICODE,sub
@@ -52,3 +52,11 @@ class ClientHelpers:
 			await sleep(delay)
 			await message.remove_reaction(reaction,self.client.user)
 		except (HTTPException,Forbidden): pass
+	
+	async def send_error(self,ctx:ApplicationContext|Interaction,description:str|None=None,title:str|None=None) -> None:
+		await ctx.respond(
+			embed=Embed(
+				title=title or 'error!',
+				description=description,
+				color=0xff6969),
+			ephemeral=True)

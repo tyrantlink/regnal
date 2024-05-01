@@ -67,12 +67,7 @@ class PermissionManagerView(SubView):
 		custom_id = 'mentionable_select')
 	async def mentionable_select(self,select:Select,interaction:Interaction) -> None:
 		if select.values and select.values[0].id == self.user.id:
-			await interaction.response.send_message(
-				embed = Embed(
-					title = 'error!',
-					description = 'you cannot manage your own permissions',
-					color = 0xff6969),
-				ephemeral = True)
+			await self.client.helpers.send_error(interaction,'you cannot manage your own permissions!')
 			return
 
 		self.selected_value = select.values[0] if select.values else None
@@ -113,12 +108,8 @@ class PermissionManagerView(SubView):
 		new_value = modal.children[0].value.split('\n') if modal.children[0].value else None
 		for permission in new_value or []:
 			if not self.client.permissions.matcher(permission[1:] if permission.startswith('!') else permission):
-				await modal.interaction.response.send_message(
-					embed = Embed(
-						title = 'error!',
-						description = f'the given permission `{permission}` does not match any existing permissions',
-						color = 0xff6969),
-					ephemeral = True)
+				await self.client.helpers.send_error(interaction,
+					f'the given permission `{permission}` does not match any existing permissions')
 				return
 			user_permissions = await self.client.permissions.user(self.user,self.user.guild)
 			permission_diff = self.client.permissions.matcher(permission) - user_permissions
@@ -127,15 +118,11 @@ class PermissionManagerView(SubView):
 				permission_diff
 			):
 				permission_diff_print = '\n'.join(sorted(permission_diff))
-				await modal.interaction.response.send_message(
-					embed = Embed(
-						title = 'error!',
-						description = f'''the matcher `{permission}` matches permissions that you don\'t have!
-															please ask an admin to make these changes, or give you the following permissions:
-															```\n{permission_diff_print}\n```
-													 '''.replace('\t','')[:-2],
-						color = 0xff6969),
-					ephemeral = True)
+				await self.client.helpers.send_error(interaction,
+					f'''the matcher `{permission}` matches permissions that you don\'t have!
+									please ask an admin to make these changes, or give you the following permissions:
+									```\n{permission_diff_print}\n```
+					 '''.replace('\t','')[:-2])
 				return
 
 		if new_value:

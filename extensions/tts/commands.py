@@ -11,12 +11,7 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
 		guild_only = True)
 	async def join(self,ctx:ApplicationContext) -> None:
 		if ctx.author.voice is None:
-			await ctx.response.send_message(
-				embed = Embed(
-					title = 'ERROR',
-					description = 'you must be in a voice channel to use this command!',
-					color = 0xff6969),
-				ephemeral = True)
+			await self.client.helpers.send_error(ctx,'you must be in a voice channel to use this command!')
 			return
 		await self.join_channel(ctx.author.voice.channel)
 		tts_channels = '\n'+'\n'.join([

@@ -112,12 +112,9 @@ class CustomAutoResponseView(SubView):
 
 		au_id = modal.children[0].value
 		if not au_id.startswith('s') or self.client.au.get(au_id) is None:
-			await modal.interaction.response.send_message(
-				embed = Embed(
-					title = 'invalid scripted auto response id',
-					description = f'you can find scripts to import [here](<{self.client.project.config.scripted_auto_response_repo}>)',
-					color = 0xff6969),
-				ephemeral = True)
+			await self.client.helpers.send_error(modal.interaction,
+				f'you can find scripts to import [here](<{self.client.project.config.scripted_auto_response_repo}>)',
+				'invalid scripted auto response id')
 			return
 		
 		guild_doc = await self.client.db.guild(self.user.guild.id)

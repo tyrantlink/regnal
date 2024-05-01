@@ -80,11 +80,8 @@ class AutoResponseOverridesView(SubView):
 			await modal.interaction.response.send_message(embed=auto_response_404,ephemeral=True)
 			return
 		if au_id not in (await self.client.db.user(self.user.id)).data.auto_responses.found:
-			await modal.interaction.response.send_message(
-				embed=Embed(
-					title='you must have found an auto response to search for it by id!',
-					color = 0xff6969),
-				ephemeral=True)
+			await self.client.helpers.send_error(modal.interaction,
+				None,'you must have found an auto response to search for it by id!')
 			return
 		self.selected = self.client.au.get(au_id).with_overrides(
 			(await self.client.db.guild(self.user.guild.id)).data.auto_responses.overrides.get(au_id,{}))
