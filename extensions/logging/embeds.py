@@ -106,14 +106,14 @@ class MemberJoinLogEmbed(_BaseMemberStateUpdateLogEmbed):
 	def __init__(self,member:Member) -> None:
 		super().__init__(member,0x69ff69)
 		self.description += ' joined the server!'
-		self.add_field(name='join time',value=f'<t:{int(member.joined_at.timestamp())}:t>',inline=False)
+		self.add_field(name='join time',value=f'<t:{int(member.joined_at.timestamp())}:f>',inline=False)
 
 class MemberLeaveLogEmbed(_BaseMemberStateUpdateLogEmbed):
 	def __init__(self,member:Member) -> None:
 		super().__init__(member,0xff6969)
 		self.description += ' left the server!'
-		self.add_field(name='join time',value=f'<t:{int(member.joined_at.timestamp())}:t>',inline=False)
-		self.add_field(name='leave time',value=f'<t:{int(time())}:t>',inline=False)
+		self.add_field(name='join time',value=f'<t:{int(member.joined_at.timestamp())}:f>',inline=False)
+		self.add_field(name='leave time',value=f'<t:{int(time())}:f>',inline=False)
 
 class _MemberBanUpdateLogEmbed(Embed):
 	def __init__(self,member:Member,audit_log:AuditLogEntry=None) -> None:
@@ -131,10 +131,10 @@ class MemberBanLogEmbed(_MemberBanUpdateLogEmbed):
 	def __init__(self,member:Member,audit_log:AuditLogEntry) -> None:
 		super().__init__(member,audit_log)
 		self.description += ' was banned from the server!'
-		self.add_field(name='ban time',value=f'<t:{int(time())}:t>',inline=False)
+		self.add_field(name='ban time',value=f'<t:{int(time())}:f>',inline=False)
 
 class MemberUnbanLogEmbed(_MemberBanUpdateLogEmbed):
 	def __init__(self,member:Member,audit_log:AuditLogEntry) -> None:
 		super().__init__(member,audit_log)
 		self.description += ' was unbanned from the server!'
-		self.add_field(name='unban time',value=f'<t:{int(time())}:t>',inline=False)
+		self.add_field(name='unban time',value=f'<t:{int(time())}:f>',inline=False)
