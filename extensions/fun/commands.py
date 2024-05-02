@@ -34,7 +34,6 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 			color=await self.client.helpers.embed_color(ctx.guild_id))
 		embed.set_thumbnail(url=user.avatar.url)
 
-
 		if doc.config.general.private_profile:
 			await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
 			return
@@ -89,6 +88,8 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 			title=f'roll: {roll}',
 			color=await self.client.helpers.embed_color(ctx.guild_id))
 
+		if (roll:=roll.lower()).startswith('d'):
+			roll = f'1{roll}'
 		roll = sub(r'[^0-9\+\-d]','',roll).split('+')
 		for i in roll:
 			if '-' in i and not i.startswith('-'):
