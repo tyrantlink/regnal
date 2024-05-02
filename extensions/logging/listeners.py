@@ -19,8 +19,9 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 		if after is None: return
 		if after.author.bot and not guild_doc.config.logging.log_bots: return
 		if before is not None and before.content == after.content: return
+		embed = EditLogEmbed(after,before)
 		await log_channel.send(
-			embed=EditLogEmbed(after,before),
+			embeds=[embed,*embed.additional_embeds],
 			view=EditedLogView(self.client))
 
 	@Cog.listener()
@@ -39,8 +40,9 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 			if payload.cached_message.author.id == self.client.user.id: return
 			if payload.cached_message.author.bot and not guild_doc.config.logging.log_bots: return
 			deleter = await self.find_deleter_from_message(payload.cached_message)
+			embed = DeleteLogEmbedFromMessage(payload.cached_message,deleter)
 			await log_channel.send(
-				embed=DeleteLogEmbedFromMessage(payload.cached_message,deleter),
+				embeds=[embed,*embed.additional_embeds],
 				view=DeletedLogView(self.client,bool(payload.cached_message.attachments)))
 			return
 

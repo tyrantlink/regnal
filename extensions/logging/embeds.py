@@ -17,11 +17,31 @@ class EditLogEmbed(Embed):
 		self.set_author(name=after.author.name,icon_url=after.author.avatar.url)
 		self.add_field(
 			name=f'ORIGINAL <t:{int((after.edited_at or after.created_at).timestamp())}:t>',inline=False,
-			value=(before.content or '`no content`') if before is not None else '`original message not in cache; may be too old`')
+			value=(
+				(
+					before.content
+					if len(before.content) <= 1024
+					else '`message content too long, provided in additional embed`'
+				) or '`no content`')
+				if before is not None else
+				'`original message not in cache; may be too old`')
 		self.add_field(
 			name=f'EDITED <t:{int((after.edited_at or datetime.now()).timestamp())}:t>',
-			value=after.content or '`no content`',inline=False)
+			value=(
+				after.content if len(after.content) <= 1024 else '`message content too long, provided in additional embed`' or
+				'`no content`'),inline=False)
 		self.set_footer(text=after.id)
+		self.additional_embeds = []
+		if before and len(before.content) > 1024:
+			self.additional_embeds.append(Embed(
+				title='original message content',
+				description=before.content,
+				color=0xffff69))
+		if len(after.content) > 1024:
+			self.additional_embeds.append(Embed(
+				title='edited message content',
+				description=after.content,
+				color=0xffff69))
 
 class DeleteLogEmbedFromID(Embed):
 	def __init__(self,message_id:int,channel_id:int,author:Member=None,deleter:Member=None) -> None:
@@ -61,9 +81,17 @@ class DeleteLogEmbedFromMessage(Embed):
 		)
 		self.color = 0xff6969
 		self.set_author(name=message.author.name,icon_url=message.author.avatar.url)
-		self.add_field(name=f'DELETED <t:{int(time())}:t>',value=message.content or '`no content`',inline=False)
+		self.add_field(
+			name=f'DELETED <t:{int(time())}:t>',
+			value=(message.content if len(message.content) <= 1024 else '`message content too long, provided in additional embed`') or '`no content`',inline=False)
 		if message.attachments: self.add_field(name='ATTACHMENTS',value='\n'.join([f'[{attachment.filename}]({attachment.url})' for attachment in message.attachments]),inline=False)
 		self.set_footer(text=message.id)
+		self.additional_embeds = []
+		if len(message.content) > 1024:
+			self.additional_embeds.append(Embed(
+				title='message content',
+				description=message.content,
+				color=0xff6969))
 
 class _BaseMemberStateUpdateLogEmbed(Embed):
 	def __init__(self,member:Member,color:int) -> None:
