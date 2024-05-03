@@ -19,10 +19,24 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 		if after is None: return
 		if after.author.bot and not guild_doc.config.logging.log_bots: return
 		if before is not None and before.content == after.content: return
+
 		embed = EditLogEmbed(after,before)
-		await log_channel.send(
-			embeds=[embed,*embed.additional_embeds],
-			view=EditedLogView(self.client))
+		embeds = [embed,*embed.additional_embeds]
+		multi_message = False
+		view = EditedLogView(self.client)
+
+		if sum([len(embed.description) for embed in embeds]) > 6000:
+			embeds = [embed]
+			multi_message = True
+
+		log_message = await log_channel.send(
+			embeds=embeds,
+			view=None if multi_message else view)
+		if multi_message:
+			for additional_embed in embed.additional_embeds:
+				log_message = await log_message.reply(
+					embed=additional_embed,
+					view=view if additional_embed == embed.additional_embeds[-1] else None)
 
 	@Cog.listener()
 	async def on_raw_message_delete(self,payload:RawMessageDeleteEvent) -> None:
