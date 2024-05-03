@@ -75,7 +75,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 	async def slash_hello(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(
 			f'https://regn.al/{"regnal" if randint(0,100) else "erglud"}.png',
-			ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+			ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 
 	@slash_command(
 		name='roll',
@@ -102,29 +102,29 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 			e = i.split('d')
 			try: [int(r) for r in e]
 			except:
-				await ctx.response.send_message('invalid input',ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+				await ctx.response.send_message('invalid input',ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 				return
 			match len(e):
 				case 1:
 					modifiers += int(e[0])
 				case 2:
 					if int(e[1]) < 1:
-						await ctx.response.send_message('invalid input',ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+						await ctx.response.send_message('invalid input',ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 						return
 					for f in range(int(e[0])):
 						res = randint(1,int(e[1]))
 						rolls.append(res)
-				case _: await ctx.response.send_message('invalid input',ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+				case _: await ctx.response.send_message('invalid input',ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 		if rolls and not len(rolls) > 1024: embed.add_field(name='rolls:',value=rolls,inline=False)
 		if modifiers != 0: embed.add_field(name='modifiers:',value=f"{'+' if modifiers > 0 else ''}{modifiers}",inline=False)
 		embed.add_field(name='result:',value='{:,}'.format(sum(rolls)+modifiers))
-		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 
 	@slash_command(
 		name='time',
 		description='/reg/nal can tell time.')
 	async def slash_time(self,ctx:ApplicationContext) -> None:
-		await ctx.response.send_message(f'<t:{int(time())}:T>',ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+		await ctx.response.send_message(f'<t:{int(time())}:T>',ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 
 	@slash_command(
 		name='8ball',
@@ -135,7 +135,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 		answer = choice(await self.client.db.inf.eight_ball())
 		embed = Embed(title=question,description=f'**{answer}**',color=await self.client.helpers.embed_color(ctx.guild_id))
 		embed.set_author(name=f'{self.client.user.name}\'s eighth ball',icon_url='https://regn.al/8ball.png')
-		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 
 	@slash_command(
 		name='color',
@@ -149,7 +149,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 				title=f'random color: #{colors_hex}',
 				description='\n'.join([f'{l}: {c}' for l,c in zip(['R','G','B'],colors)]),
 				color=int(colors_hex,16)),
-			ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+			ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 
 	@slash_command(
 		name='random_user',guild_only=True,
@@ -162,7 +162,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 			await ctx.response.send_message('you need the `mention everyone` permission to ping users',ephemeral=True)
 			return
 		result = choice(role.members)
-		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+		await ctx.response.send_message(f"{result.mention if ping else result} was chosen!",ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 
 	@slash_command(
 		name='bees',
@@ -172,16 +172,16 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 		if ctx.guild.id in self.bees_running:
 			await ctx.response.send_message(
 				'there may only be one bees at a time.',
-				ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+				ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 			return
 		if ctx.channel.name != 'bees':
 			await ctx.response.send_message(
 				'bees must be run in a channel named `bees`.',
-				ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+				ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 			return
 		await ctx.response.send_message(
 			'why. you can\'t turn it off. this is going to go on for like, 2 hours, 44 minutes, and 30 seconds. why.',
-			ephemeral=await self.client.helpers.embed_color(ctx.guild_id))
+			ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
 		self.bees_running.add(ctx.guild.id)
 		for line in await self.client.db.inf.bees():
 			try: await ctx.channel.send(line)
