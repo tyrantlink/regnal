@@ -25,10 +25,9 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 		multi_message = False
 		view = EditedLogView(self.client)
 
-		if sum([len(embed.description) for embed in embeds]) > 6000:
+		if sum([self.get_embed_length(embed) for embed in embeds]) > 6000:
 			embeds = [embed]
 			multi_message = True
-
 		log_message = await log_channel.send(
 			embeds=embeds,
 			view=None if multi_message else view)
@@ -36,7 +35,8 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 			for additional_embed in embed.additional_embeds:
 				log_message = await log_message.reply(
 					embed=additional_embed,
-					view=view if additional_embed == embed.additional_embeds[-1] else None)
+					view=view if additional_embed == embed.additional_embeds[-1] else None,
+					mention_author=False)
 
 	@Cog.listener()
 	async def on_raw_message_delete(self,payload:RawMessageDeleteEvent) -> None:

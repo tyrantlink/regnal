@@ -1,4 +1,4 @@
-from discord import Message,Member,TextChannel,Guild,AuditLogEntry
+from discord import Message,Member,TextChannel,Guild,AuditLogEntry,Embed
 from .subcog import ExtensionLoggingSubCog
 from datetime import datetime,timedelta
 from aiohttp import ClientSession
@@ -81,3 +81,11 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
 						case _: return False
 			except TimeoutError: #? pk api is down
 				return False
+
+	def get_embed_length(self,embed:Embed) -> int:
+		return sum([
+			len(embed.title if embed.title else ''),
+			len(embed.description if embed.description else ''),
+			sum([len(field.name)+len(field.value) for field in embed.fields]),
+			len(embed.footer.text if embed.footer else ''),
+			len(embed.author.name if embed.author else '')])
