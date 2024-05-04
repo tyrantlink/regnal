@@ -2,6 +2,7 @@ from utils.db.documents import Guild as GuildDocument
 from discord.errors import Forbidden,HTTPException
 from discord import Guild,Member,Embed,ChannelType
 from .subcog import ExtensionQOTDSubCog
+from asyncio import sleep,create_task
 from typing import AsyncIterator
 from .views import QOTDAskLog
 from .models import QOTDPack
@@ -17,6 +18,10 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 		for file in files:
 			async with open(f'extensions/qotd/packs/{file}') as f:
 				self.packs[file.removesuffix('.json')] = QOTDPack.model_validate_json(await f.read())
+
+	async def remove_recently_asked(self,guild_id:int) -> None:
+		await sleep(300)
+		self.recently_asked.discard(guild_id)
 
 	async def find_guilds(self) -> AsyncIterator[tuple[Guild,GuildDocument]]:
 		if not self._rescan and time()-self._guilds[0] < 60:
@@ -134,6 +139,7 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 			thread_message = await thread.fetch_message(thread.id)
 			await thread_message.edit(content=f'{thread_message.content}\n\nunable to pin this thread, please unpin and archive the previous thread manually')
 		self.recently_asked.add(guild.id)
+		create_task(self.remove_recently_asked(guild.id))
 		if not embed.footer.text.startswith('custom question'):
 			metric = await self.client.db.qotd_metric(embed.footer.text)
 			metric.asked += 1
@@ -143,3 +149,4 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 		guild_doc.data.qotd.last = guild_doc.get_current_day()
 		guild_doc.data.statistics.questions += 1
 		await guild_doc.save_changes()
+		self.client.log.info(f'asked qotd in {guild.name}',guild_id=guild.id)
