@@ -53,9 +53,10 @@ class ClientBase:
 		await self.connect(reconnect=True)
 
 	async def _owner_init(self) -> None:
-		app = await self.application_info()
-		self.owner_ids = {m.id for m in app.team.members} if app.team else {app.owner.id}
-		self.owner_id = list(self.owner_ids)[0] # set because Bot.owner_id is given
+		self.owner_ids = {u['_id'] async for u in self.db._client.users.find(
+			{'data.flags':{"$bitsAllSet":UserFlags.ADMIN}},
+			projection={'_id':True})}
+		self.owner_id = list(self.owner_ids)[0] if self.owner_ids else None # set because Bot.owner_id is given
 
 	async def on_connect(self) -> None:
 		await self.sync_commands()
