@@ -2,6 +2,7 @@ from discord import Interaction,ApplicationContext,Embed,Webhook,File,Activity,A
 from discord.errors import CheckFailure,ApplicationCommandInvokeError,HTTPException
 if not 'TYPE_HINT': from extensions.auto_responses import AutoResponses
 from utils.db import MongoDatabase,Guild as GuildDocument
+from utils.db.documents.ext.flags import UserFlags
 from .permissions import PermissionHandler
 from traceback import format_exc,format_tb
 from utils.tyrantlib import get_version

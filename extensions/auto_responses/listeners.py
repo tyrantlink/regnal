@@ -53,10 +53,7 @@ class ExtensionAutoResponsesListeners(ExtensionAutoResponsesSubCog):
 		# parse args
 		args = ArgParser(message.content)
 		# validate usage of --force
-		if args.force and not (
-			message.author.id in self.client.owner_ids or
-			user.data.flags & UserFlags.ADMIN
-		):
+		if args.force and message.author.id not in self.client.owner_ids:
 			create_task(self.client.helpers.notify_reaction(message))
 			args.force = False
 		# get channel, and guild
