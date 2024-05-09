@@ -109,23 +109,34 @@ class ModMailThreadView(SubView):
 			await self.client.helpers.send_error(interaction,'this server has no attached bot, this shouldn\'t happen!')
 			return
 		
-		message = 'test'
+		modal = CustomModal(
+			title = 'send a new message',
+			children = [
+				InputText(
+					label = 'message',
+					style = InputTextStyle.long,
+					min_length = 1,
+					max_length = 4000,
+					custom_id = 'message')])
+
+		await interaction.response.send_modal(modal)
+		await modal.wait()
 	
 		await self.client.api.gateway_send(Request(
 			req=Req.SEND_MESSAGE,
 			forward=forward,
 			data={
 				'channel':self.modmail.thread,
-				'content':message}))
+				'content':modal.children[0].value}))
 
 		await new_modmail_message(
 			client = self.client,
 			modmail = self.modmail,
 			author = self.user if not self.modmail.anonymous else None,
-			content = message)
+			content = modal.children[0].value)
 
 		await self.reload(True)
-		await interaction.response.edit_message(embeds=self.embeds,view=self)
+		await modal.interaction.response.edit_message(embeds=self.embeds,view=self)
 	
 	@button(
 		label = 'close',
