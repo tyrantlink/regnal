@@ -35,7 +35,7 @@ class ModMailPostedReportView(View):
 			create_task(self.close_confirm_timer(interaction.message))
 			return
 		modmail_id = interaction.message.embeds[-1].footer.text.split(': ')[-1]
-		modmail = await self.client.db.modmail(modmail_id)
+		modmail = await self.client.db.modmail(f'{interaction.guild.id}:{modmail_id}')
 		modmail.closed = True
 		await modmail.save_changes()
 		await interaction.channel.send(
