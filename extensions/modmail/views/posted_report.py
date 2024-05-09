@@ -10,7 +10,7 @@ class ModMailPostedReportView(View):
 	def __init__(self,client:Client,add_all:bool=False) -> None:
 		super().__init__(timeout=None)
 		self.client = client
-		self.add_item(self.button_close)
+		self.add_items(self.button_close,self.button_toggle_sendall)
 		# if add_all:
 		# 	self.add_items(self.button_reopen)
 	
@@ -42,6 +42,25 @@ class ModMailPostedReportView(View):
 			f'this thread was closed by {interaction.user.mention}\n\nno more messages will be exchanged.\n\narchiving this thread is recommended.')
 		button.label = 'closed'
 		button.disabled = True
+		await interaction.response.edit_message(view=self)
+	
+	@button(
+		label = 'only sending mentions',
+		style = ButtonStyle.gray,
+		custom_id = 'button_toggle_sendall')
+	async def button_toggle_sendall(self,button:Button,interaction:Interaction) -> None:
+		modmail_id = interaction.message.embeds[-1].footer.text.split(': ')[-1]
+		modmail = await self.client.db.modmail(f'{interaction.guild.id}:{modmail_id}')
+		match button.label:
+			case 'only sending mentions':
+				button.label = 'sending all messages'
+				button.style = ButtonStyle.blurple
+				modmail.send_all = True
+			case 'sending all messages':
+				button.label = 'only sending mentions'
+				button.style = ButtonStyle.gray
+				modmail.send_all = False
+		await modmail.save_changes()
 		await interaction.response.edit_message(view=self)
  
 	# @button(
