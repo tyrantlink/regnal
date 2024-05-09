@@ -63,7 +63,8 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
 				return log
 		return None
 
-	async def deleted_by_pk(self,message_id:int,delay:int|None=None) -> bool:
+	async def deleted_by_pk(self,message_id:int,delay:int|None=None,recurse_count:int|None=None) -> bool:
+		if (recurse_count or 0) > 5: return False
 		if delay: await sleep(delay)
 		async with ClientSession(
 			base_url='https://api.pluralkit.me',
@@ -77,7 +78,11 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
 					match response.status:
 						case 200: return True
 						case 404: return False
-						case 429: return await self.deleted_by_pk(message_id,delay=(await response.json()).get('retry_after',2000)/1000)
+						case 429:
+							return await self.deleted_by_pk(
+								message_id=message_id,
+								delay=(await response.json()).get('retry_after',2000)/1000+250,
+								recurse_count=(recurse_count or 0)+1)
 						case _: return False
 			except TimeoutError: #? pk api is down
 				return False
