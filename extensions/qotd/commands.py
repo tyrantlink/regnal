@@ -22,7 +22,7 @@ class ExtensionQOTDCommands(ExtensionQOTDSubCog):
 		question_data = GuildDataQOTDQuestion(
 			question=question,
 			author=ctx.author.display_name,
-			icon=ctx.author.avatar.url)
+			icon=ctx.author.display_avatar.url)
 		guild_doc.data.qotd.nextup.append(question_data)
 		await guild_doc.save_changes()
 		embed = Embed(

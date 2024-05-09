@@ -32,7 +32,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 											username: {user.name}
 											display name: {user.display_name}'''.replace('\t',''),
 			color=await self.client.helpers.embed_color(ctx.guild_id))
-		embed.set_thumbnail(url=user.avatar.url)
+		embed.set_thumbnail(url=user.display_avatar.url)
 
 		if doc.config.general.private_profile:
 			await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))

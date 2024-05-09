@@ -61,7 +61,7 @@ class ExtensionQOTDLogic(ExtensionQOTDSubCog):
 		channel = author.guild.get_channel(guild_doc.config.logging.channel) or await self.client.fetch_channel(guild_doc.config.logging.channel)
 		if channel is None: return
 		embed = Embed(description=question,color=await self.client.helpers.embed_color(author.guild.id))
-		embed.set_author(name=f'{author.display_name} asked a custom question!',icon_url=author.avatar.url)
+		embed.set_author(name=f'{author.display_name} asked a custom question!',icon_url=author.display_avatar.url)
 		await channel.send(embed=embed,view=QOTDAskLog(self.client))
 
 	async def get_question(self,guild_doc:GuildDocument) -> tuple[GuildDocument,Embed]:

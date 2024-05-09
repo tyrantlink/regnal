@@ -52,7 +52,7 @@ class TTSBanningView(SubView):
 			color = 0xff6969 if action == 'ban' else 0xffff69)
 		embed.set_author(
 			name = f'{self.user.display_name} {action}ned users from tts',
-			icon_url = self.user.avatar.url)
+			icon_url = self.user.display_avatar.url)
 		embed.add_field(
 			name = f'{action}ned users',
 			value = '\n'.join([f'<@{i}>' for i in changed]))

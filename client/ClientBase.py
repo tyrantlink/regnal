@@ -111,12 +111,12 @@ class ClientBase:
 			wh = Webhook.from_url(self.project.webhooks.errors,session=session)
 			if len(traceback)+8 > 2000: await wh.send(
 				username=self.user.name,
-				avatar_url=self.user.avatar.url,
+				avatar_url=self.user.display_avatar.url,
 				file=File(StringIO(traceback),'error.txt'))
 			else:
 				await wh.send(f'```\n{traceback}\n```',
 					username=self.user.name,
-					avatar_url=self.user.avatar.url)
+					avatar_url=self.user.display_avatar.url)
 
 	async def on_error(self,event:str,*args,**kwargs) -> None:
 		async with ClientSession() as session:
@@ -125,12 +125,12 @@ class ClientBase:
 			print(error)
 			if len(error)+8 > 2000: await wh.send(
 				username=self.user.name,
-				avatar_url=self.user.avatar.url,
+				avatar_url=self.user.display_avatar.url,
 				file=File(StringIO(error),'error.txt'))
 			else:
 				await wh.send(f'```\n{error}\n```',
 					username=self.user.name,
-					avatar_url=self.user.avatar.url)
+					avatar_url=self.user.display_avatar.url)
 
 	def load_extension(self,name:str) -> None:
 		try: super().load_extension(name)

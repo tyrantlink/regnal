@@ -41,12 +41,12 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 			case 'user':
 				self.embed.set_author(
 					name=self.user.display_name,
-					icon_url=self.user.avatar.url if self.user.avatar else self.user.default_avatar.url)
+					icon_url=self.user.display_avatar.url)
 			case 'guild':
 				self.embed.set_author(
 					name=self.user.guild.name,
 					icon_url=self.user.guild.icon.url if self.user.guild.icon else self.user.guild.me.display_avatar.url)
-			case 'dev': self.embed.set_author(name=self.client.user.display_name,icon_url=self.client.user.avatar.url)
+			case 'dev': self.embed.set_author(name=self.client.user.display_name,icon_url=self.client.user.display_avatar.url)
 			case _: raise ValueError('improper config category name')
 		self.embed.add_field(name='current value',value=self.current_value_printable(),inline=False)
 		self.embed.set_footer(text=f'config.{self.config_category.name}.{self.config_subcategory.name}.{self.option.name}')
@@ -64,7 +64,7 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 			color=0xffff69)
 		embed.set_author(
 			name=self.user.display_name,
-			icon_url=self.user.avatar.url if self.user.avatar else self.user.default_avatar.url)
+			icon_url=self.user.display_avatar.url)
 		embed.add_field(
 			name='old value',
 			value=old_value_printable,

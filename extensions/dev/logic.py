@@ -23,12 +23,12 @@ class ExtensionDevLogic(ExtensionDevSubCog):
 
 		title,description = modal.children[0].value,modal.children[1].value
 		embed = Embed(title=title,description=description,color=await self.client.helpers.embed_color(ctx.guild_id))
-		embed.set_author(name=ctx.author.name,icon_url=ctx.author.avatar.url)
+		embed.set_author(name=ctx.author.name,icon_url=ctx.author.display_avatar.url)
 		async with ClientSession() as session:
 			wh = Webhook.from_url(self.client.project.webhooks.support,session=session)
 			await wh.send(
 				username=self.client.user.name,
-				avatar_url=self.client.user.avatar.url,
+				avatar_url=self.client.user.display_avatar.url,
 				embed=embed,thread_name=title if len(title) < 100 else f'{title[:97]}...',
 				applied_tags=[])
 

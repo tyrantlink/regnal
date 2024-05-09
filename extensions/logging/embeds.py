@@ -14,7 +14,7 @@ class EditLogEmbed(Embed):
 			]
 		)
 		self.color = 0xffff69
-		self.set_author(name=after.author.name,icon_url=after.author.avatar.url)
+		self.set_author(name=after.author.name,icon_url=after.author.display_avatar.url)
 		self.add_field(
 			name=f'ORIGINAL <t:{int((after.edited_at or after.created_at).timestamp())}:t>',inline=False,
 			value=(
@@ -57,7 +57,7 @@ class DeleteLogEmbedFromID(Embed):
 			]
 		)
 		self.color = 0xff6969
-		if author is not None: self.set_author(name=author.name,icon_url=author.avatar.url)
+		if author is not None: self.set_author(name=author.name,icon_url=author.display_avatar.url)
 		self.add_field(name=f'DELETED <t:{int(time())}:t>',value='`original message not in cache; may be too old`',inline=False)
 		self.set_footer(text=message_id)
 
@@ -80,7 +80,7 @@ class DeleteLogEmbedFromMessage(Embed):
 			]
 		)
 		self.color = 0xff6969
-		self.set_author(name=message.author.name,icon_url=message.author.avatar.url)
+		self.set_author(name=message.author.name,icon_url=message.author.display_avatar.url)
 		self.add_field(
 			name=f'DELETED <t:{int(time())}:t>',
 			value=(message.content if len(message.content) <= 1024 else '`message content too long, provided in additional embed`') or '`no content`',inline=False)
@@ -124,7 +124,7 @@ class _MemberBanUpdateLogEmbed(Embed):
 		self.set_thumbnail(url=member.display_avatar.url)
 		self.set_footer(text=member.id)
 		if audit_log is None: return
-		self.set_author(name=audit_log.user.name,icon_url=audit_log.user.avatar.url)
+		self.set_author(name=audit_log.user.name,icon_url=audit_log.user.display_avatar.url)
 		self.add_field(name='reason',value=audit_log.reason or '`no reason provided`',inline=False)
 
 class MemberBanLogEmbed(_MemberBanUpdateLogEmbed):
