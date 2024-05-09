@@ -26,6 +26,7 @@ async def new_modmail_message(
 	if author is None or modmail.anonymous: return
 
 	op_id = modmail.messages[0].author
+	if author and author.id == op_id: return
 	if op_id is None: return
 
 	op = await client.get_or_fetch_user(op_id)
