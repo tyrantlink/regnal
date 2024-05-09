@@ -28,9 +28,10 @@ class ModMailInboxView(SubView):
 		for doc_id,last_read in list(user_doc.data.modmail_threads.items())[25*self.page:25*(self.page+1)]:
 			thread_doc = await self.client.db.modmail(doc_id)
 			unread_messages = len(thread_doc.messages)-last_read
+			description_message = thread_doc.messages[-1].content
 			options[SelectOption(
 				label = f'{f"({unread_messages}) " if unread_messages else ""}{thread_doc.title}',
-				description=thread_doc.messages[-1].content if len(thread_doc.messages) < 100 else f'{thread_doc.messages[-1].content[:97]}...',
+				description=description_message if len(description_message) < 100 else f'{description_message[:97]}...',
 				value = doc_id
 			)] = thread_doc.messages[-1].timestamp
 		self.get_item('select_thread').options = [option for option,_ in sorted(options.items(),key=lambda item: item[1],reverse=True)]
