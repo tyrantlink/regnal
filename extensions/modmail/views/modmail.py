@@ -58,7 +58,7 @@ class ModMailView(SubView):
 			message=None,
 			reporter=interaction.user,
 			title=modal.children[0].value,
-			issue=modal.children[0].value,
+			issue=modal.children[1].value,
 			allow_anonymous=guild_doc.config.modmail.allow_anonymous)
 
 		await modal.interaction.response.send_message(
