@@ -19,6 +19,9 @@ class ModMailInboxView(SubView):
 		self.add_items(self.back_button,self.select_thread)
 		await self.reload_options()
 
+	async def __on_back__(self) -> None:
+		await self.reload_options()
+
 	async def reload_options(self) -> None:
 		user_doc = await self.client.db.user(self.user.id)
 		options = {}
