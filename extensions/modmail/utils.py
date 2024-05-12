@@ -6,7 +6,7 @@ from time import time
 
 async def new_modmail_message(
 	client:Client,
-	modmail:ModMail,
+	modmail_id:str,
 	author:User|Member|None,
 	content:str,
 	attachments:list[str]|None=None,
@@ -14,6 +14,7 @@ async def new_modmail_message(
 ) -> None:
 	attachments = attachments or []
 
+	modmail = await client.db.modmail(modmail_id)
 	modmail.messages.append(
 		ModMail.ModMailMessage(
 			author = author.id if author else None,

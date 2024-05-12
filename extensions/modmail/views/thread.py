@@ -43,7 +43,7 @@ class ModMailThreadView(SubView):
 
 		user_doc = await self.client.db.user(self.user.id)
 		user_doc.data.modmail_threads[self.modmail_id] = len(self.modmail.messages)
-		await user_doc.save()
+		await user_doc.save_changes()
 
 	@property
 	def embeds(self) -> list[Embed]:
@@ -131,7 +131,7 @@ class ModMailThreadView(SubView):
 
 		await new_modmail_message(
 			client = self.client,
-			modmail = self.modmail,
+			modmail = self.modmail.id,
 			author = self.user if not self.modmail.anonymous else None,
 			content = modal.children[0].value)
 

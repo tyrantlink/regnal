@@ -33,7 +33,7 @@ class ExtensionModMailListeners(ExtensionModMailSubCog):
 
 		await new_modmail_message(
 			client = self.client,
-			modmail = modmail,
+			modmail = modmail.id,
 			author = message.author,
 			content = sub(f' ?{escape(message.guild.me.mention)} ?','',message.content),
 			timestamp = int(message.created_at.timestamp()))
