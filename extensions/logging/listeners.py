@@ -76,7 +76,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 
 		embed = Embed(
 			title=f'{len(payload.message_ids)} messages bulk deleted in <#{payload.channel_id}>',
-			color=0x69ff69)
+			color=0xff6969)
 		message_ids = ','.join([str(i) for i in payload.message_ids])
 		if len(message_ids) <= 4096:
 			embed.description = message_ids
