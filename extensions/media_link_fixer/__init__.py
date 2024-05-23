@@ -5,7 +5,7 @@ from client import Client
 from discord import Cog
 
 
-class ExtensionAdmin(Cog,
+class ExtensionMediaLinkFixer(Cog,
 	ExtensionMediaLinkFixerListeners,
 	ExtensionMediaLinkFixerLogic
 ):
@@ -14,4 +14,4 @@ class ExtensionAdmin(Cog,
 
 def setup(client:Client) -> None:
 	register_config(client.config)
-	client.add_cog(ExtensionAdmin(client))
+	client.add_cog(ExtensionMediaLinkFixer(client))
