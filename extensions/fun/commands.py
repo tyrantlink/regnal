@@ -75,7 +75,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 	async def slash_hello(self,ctx:ApplicationContext) -> None:
 		await ctx.response.send_message(
 			f'https://regn.al/{"regnal" if randint(0,100) else "erglud"}.png',
-			ephemeral=await self.client.helpers.ephemeral(ctx.guild_id))
+			ephemeral=await self.client.helpers.ephemeral(ctx))
 
 	@slash_command(
 		name='roll',
