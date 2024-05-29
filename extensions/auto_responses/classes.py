@@ -180,8 +180,8 @@ class AutoResponses:
 				*self.match(args.message,overrides,self.au.base)] # base responses
 		# strip user disabled
 		matches = [a for a in matches if a.id not in _user.data.auto_responses.disabled]
-		# string nsfw if channel is nsfw
-		if message.channel.is_nsfw():
+		# strip nsfw if channel is not nsfw
+		if not message.channel.is_nsfw():
 			matches = [a for a in matches if not a.data.nsfw]
 		if not matches: return None
 		if args.seed is not None:
