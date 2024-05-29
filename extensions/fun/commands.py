@@ -52,8 +52,8 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 
 		if base_found:=(user_found & (base_max:=set([b.id for b in self.client.au.au.base]))):
 			found_description.append(f'base: {len(base_found)}/{len(base_max)}')
-		if mention_found:=(user_found & (mention_max:=set([m.id for m in self.client.au.au.mention()]))):
-			found_description.append(f'mention: {len(mention_found)}/{len(mention_max)}')
+		if mention_found:=(user_found & set([m.id for m in self.client.au.au.mention()])):
+			found_description.append(f'mention: {len(mention_found)}')
 		if personal_found:=(user_found & (personal_max:=set([p.id for p in self.client.au.au.personal(user.id)]))):
 			found_description.append(f'personal: {len(personal_found)}/{len(personal_max)}')
 		if not ctx.guild:
