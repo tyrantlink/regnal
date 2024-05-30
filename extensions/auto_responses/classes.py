@@ -1,9 +1,8 @@
 from utils.db.documents.ext.enums import AutoResponseMethod,AutoResponseType
 from regex import search,fullmatch,escape,IGNORECASE
-from discord.errors import HTTPException,Forbidden
-from asyncio import sleep,create_task
-from argparse import ArgumentParser
+from argparse import ArgumentParser,ArgumentError
 from utils.db import AutoResponse
+from asyncio import create_task
 from discord import Message
 from typing import TypeVar
 from random import random
@@ -13,7 +12,7 @@ A = TypeVar('A')
 
 class ArgParser(ArgumentParser):
 	def __init__(self,message:str) -> None:
-		super().__init__()
+		super().__init__(exit_on_error=False,add_help=False)
 		self.add_argument('--delete','-d',action='store_true')
 		self.add_argument('--seed','-s',type=int)
 		self.add_argument('--au','-a',type=str)
@@ -22,8 +21,9 @@ class ArgParser(ArgumentParser):
 		self.seed:int|None = None
 		self.au:str|None   = None
 		self.force:bool    = False
-		self.message:str   = None
-		self.parse(message)
+		self.message:str   = message
+		try: self.parse(message)
+		except ArgumentError: pass
 
 	def __bool__(self) -> bool:
 		return (self.delete is True or
