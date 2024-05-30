@@ -98,7 +98,7 @@ class _BaseMemberStateUpdateLogEmbed(Embed):
 		super().__init__()
 		self.description = member.mention
 		self.color = color
-		self.add_field(name='username',value=member.name,inline=False)
+		self.add_field(name='username',value=member.name,inline=True)
 		self.set_thumbnail(url=member.display_avatar.url)
 		self.set_footer(text=member.id)
 
@@ -112,8 +112,12 @@ class MemberLeaveLogEmbed(_BaseMemberStateUpdateLogEmbed):
 	def __init__(self,member:Member) -> None:
 		super().__init__(member,0xff6969)
 		self.description += ' left the server!'
+		if member.nick:
+			self.add_field(name='nickname',value=member.nick,inline=True)
 		self.add_field(name='join time',value=f'<t:{int(member.joined_at.timestamp())}:f>',inline=False)
 		self.add_field(name='leave time',value=f'<t:{int(time())}:f>',inline=False)
+		if member.roles[1:]:
+			self.add_field(name='roles',value=' '.join([role.mention for role in member.roles[1:]]),inline=False)
 
 class _MemberBanUpdateLogEmbed(Embed):
 	def __init__(self,member:Member,audit_log:AuditLogEntry=None) -> None:
