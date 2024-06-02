@@ -89,7 +89,7 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 			max({len(w) for w in text.split()}) > 64
 		):
 			create_task(self.client.helpers.notify_reaction(message))
-			return
+			max(word_lengths) > 64
 		# generate audio
 		audio = await self.generate_audio(text,profile)
 		# add message to queue
