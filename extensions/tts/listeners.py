@@ -46,7 +46,7 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 			): return
 			case TTSMode.always|_: pass
 		# join channel if user has auto join, and client is not in a voice channel
-		if self.guilds.get(message.guild.id,None) is None:
+		if self._guilds.get(message.guild.id,None) is None:
 			if not user_doc.config.tts.auto_join:
 				return
 			await self.join_channel(message.author.voice.channel)
@@ -78,9 +78,10 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		if user_doc.config.tts.text_correction:
 			await self.client.db.inf.text_correction()
 		profile = await self.get_user_profile(message.author)
-		if self.guilds[message.guild.id].last_name != profile.name:
+		guild_data = await self.get_guild_or_join(message.guild,message.author.voice.channel)
+		if guild_data.last_name != profile.name:
 			text = f'{profile.name} said: {text}'
-			self.guilds[message.guild.id].last_name = profile.name
+			self._guilds[message.guild.id].last_name = profile.name
 		# validate message length
 		if (
 			not user_doc.data.flags & UserFlags.UNLIMITED_TTS and
@@ -104,7 +105,7 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		if member.id == self.client.user.id and after.channel is None:
 			await self.disconnect(member.guild)
 			return
-		if member.guild.id not in self.guilds:
+		if member.guild.id not in self._guilds:
 			return
 		if before.channel is not None:
 			if {self.client.user.id} == set(before.channel.voice_states.keys()):

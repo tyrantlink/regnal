@@ -11,6 +11,12 @@ from io import BytesIO
 
 
 class ExtensionTTSLogic(ExtensionTTSSubCog):
+	async def get_guild_or_join(self,guild:Guild,channel:VoiceChannel) -> GuildTTS:
+		if guild.id not in self._guilds:
+			await self.disconnect(guild)
+			await self.join_channel(channel)
+		return self._guilds[guild.id]
+
 	async def reload_voices(self) -> None:
 		self.voices = [ #? this is super incredibly easy to read god i hate it google why
 			voice
@@ -64,9 +70,9 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 			data=audio_data)
 
 	async def add_message_to_queue(self,message:TTSMessage,guild:Guild) -> None:
-		if guild.id not in self.guilds:
+		if guild.id not in self._guilds:
 			raise ValueError(f'guild {guild.name} ({guild.id}) does not have a tts queue, please run create_queue')
-		self.guilds[guild.id].queue.put_nowait(message)
+		self._guilds[guild.id].queue.put_nowait(message)
 
 	def process_message(self,message:str,guild:Guild) -> str:
 		# strip markdown
@@ -107,18 +113,18 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 			is not None])
 
 	async def create_queue(self,guild_id:int) -> None:
-		if guild_id not in self.guilds:
-			self.guilds[guild_id] = GuildTTS(
+		if guild_id not in self._guilds:
+			self._guilds[guild_id] = GuildTTS(
 				queue = Queue(),
 				last_name = None)
 
 	async def process_queue(self,guild:Guild) -> None:
-		if guild.id not in self.guilds:
+		if guild.id not in self._guilds:
 			await self.create_queue(guild.id)
 		playing = Event()
 		voice_client:VoiceClient = guild.voice_client
 		while True:
-			try: message = await self.guilds[guild.id].queue.get()
+			try: message = await self._guilds[guild.id].queue.get()
 			except KeyError: break # disconnected from voice channel
 			if not voice_client.is_connected():
 				voice_client = await voice_client.channel.connect()
@@ -149,4 +155,4 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 	async def disconnect(self,guild:Guild) -> None:
 		if guild.voice_client is not None:
 			await guild.voice_client.disconnect()
-		self.guilds.pop(guild.id,None)
+		self._guilds.pop(guild.id,None)
