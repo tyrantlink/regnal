@@ -16,7 +16,7 @@ class ExtensionTTS(Cog,
 	def __init__(self,client:Client) -> None:
 		self.client = client
 		self.tts = TextToSpeechAsyncClient.from_service_account_info(self.client.project.google_cloud.model_dump())
-		self.guilds:dict[int,GuildTTS] = {}
+		self._guilds:dict[int,GuildTTS] = {}
 		self.text_corrections:dict[str,str] = {}
 
 
