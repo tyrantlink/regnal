@@ -6,6 +6,8 @@ from discord import Guild,Embed
 class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 	async def new_day(self,guild:Guild) -> ActivityRoleChanges:
 		guild_doc = await self.client.db.guild(guild.id)
+		if guild_doc is None:
+			return
 		if not guild_doc.config.activity_roles.enabled:
 			return
 		if guild_doc.config.activity_roles.role is None:
