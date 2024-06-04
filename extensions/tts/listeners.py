@@ -82,14 +82,17 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		if guild_data.last_name != profile.name:
 			text = f'{profile.name} said: {text}'
 			self._guilds[message.guild.id].last_name = profile.name
+		# ensure message word length
+		if not (word_lengths:={len(w) for w in text.split()}):
+			return
 		# validate message length
 		if (
 			not user_doc.data.flags & UserFlags.UNLIMITED_TTS and
 			len(text) > 800 or
-			max({len(w) for w in text.split()}) > 64
+			max(word_lengths) > 64
 		):
 			create_task(self.client.helpers.notify_reaction(message))
-			max(word_lengths) > 64
+			return
 		# generate audio
 		audio = await self.generate_audio(text,profile)
 		# add message to queue
