@@ -49,29 +49,29 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 			if (member:=guild.get_member(int(i))) is not None
 		}
 
-		changes = ActivityRoleChanges(unchanged=users.copy())
+		changes = ActivityRoleChanges()
 
 		for user in role.members:
 			if user not in users:
 				changes.removed.add(user)
-				changes.unchanged.discard(user)
 				await user.remove_roles(role)
 
 		for user in users:
 			if role not in user.roles:
 				changes.added.add(user)
-				changes.unchanged.discard(user)
 				await user.add_roles(role)
+		
+		changes.unchanged = (users - changes.added) - changes.removed
 
 		guild_doc.data.activity_roles.last_day = guild_doc.get_current_day()
 		await guild_doc.save_changes()
 
 		return changes
-	
+
 	async def log_changes(self,guild:Guild,changes:ActivityRoleChanges) -> None:
 		if not changes.added and not changes.removed:
 			return
-		
+
 		guild_doc = await self.client.db.guild(guild.id)
 		if not guild_doc.config.logging.activity_roles:
 			return
@@ -81,7 +81,7 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 			return
 
 		logging_channel =	guild.get_channel(guild_doc.config.logging.channel)
-		
+
 		embed = Embed(title='activity role changes',color=await self.client.helpers.embed_color(guild.id))
 		if changes.unchanged:
 			embed.add_field(
@@ -106,6 +106,5 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 				inline=False)
 		embed.set_footer(
 			text=f'day {guild_doc.get_current_day()} users: {changes.total_users}/{guild_doc.config.activity_roles.max_roles}')
-		
-		await logging_channel.send(embed=embed)
 
+		await logging_channel.send(embed=embed)
