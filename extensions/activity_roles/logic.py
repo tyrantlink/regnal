@@ -8,6 +8,8 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 		guild_doc = await self.client.db.guild(guild.id)
 		if guild_doc is None:
 			return
+		if not len(guild_doc.data.activity) > 1:
+			return
 		if not guild_doc.config.activity_roles.enabled:
 			return
 		if guild_doc.config.activity_roles.role is None:
