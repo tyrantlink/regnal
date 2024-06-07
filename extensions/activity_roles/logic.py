@@ -8,13 +8,14 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 		guild_doc = await self.client.db.guild(guild.id)
 		if guild_doc is None:
 			return
-		if not len(guild_doc.data.activity) > 1:
+		if not len(guild_doc.data.activity) > 0:
 			return
 		if not guild_doc.config.activity_roles.enabled:
 			return
 		if guild_doc.config.activity_roles.role is None:
 			return
-		if not (guild_doc.get_current_day() > guild_doc.data.activity_roles.last_day):
+		next_day = guild_doc.get_day_in(minutes=20)
+		if not (next_day > guild_doc.data.activity_roles.last_day):
 			return
 
 		role = guild.get_role(guild_doc.config.activity_roles.role)
@@ -65,7 +66,7 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 		
 		changes.unchanged = (users - changes.added) - changes.removed
 
-		guild_doc.data.activity_roles.last_day = guild_doc.get_current_day()
+		guild_doc.data.activity_roles.last_day = next_day
 		await guild_doc.save_changes()
 
 		return changes
