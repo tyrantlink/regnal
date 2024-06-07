@@ -15,5 +15,6 @@ class ExtensionActivityRoles(Cog,
 		self.client = client
 
 def setup(client:Client) -> None:
+	client.permissions.register_permission('activity_roles.ignore')
 	register_config(client.config)
 	client.add_cog(ExtensionActivityRoles(client))

@@ -22,6 +22,8 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 		if role is None:
 			return
 
+		ignored_roles = set(guild_doc.config.activity_roles.ignored_roles)
+
 		lookback_list = list(
 			dict(
 				sorted(
@@ -49,7 +51,8 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 				key=lambda x: totals[x],
 				reverse=True
 			)[:guild_doc.config.activity_roles.max_roles]
-			if (member:=guild.get_member(int(i))) is not None
+			if (member:=guild.get_member(int(i))) is not None and
+			not {r.id for r in member.roles} & ignored_roles
 		}
 
 		changes = ActivityRoleChanges()

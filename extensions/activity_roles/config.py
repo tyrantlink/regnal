@@ -1,6 +1,7 @@
-from client.config.models import ConfigOption,ConfigSubcategory,OptionType,ConfigAttrs
+from client.config.models import ConfigOption,ConfigSubcategory,OptionType,ConfigAttrs,AdditionalView
 from client.config.errors import ConfigValidationError
 if not 'TYPE_HINT': from client import Client,Config
+from .views import ActivityRolesIgnoreView
 from discord import Member,Role
 
 
@@ -19,7 +20,14 @@ def register_config(config:'Config') -> None:
 		category = 'guild',
 		subcategory = ConfigSubcategory(
 			name = 'activity_roles',
-			description = 'activity role options'))
+			description = 'activity role options',
+			additional_views=[
+				AdditionalView(
+					required_permissions = 'activity_roles.ignore',
+					button_label = 'ignore roles',
+					button_row = 2,
+					button_id = 'ignore_roles',
+					view = ActivityRolesIgnoreView)]))
 
 	config.register_option(
 		category = 'guild',
