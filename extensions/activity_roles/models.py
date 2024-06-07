@@ -15,5 +15,4 @@ class ActivityRoleChanges:
 	def total_users(self) -> int:
 		return sum([
 			len(self.added),
-			len(self.removed),
 			len(self.unchanged)])
