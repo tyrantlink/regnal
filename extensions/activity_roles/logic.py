@@ -44,16 +44,14 @@ class ExtensionActivityRolesLogic(ExtensionActivityRolesSubCog):
 					totals[user_id] = 0
 				totals[user_id] += message_count
 
-		users = {
-			member
-			for i in
-				sorted(totals.keys(),
-				key=lambda x: totals[x],
-				reverse=True
-			)[:guild_doc.config.activity_roles.max_roles]
-			if (member:=guild.get_member(int(i))) is not None and
-			not {r.id for r in member.roles} & ignored_roles
-		}
+		users = set()
+		for member_id in sorted(totals.keys(),key=lambda x: totals[x],reverse=True):
+			member = guild.get_member(int(member_id))
+			if member is None or {r.id for r in member.roles} & ignored_roles:
+				continue
+			users.add(member)
+			if len(users) >= guild_doc.config.activity_roles.max_roles:
+				break
 
 		changes = ActivityRoleChanges()
 
