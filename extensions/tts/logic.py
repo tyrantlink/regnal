@@ -83,6 +83,8 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 		message = sub(r'<a?:(\w+):\d+>',r'\g<1>',message)
 		# pronounce urls
 		message = sub(r'(?:^|\ )<?https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.>?',r'a \g<1> link',message)
+		# strip linked urls
+		message = sub(r'\[(.*)\]\(.*\)',r'\g<1>',message)
 		# replace timestamps
 		message = sub(r'<t:\d+(:[tTdDfFR])?>','a timestamp',message)
 		# replace users
