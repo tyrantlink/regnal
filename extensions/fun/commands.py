@@ -133,7 +133,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
 			Option(str,name='question',description='question to ask',max_length=512)])
 	async def slash_8ball(self,ctx:ApplicationContext,question:str) -> None:
 		answer = choice(await self.client.db.inf.eight_ball())
-		embed = Embed(title=question,description=f'**{answer}**',color=await self.client.helpers.embed_color(ctx))
+		embed = Embed(title=question,description=f'**{answer}**',color=await self.client.helpers.embed_color(ctx.guild_id))
 		embed.set_author(name=f'{self.client.user.name}\'s eighth ball',icon_url='https://regn.al/8ball.png')
 		await ctx.response.send_message(embed=embed,ephemeral=await self.client.helpers.ephemeral(ctx))
 
