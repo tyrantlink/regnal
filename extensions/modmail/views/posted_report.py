@@ -62,6 +62,16 @@ class ModMailPostedReportView(View):
 				modmail.send_all = False
 		await modmail.save_changes()
 		await interaction.response.edit_message(view=self)
+		log_embed = Embed(
+			title = 'message sending changed!',
+			description = (
+				'all messages will be sent to the user'
+				if modmail.send_all else
+				f'only messages that ping {self.client.user.mention} (including replies) will be sent to the user'
+			),
+			color = await self.client.helpers.embed_color(interaction.guild.id))
+		log_embed.set_author(name=interaction.user.name,icon_url=interaction.user.avatar.url)
+		await interaction.channel.send(embed=log_embed)
  
 	# @button(
 	# 	label = 'reopen',
