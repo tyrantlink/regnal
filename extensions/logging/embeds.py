@@ -6,11 +6,26 @@ from time import time
 class EditLogEmbed(Embed):
 	def __init__(self,after:Message,before:Message=None) -> None:
 		super().__init__()
+		time_diff = after.edited_at.timestamp(
+			)-(
+				(before.edited_at or before.created_at)
+				if before is not None else
+				after.created_at
+		).timestamp()
+
+		match time_diff:
+			case _ if time_diff < 1: diff_string = f'{time_diff*1000:.2f} milliseconds'
+			case _ if time_diff < 60: diff_string = f'{time_diff:.2f} seconds'
+			case _ if time_diff < 3600: diff_string = f'{time_diff/60:.2f} minutes'
+			case _ if time_diff < 86400: diff_string = f'{time_diff/3600:.2f} hours'
+			case _: diff_string = f'{time_diff/86400:.2f} days'
+
 		self.description = '\n'.join(
 			[
 				after.author.mention,
 				f'edited a [message](<{after.jump_url}>)',
-				f'in {after.channel.mention}'
+				f'in {after.channel.mention}',
+				f'after {diff_string}'
 			]
 		)
 		self.color = 0xffff69
