@@ -1,6 +1,7 @@
 from discord import Message,RawReactionActionEvent
 from .subcog import ExtensionMediaLinkFixerSubCog
 from discord.ext.commands import Cog
+from discord.errors import NotFound
 from regex import sub,findall
 from asyncio import sleep
 
@@ -30,7 +31,10 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 		self_message = await message.reply(fix_message,mention_author=False)
 
 		await sleep(5)
-		self_message = await self_message.channel.fetch_message(self_message.id)
+		try:
+			self_message = await self_message.channel.fetch_message(self_message.id)
+		except NotFound:
+			return
 		if self_message.embeds:
 			return
 
