@@ -2,6 +2,7 @@ from discord import Message,RawReactionActionEvent
 from .subcog import ExtensionMediaLinkFixerSubCog
 from discord.ext.commands import Cog
 from regex import sub,findall
+from asyncio import sleep
 
 
 class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
@@ -23,9 +24,18 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 					fix_message += f'{sub(fix.find,fix.replace,word)}\n'
 		
 		if clear_embeds:
+			await sleep(1)
 			await message.edit(suppress=True)
 
-		await message.reply(fix_message,mention_author=False)
+		self_message = await message.reply(fix_message,mention_author=False)
+
+		await sleep(5)
+		self_message = await self_message.channel.fetch_message(self_message.id)
+		if self_message.embeds:
+			return
+
+		await message.edit(suppress=False)
+		await self_message.delete()
 	
 	@Cog.listener()
 	async def on_raw_reaction_add(self,payload:RawReactionActionEvent) -> None:
@@ -46,5 +56,7 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 
 		if reference is None or reference.author.id == payload.user_id:
 			await message.delete()
+			if reference is not None:
+				await reference.edit(suppress=False)
 					
 					
