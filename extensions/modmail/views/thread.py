@@ -1,14 +1,12 @@
-from discord import Embed,Interaction,ButtonStyle,InputTextStyle,Guild,User,Member,SelectOption
-from .report_confirmation import ModMailConfirmationView
-from utils.pycord_classes import SubView,MasterView
-from discord.ui import button,Button,InputText,string_select,Select
-from utils.pycord_classes import CustomModal
-from utils.db.documents import ModMail
+from discord import Embed,Interaction,ButtonStyle,InputTextStyle,Guild,User,Member
 from utils.crapi.enums import GatewayRequestType as Req
-from utils.crapi.models import Request
-from time import time
-from ..utils import new_modmail_message
+from utils.pycord_classes import SubView,MasterView
 from .posted_report import ModMailPostedReportView
+from discord.ui import button,Button,InputText
+from utils.pycord_classes import CustomModal
+from ..utils import new_modmail_message
+from utils.crapi.models import Request
+from discord.errors import Forbidden
 
 
 class ModMailThreadView(SubView):
@@ -25,6 +23,11 @@ class ModMailThreadView(SubView):
 
 	async def reload(self,force_last_page:bool=False) -> None:
 		self.modmail = await self.client.db.modmail(self.modmail_id)
+		if self.guild is None:
+			try:
+				self.guild = self.client.get_guild(self.modmail.guild) or await self.client.fetch_guild(self.modmail.guild)
+			except Forbidden:
+				self.guild = None
 		self.add_items(self.back_button,self.button_refresh,self.button_previous,self.button_next,self.button_new_message,self.button_close)
 		self.pages = (len(self.modmail.messages)//5) - (0 if len(self.modmail.messages)%5 else 1)
 		if force_last_page:
