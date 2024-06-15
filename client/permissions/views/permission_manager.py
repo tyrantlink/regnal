@@ -60,6 +60,37 @@ class PermissionManagerView(SubView):
 				self.button_modify,
 				self.button_remove_all)
 
+	async def log(self,added:set|None=None,removed:set|None=None) -> None:
+		if not added and not removed: return
+		guild_doc = await self.client.db.guild(self.user.guild.id)
+		if (
+			guild_doc.config.logging.enabled and
+			guild_doc.config.logging.channel and
+			guild_doc.config.logging.log_commands
+		):
+			channel = self.user.guild.get_channel(int(guild_doc.config.logging.channel))
+			if channel is None:
+				return
+			embed = Embed(
+				title = 'permissions modified!',
+				color = 0xffff69)
+			embed.set_author(name=self.user.name,icon_url=self.user.avatar.url)
+			if added:
+				added = '\n'.join(added)
+				embed.add_field(
+					name = 'added permissions',
+					value = f"```\n{added}\n```",
+					inline = False)
+			if removed:
+				removed = '\n'.join(removed)
+				embed.add_field(
+					name = 'removed permissions',
+					value = f"```\n{removed}\n```",
+					inline = False)
+			if not embed.fields:
+				return
+			await channel.send(embed=embed)
+
 	@mentionable_select(
 		placeholder = 'select a user/role to manage',
 		row = 0,
@@ -104,9 +135,14 @@ class PermissionManagerView(SubView):
 					value = '\n'.join(guild_doc.data.permissions.get(self.value_id,[])))])
 
 		await interaction.response.send_modal(modal)
+		old_permissions = set(guild_doc.data.permissions.get(self.value_id,[]))
 		await modal.wait()
-		new_value = modal.children[0].value.split('\n') if modal.children[0].value else None
-		for permission in new_value or []:
+		new_value = [
+			permission.lower().strip()
+			for permission in
+			modal.children[0].value.split('\n')
+		] if modal.children[0].value else []
+		for permission in new_value:
 			if not self.client.permissions.matcher(permission[1:] if permission.startswith('!') else permission):
 				await self.client.helpers.send_error(interaction,
 					f'the given permission `{permission}` does not match any existing permissions')
@@ -134,6 +170,9 @@ class PermissionManagerView(SubView):
 			await GuildDoc.find_one({'_id':guild_doc.id}).update({'$set':{'data.permissions':guild_doc.data.permissions}})
 		await self.reload_embed(guild_doc)
 		await modal.interaction.response.edit_message(embed=self.embed,view=self)
+		await self.log(
+			added = set(new_value) - old_permissions,
+			removed = old_permissions - set(new_value))
 
 	@button(
 		label = 'remove all',
@@ -142,11 +181,12 @@ class PermissionManagerView(SubView):
 		custom_id = 'button_remove_all')
 	async def button_remove_all(self,button:Button,interaction:Interaction) -> None:
 		guild_doc = await self.client.db.guild(self.user.guild.id)
-		guild_doc.data.permissions.pop(self.value_id,None)
+		removed = guild_doc.data.permissions.pop(self.value_id,None)
 		#? guild_doc.save_changes() doesn't work when removing a key from a dict, so we have to use this instead
 		await GuildDoc.find_one({'_id':guild_doc.id}).update({'$set':{'data.permissions':guild_doc.data.permissions}})
 		await self.reload_embed(guild_doc)
 		await interaction.response.edit_message(embed=self.embed,view=self)
+		await self.log(removed = set(removed) if removed else None)
 
 	@button(
 		label = 'list permissions',
