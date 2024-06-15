@@ -131,7 +131,7 @@ class ModMailThreadView(SubView):
 
 		await new_modmail_message(
 			client = self.client,
-			modmail = self.modmail.id,
+			modmail_id = self.modmail.id,
 			author = self.user if not self.modmail.anonymous else None,
 			content = modal.children[0].value)
 
