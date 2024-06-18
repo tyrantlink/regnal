@@ -6,8 +6,10 @@ from time import time
 class EditLogEmbed(Embed):
 	def __init__(self,after:Message,before:Message=None) -> None:
 		super().__init__()
-		time_diff = after.edited_at.timestamp(
-			)-(
+		time_diff = (
+			after.edited_at or
+			datetime.now()
+			).timestamp()-(
 				(before.edited_at or before.created_at)
 				if before is not None else
 				after.created_at
