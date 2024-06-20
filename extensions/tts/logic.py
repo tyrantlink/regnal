@@ -11,11 +11,15 @@ from io import BytesIO
 
 
 class ExtensionTTSLogic(ExtensionTTSSubCog):
-	async def get_guild_or_join(self,guild:Guild,channel:VoiceChannel) -> GuildTTS:
-		if guild.id not in self._guilds:
+	async def get_guild_or_join(self,guild:Guild,channel:VoiceChannel) -> GuildTTS|None:
+		if (profile:=self._guilds.get(guild.id,None)) is None:
 			await self.disconnect(guild)
 			await self.join_channel(channel)
-		return self._guilds[guild.id]
+			profile = self._guilds.get(guild.id,None)
+			if profile is None:
+				await self.disconnect(guild)
+				return None
+		return profile
 
 	async def reload_voices(self) -> None:
 		self.voices = [ #? this is super incredibly easy to read god i hate it google why

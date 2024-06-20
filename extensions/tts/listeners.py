@@ -79,6 +79,8 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 			await self.client.db.inf.text_correction()
 		profile = await self.get_user_profile(message.author)
 		guild_data = await self.get_guild_or_join(message.guild,message.author.voice.channel)
+		if guild_data is None:
+			return
 		if guild_data.last_name != profile.name:
 			text = f'{profile.name} said: {text}'
 			self._guilds[message.guild.id].last_name = profile.name
