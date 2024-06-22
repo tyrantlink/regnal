@@ -46,6 +46,8 @@ class ExtensionAutoResponsesListeners(ExtensionAutoResponsesSubCog):
 		# ignore unknown users
 		user = await self.client.db.user(message.author.id)
 		if user is None: return
+		# ignore users with auto responses disabled
+		if not user.config.general.auto_responses: return
 		# ignore AU_BANNED users
 		if user.data.flags & UserFlags.AUTO_RESPONSE_BANNED: return
 		# ignore empty messages
