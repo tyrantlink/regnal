@@ -28,14 +28,15 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
 		if au is None: return
 		# handle cooldown
 		channel = message.channel.parent if isinstance(message.channel,Thread) else message.channel
-		if not args.force or guild.config.auto_responses.cooldown_mode != AUCooldownMode.none:
-			match guild.config.auto_responses.cooldown_mode:
-				case AUCooldownMode.user if message.author.id not in self._cooldowns: pass
-				case AUCooldownMode.channel if channel.id not in self._cooldowns: pass
-				case AUCooldownMode.guild if message.guild.id not in self._cooldowns: pass
-				case _:
-					create_task(self.client.helpers.notify_reaction(message,'❄️'))
-					return
+		if not args.force:
+			if guild.config.auto_responses.cooldown_mode != AUCooldownMode.none:
+				match guild.config.auto_responses.cooldown_mode:
+					case AUCooldownMode.user if message.author.id not in self._cooldowns: pass
+					case AUCooldownMode.channel if channel.id not in self._cooldowns: pass
+					case AUCooldownMode.guild if message.guild.id not in self._cooldowns: pass
+					case _:
+						create_task(self.client.helpers.notify_reaction(message,'❄️'))
+						return
 		# format response based on type
 		followups = au.data.followups
 		match au.type:
