@@ -4,6 +4,8 @@ from regex import findall
 
 
 fixers = [
+	MediaFixer(r'(twitter|x)\.com','fxtwitter.com'),
+	MediaFixer(r'instagram\.com','ddinstagram.com',wait_time=7),
 	MediaFixer(r'tiktok\.com','tiktokez.com')
 ]
 

@@ -30,7 +30,8 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 
 		self_message = await message.reply(fix_message,mention_author=False)
 
-		await sleep(5)
+		await sleep(max((fix.wait_time for fix in fixes)))
+
 		try:
 			self_message = await self_message.channel.fetch_message(self_message.id)
 		except NotFound:

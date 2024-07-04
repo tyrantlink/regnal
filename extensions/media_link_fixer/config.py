@@ -17,5 +17,8 @@ def register_config(config:'Config') -> None:
 			default = False,
 			short_description = 'replace media links',
 			description= '''replaces media links with urls that have better discord embed support
-											currently only tiktok links are supported
+											currently websites:
+											- twitter (through fxtwitter)
+											- instagram (through ddinstagram)
+											- tiktok (through tiktokez)
 									 '''.replace('\t','')[:-2]))
