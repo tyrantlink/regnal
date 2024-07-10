@@ -1,4 +1,5 @@
 from utils.crapi.enums import GatewayOpCode as Op,GatewayRequestType as Req
+from discord.errors import InvalidData,Forbidden,NotFound,HTTPException
 from utils.crapi.models import BaseGatewayMessage,Request,Ack,Response
 if not 'TYPE_HINT': from client import Client
 
@@ -28,10 +29,17 @@ class RequestHandler:
 		await channel.send(message.data['content'])
 
 	async def _handle_send_message_user(self,message:Request) -> None:
-		user = self.client.get_user(int(message.data['user']))
+		try:
+			user = (
+				self.client.get_user(int(message.data['user'])) or
+				await self.client.fetch_user(int(message.data['user'])))
+		except (NotFound,HTTPException):
+			user = None
 		if user is None:
 			await self.gateway_send(Response(data={'success':False,'error':'user not found'}))
 			return
+		if not user.can_send():
+			await self.gateway_send(Response(data={'success':False,'error':'cannot send message to user'}))
 		await user.send(message.data['content'])
 
 	async def _handle_send_message(self,message:Request) -> None:
