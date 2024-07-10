@@ -16,7 +16,12 @@ class RequestHandler:
 		await self.gateway_send(Response(data={'success':True}))
 
 	async def _handle_send_message_channel(self,message:Request) -> None:
-		channel = self.client.get_channel(int(message.data['channel']))
+		try:
+			channel = (
+				self.client.get_channel(int(message.data['channel'])) or
+				await self.client.fetch_channel(int(message.data['channel'])))
+		except (InvalidData,Forbidden,NotFound,HTTPException):
+			channel = None
 		if channel is None:
 			await self.gateway_send(Response(data={'success':False,'error':'channel not found'}))
 			return
