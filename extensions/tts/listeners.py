@@ -60,8 +60,9 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
 		text = message.content
 		if text:
 			if (
-				user_doc.config.tts.mode == TTSMode.only_when_muted
-				and message.content.startswith('+')
+				user_doc.config.tts.mode == TTSMode.only_when_muted and
+				message.author.voice.self_mute and
+				message.content.startswith('+')
 			):
 				text = text.removeprefix('+')
 
