@@ -218,11 +218,12 @@ class AutoResponses:
 		else:
 			return None
 		# insert regex groups
-		formatted_response = self.insert_regex_groups(response,args.message)
-		if formatted_response is None:
-			create_task(self.client.helpers.notify_reaction(message,delay=2))
-			return None
-		response = response.with_overrides({'response':formatted_response})
+		if search(r'\{g\d+\}',response.response):
+			formatted_response = self.insert_regex_groups(response,args.message)
+			if formatted_response is None:
+				create_task(self.client.helpers.notify_reaction(message,delay=2))
+				return None
+			response = response.with_overrides({'response':formatted_response})
 		
 
 		return response
