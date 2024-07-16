@@ -135,6 +135,16 @@ class AutoResponses:
 			if rand <= cum: return choice
 		raise ValueError(f'random choice failed with {rand=}, {cum=}, {sum(weights)=}')
 
+	def insert_regex_groups(self,response:AutoResponse,message:str) -> str:
+		if response.data.regex and (match:=search(response.trigger,message,IGNORECASE)):
+			groups = {f'g{i}':'' for i in range(1,11)}
+			groups.update({f'g{k}':v for k,v in enumerate(match.groups()[:10],1) if v is not None})
+			try: formatted_response = response.response.format(**groups)
+			except KeyError: return None
+			if formatted_response == response.response:
+				return None
+			return formatted_response
+
 	async def get_response(self,
 		message:Message,
 		args:ArgParser,
@@ -162,6 +172,11 @@ class AutoResponses:
 					)
 				)
 			):
+					formatted_response = self.insert_regex_groups(response,args.message)
+					if formatted_response is None:
+						create_task(self.client.helpers.notify_reaction(message,delay=2))
+						return None
+					response = response.with_overrides({'response':formatted_response})
 					return response
 			create_task(self.client.helpers.notify_reaction(message))
 
@@ -203,15 +218,12 @@ class AutoResponses:
 		else:
 			return None
 		# insert regex groups
-		if response.data.regex and (match:=search(response.trigger,args.message,IGNORECASE)):
-			groups = {f'g{i}':'' for i in range(1,11)}
-			groups.update({f'g{k}':v for k,v in enumerate(match.groups()[:10],1) if v is not None})
-			try: formatted_response = response.response.format(**groups)
-			except KeyError: return None
-			if formatted_response == response.response:
-				create_task(self.client.helpers.notify_reaction(message,delay=2))
-				return None
-			response = response.with_overrides({'response':formatted_response})
+		formatted_response = self.insert_regex_groups(response,args.message)
+		if formatted_response is None:
+			create_task(self.client.helpers.notify_reaction(message,delay=2))
+			return None
+		response = response.with_overrides({'response':formatted_response})
+		
 
 		return response
 
