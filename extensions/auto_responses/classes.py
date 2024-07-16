@@ -206,8 +206,12 @@ class AutoResponses:
 		if response.data.regex and (match:=search(response.trigger,args.message,IGNORECASE)):
 			groups = {f'g{i}':'' for i in range(1,11)}
 			groups.update({f'g{k}':v for k,v in enumerate(match.groups()[:10],1) if v is not None})
-			try: response = response.with_overrides({'response':response.response.format(**groups)})
+			try: formatted_response = response.response.format(**groups)
 			except KeyError: return None
+			if formatted_response == response.response:
+				create_task(self.client.helpers.notify_reaction(message,delay=2))
+				return None
+			response = response.with_overrides({'response':formatted_response})
 
 		return response
 
