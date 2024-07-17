@@ -22,14 +22,18 @@ class AutoResponseBrowserView(View):
 
 	async def __ainit__(self) -> None:
 		user_doc = await self.client.db.user(self.user.id)
-		self.au_found_dict = {
-			'base': self._au_sort([a for a in user_doc.data.auto_responses.found if a[0] == 'b']),
-			'custom': self._au_sort([a for a in user_doc.data.auto_responses.found if a[0] == 'c']),
-			'unique': self._au_sort([a for a in user_doc.data.auto_responses.found if a[0] == 'u']),
-			'mention': self._au_sort([a for a in user_doc.data.auto_responses.found if a[0] == 'm']),
-			'personal': self._au_sort([a for a in user_doc.data.auto_responses.found if a[0] == 'p']),
-			'script': self._au_sort([a for a in user_doc.data.auto_responses.found if a[0] == 's'])
-		}
+		self.au_found_dict = {k:[] for k in ['base','custom','unique','mention','personal','script']}
+		for a in user_doc.data.auto_responses.found:
+			match a[0]:
+				case 'b': self.au_found_dict['base'].append(a)
+				case 'c': self.au_found_dict['custom'].append(a)
+				case 'u': self.au_found_dict['unique'].append(a)
+				case 'm': self.au_found_dict['mention'].append(a)
+				case 'p': self.au_found_dict['personal'].append(a)
+				case 's': self.au_found_dict['script'].append(a)
+		for k,v in self.au_found_dict.items():
+			self.au_found_dict[k] = self._au_sort(v)
+
 		self.au_found = [au for category in self.au_found_dict.values() for au in category]
 
 		# remove any auto responses that have been deleted
