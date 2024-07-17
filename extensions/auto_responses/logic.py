@@ -86,4 +86,10 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
 		for followup in followups:
 			async with message.channel.typing():
 				await sleep(followup.delay)
-				await message.channel.send(followup.response)
+				msg = await message.channel.send(followup.response)
+				await self.client.db.new.log(
+						id=msg.id,
+						data={
+							'au':au.id,
+							'triggerer':message.author.id}
+					).save()
