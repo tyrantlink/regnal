@@ -11,7 +11,9 @@ class ExtensionAutoResponsesCommands(ExtensionAutoResponsesSubCog):
 	async def slash_auto_responses(self,ctx:ApplicationContext) -> None:
 		view = AutoResponseBrowserView(self.client,ctx.author)
 		await view.__ainit__()
-		await ctx.response.send_message(embed=view.embed,view=view,ephemeral=True)
+		msg = await ctx.response.send_message(embed=view.embed,ephemeral=True)
+		await msg.edit(view=view)  #? i have no clue why i have to do this, but
+		#? if i don't, then it'll share the view with other users
 
 	@message_command(
 		name='au info',
