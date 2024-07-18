@@ -189,7 +189,7 @@ class PermissionManagerView(SubView):
 		await self.log(removed = set(removed) if removed else None)
 
 	@button(
-		label = 'list permissions',
+		label = 'permission list and tutorial',
 		row = 3,
 		style = ButtonStyle.grey,
 		custom_id = 'button_list_permissions')
