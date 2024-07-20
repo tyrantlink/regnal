@@ -119,7 +119,7 @@ class ModMailThreadView(SubView):
 					label = 'message',
 					style = InputTextStyle.long,
 					min_length = 1,
-					max_length = 4000,
+					max_length = 2000,
 					custom_id = 'message')])
 
 		await interaction.response.send_modal(modal)
