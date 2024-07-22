@@ -33,9 +33,8 @@ def register_config(config: 'Config') -> None:
             default=False,
             short_description='disable media link replacement',
             description='''
-                if enabled, media links will not be replaced with their respective embed friendly urls
-                only effective if the server has media link replacement enabled
                 media link replacement is a feature that replaces social media links with urls that have better discord embed support
-                (e.g. twitter, instagram, tiktok, pixiv -> fxtwitter, ddinstagram, tnktok, phixiv)
+                - if enabled, media links will not be replaced with their respective embed friendly urls
+                - only effective if the server has media link replacement enabled
             '''.replace('    ', '').strip())
     )
