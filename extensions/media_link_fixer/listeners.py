@@ -22,6 +22,8 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 		for fix in fixes:
 			for word in message.content.split():
 				if word.startswith('http') and findall(fix.find,word):
+					if fix.remove_params:
+						word = word.split('?')[0]
 					fix_message += f'{sub(fix.find,fix.replace,word)}\n'
 		
 		if clear_embeds:
