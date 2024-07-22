@@ -66,9 +66,6 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 
     @Cog.listener()
     async def on_raw_message_delete(self, payload: RawMessageDeleteEvent) -> None:
-        if payload.message_id in self.false_logs:
-            self.false_logs.discard(payload.message_id)
-            return
         guild = self.client.get_guild(payload.guild_id)
 
         if guild is None:
