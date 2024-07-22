@@ -8,3 +8,4 @@ venv
 !subcog.py
 regnalrb/target
 doc_build
+dev_utils/new_auto_responses
