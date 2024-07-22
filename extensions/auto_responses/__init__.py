@@ -7,18 +7,22 @@ from client import Client
 from discord import Cog
 
 
-class ExtensionAutoResponses(Cog,
-	ExtensionAutoResponsesLogic,
-	ExtensionAutoResponsesListeners,
-	ExtensionAutoResponsesCommands
+class ExtensionAutoResponses(
+    Cog,
+    ExtensionAutoResponsesLogic,
+    ExtensionAutoResponsesListeners,
+    ExtensionAutoResponsesCommands
 ):
-	def __init__(self,client:Client) -> None:
-		self.client = client
-		self.client.au = AutoResponses(client)
-		self._cooldowns = set()
+    def __init__(self, client: Client) -> None:
+        self.client = client
+        self.client.au = AutoResponses(client)
+        self._cooldowns = set()
 
-def setup(client:Client) -> None:
-	client.permissions.register_permission('auto_responses.custom')
-	client.permissions.register_permission('auto_responses.override')
-	register_config(client.config)
-	client.add_cog(ExtensionAutoResponses(client))
+
+def setup(client: Client) -> None:
+    client.permissions.register_permission('auto_responses.custom')
+    client.permissions.register_permission('auto_responses.override')
+
+    register_config(client.config)
+
+    client.add_cog(ExtensionAutoResponses(client))

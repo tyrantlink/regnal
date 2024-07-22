@@ -3,5 +3,5 @@ from client import Client
 
 
 class ExtensionModMailSubCog(SubCog):
-	def __init__(self) -> None:
-		self.client:Client
+    def __init__(self) -> None:
+        self.client: Client

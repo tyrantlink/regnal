@@ -5,10 +5,12 @@ from client import Client
 
 
 class ExtensionAutoResponsesSubCog(SubCog):
-	def __init__(self) -> None:
-		self.client:Client
-		self._cooldowns:set
-		super().__init__()
+    def __init__(self) -> None:
+        self.client: Client
+        self._cooldowns: set
+        super().__init__()
 
-	async def cooldown(self,id:int,time:int) -> None: ...
-	async def auto_response_handler(self,message:Message,args:ArgParser) -> None: ...
+    async def cooldown(self, id: int, time: int) -> None: ...
+
+    async def auto_response_handler(
+        self, message: Message, args: ArgParser) -> None: ...

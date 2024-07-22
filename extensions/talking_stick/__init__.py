@@ -8,18 +8,19 @@ from discord import Guild
 from client import Client
 
 
-class ExtensionTalkingStick(Cog,
-	ExtensionTalkingStickLogic,
-	ExtensionTalkingStickListeners,
-	ExtensionTalkingStickTasks	
+class ExtensionTalkingStick(
+    Cog,
+    ExtensionTalkingStickLogic,
+    ExtensionTalkingStickListeners,
+    ExtensionTalkingStickTasks
 ):
-	def __init__(self,client:Client) -> None:
-		self.client = client
-		self.recently_rolled = set()
-		self._guilds:tuple[int,list[tuple[Guild,GuildDocument]]] = (0,[])
-		self._rescan = False
+    def __init__(self, client: Client) -> None:
+        self.client = client
+        self.recently_rolled = set()
+        self._guilds: tuple[int, list[tuple[Guild, GuildDocument]]] = (0, [])
+        self._rescan = False
 
 
-def setup(client:Client) -> None:
-	client.add_cog(ExtensionTalkingStick(client))
-	register_config(client.config)
+def setup(client: Client) -> None:
+    client.add_cog(ExtensionTalkingStick(client))
+    register_config(client.config)

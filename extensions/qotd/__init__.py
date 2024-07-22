@@ -11,22 +11,24 @@ from discord import Guild
 from client import Client
 
 
-class ExtensionQOTD(Cog,
-	ExtensionQOTDLogic,
-	ExtensionQOTDListeners,
-	ExtensionQOTDTasks,
-	ExtensionQOTDCommands
+class ExtensionQOTD(
+    Cog,
+    ExtensionQOTDLogic,
+    ExtensionQOTDListeners,
+    ExtensionQOTDTasks,
+    ExtensionQOTDCommands
 ):
-	def __init__(self,client:Client) -> None:
-		self.client = client
-		self.recently_asked = set()
-		self.packs:dict[str,QOTDPack] = {}
-		self._guilds:tuple[int,list[tuple[Guild,GuildDocument]]] = (0,set())
-		self._rescan = False
-		self.client.add_view(QOTDAskLog(self.client))
+    def __init__(self, client: Client) -> None:
+        self.client = client
+        self.recently_asked = set()
+        self.packs: dict[str, QOTDPack] = {}
+        self._guilds: tuple[int,
+                            list[tuple[Guild, GuildDocument]]] = (0, set())
+        self._rescan = False
+        self.client.add_view(QOTDAskLog(self.client))
 
 
-def setup(client:Client) -> None:
-	client.permissions.register_permission('qotd.remove_custom')
-	client.add_cog(ExtensionQOTD(client))
-	register_config(client.config)
+def setup(client: Client) -> None:
+    client.permissions.register_permission('qotd.remove_custom')
+    client.add_cog(ExtensionQOTD(client))
+    register_config(client.config)
