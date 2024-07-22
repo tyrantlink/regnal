@@ -19,6 +19,7 @@ class ExtensionLogging(
         self.client.add_view(DeletedLogView(self.client))
         self.client.add_view(BulkDeletedLogView(self.client))
         self.cached_counts = {}
+        self.false_logs = set()
 
 
 def setup(client: Client) -> None:

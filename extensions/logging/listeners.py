@@ -1,5 +1,5 @@
 from .embeds import EditLogEmbed, DeleteLogEmbedFromMessage, DeleteLogEmbedFromID, MemberJoinLogEmbed, MemberLeaveLogEmbed, MemberBanLogEmbed, MemberUnbanLogEmbed
-from discord import RawMessageUpdateEvent, RawMessageDeleteEvent, RawBulkMessageDeleteEvent, Embed, Member, User, Guild
+from discord import RawMessageUpdateEvent, RawMessageDeleteEvent, RawBulkMessageDeleteEvent, Embed, Member, User, Guild, Message
 from .views import EditedLogView, DeletedLogView, BulkDeletedLogView
 from .subcog import ExtensionLoggingSubCog
 from discord.ext.commands import Cog
@@ -66,6 +66,9 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
 
     @Cog.listener()
     async def on_raw_message_delete(self, payload: RawMessageDeleteEvent) -> None:
+        if payload.message_id in self.false_logs:
+            self.false_logs.discard(payload.message_id)
+            return
         guild = self.client.get_guild(payload.guild_id)
 
         if guild is None:
@@ -232,3 +235,13 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
                 member,
                 await self.find_ban_entry(guild, member.id, True))
         )
+
+    @Cog.listener()
+    async def on_message(self, message: Message) -> None:
+        if not (
+            message.author.id == self.client.user.id and
+            message.content == ''
+        ):
+            return
+
+        self.false_logs.add(message.id)

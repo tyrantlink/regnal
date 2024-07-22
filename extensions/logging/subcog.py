@@ -7,6 +7,7 @@ class ExtensionLoggingSubCog(SubCog):
     def __init__(self) -> None:
         self.client: Client
         self.cached_counts: dict
+        self.false_logs: set
         super().__init__()
 
     async def get_logging_channel(
