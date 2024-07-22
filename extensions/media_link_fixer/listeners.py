@@ -11,8 +11,8 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 	async def on_message(self,message:Message) -> None:
 		if message.guild is None: return
 		if message.author.bot: return
-
 		if message.flags.suppress_embeds: return
+		if not message.channel.can_send(): return
 
 		guild_doc = await self.client.db.guild(message.guild.id)
 		if not guild_doc.config.general.replace_media_links: return
