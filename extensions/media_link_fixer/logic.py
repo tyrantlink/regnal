@@ -6,7 +6,7 @@ from regex import findall
 fixers = [
 	MediaFixer(r'(twitter|x)\.com','fxtwitter.com'),
 	MediaFixer(r'instagram\.com','ddinstagram.com',wait_time=7),
-	MediaFixer(r'tiktok\.com','tiktokez.com')
+	MediaFixer(r'tiktok\.com','tnktok.com',wait_time=10)
 ]
 
 class ExtensionMediaLinkFixerLogic(ExtensionMediaLinkFixerSubCog):

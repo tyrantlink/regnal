@@ -20,5 +20,5 @@ def register_config(config:'Config') -> None:
 											currently websites:
 											- twitter (through fxtwitter)
 											- instagram (through ddinstagram)
-											- tiktok (through tiktokez)
+											- tiktok (through tnktok)
 									 '''.replace('\t','')[:-2]))
