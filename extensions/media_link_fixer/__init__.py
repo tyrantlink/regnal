@@ -11,6 +11,7 @@ class ExtensionMediaLinkFixer(Cog,
 ):
 	def __init__(self,client:Client) -> None:
 		self.client = client
+		self.embed_cache = {}
 
 def setup(client:Client) -> None:
 	register_config(client.config)
