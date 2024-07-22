@@ -45,7 +45,7 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 
 		await message.edit(suppress=False)
 		await self_message.delete()
-	
+
 	@Cog.listener()
 	async def on_raw_reaction_add(self,payload:RawReactionActionEvent) -> None:
 		if (
@@ -68,4 +68,13 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 			if reference is not None:
 				await reference.edit(suppress=False)
 					
-					
+	@Cog.listener()
+	async def on_message_delete(self,message:Message) -> None:
+		if message.guild is None: return
+		if message.author.id != self.client.user.id: return
+		if not message.content.startswith('links converted to embed friendly urls:'): return
+
+		reference = message.reference.resolved or await message.channel.fetch_message(message.reference.message_id)
+		if reference is None: return
+
+		await reference.edit(suppress=False)
