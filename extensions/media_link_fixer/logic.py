@@ -14,7 +14,7 @@ class ExtensionMediaLinkFixerLogic(ExtensionMediaLinkFixerSubCog):
 		fixes = []
 		for fix in fixers:
 			if fix.only_if_includes and fix.only_if_includes not in content: continue
-			if findall(f'https:\/\/(.*\.)?{fix.find}',content):
+			if findall(f'(?<!<)https:\/\/(.*\.)?{fix.find}',content):
 				fixes.append(fix)
 		return fixes
 			
