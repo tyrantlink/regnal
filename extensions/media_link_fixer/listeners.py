@@ -26,6 +26,11 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
         if not guild_doc.config.general.replace_media_links:
             return
 
+        user_doc = await self.client.db.user(message.author.id)
+
+        if user_doc.config.general.disable_media_link_replacement:
+            return
+
         fixes = self.find_fixes(message.content)
         if not fixes:
             return
