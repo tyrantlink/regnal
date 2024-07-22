@@ -66,7 +66,7 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 
 		reference = message.reference.resolved or await message.channel.fetch_message(message.reference.message_id)
 		if reference is None: return
-		reactor = message.guild.get_member(payload.user_id)
+		reactor = message.guild.get_member(payload.user_id) or await message.guild.fetch_member(payload.user_id)
 
 		if (
 			reference.author.id == payload.user_id or
