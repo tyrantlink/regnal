@@ -28,7 +28,10 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 
         user_doc = await self.client.db.user(message.author.id)
 
-        if user_doc.config.general.disable_media_link_replacement:
+        if (
+            user_doc is not None and
+            user_doc.config.general.disable_media_link_replacement
+        ):
             return
 
         fixes = self.find_fixes(message.content)
