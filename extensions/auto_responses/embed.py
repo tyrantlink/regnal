@@ -97,6 +97,7 @@ async def _extra_embed(
             case 'p': au_data_type = f'personal (<@{auto_response.data.user}>)'
             case 's': au_data_type = f'[script](<https://github.com/tyrantlink/auto_response_dev>)'
             case  _: au_data_type = 'unknown'
+
     embed.add_field(
         name='data type', inline=False,
         value=au_data_type
