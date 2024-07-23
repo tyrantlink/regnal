@@ -1,8 +1,11 @@
+from au_scripts.auto_responses.lib.models import Message as AUMessage, Channel as AUChannel, Guild as AUGuild, User as AUUser
 from utils.db.documents.ext.enums import AutoResponseMethod, AutoResponseType
+from asyncio import create_task, get_event_loop, wait_for, TimeoutError
+from au_scripts.auto_responses import SCRIPTED_AUTO_RESPONSES
 from regex import search, fullmatch, escape, IGNORECASE
 from argparse import ArgumentParser, ArgumentError
+from concurrent.futures import ThreadPoolExecutor
 from utils.db import AutoResponse
-from asyncio import create_task
 from discord import Message
 from typing import TypeVar
 from random import random
@@ -97,6 +100,7 @@ class AutoResponses:
         self.au = AutoResponseCarrier(
             await AutoResponse.find(ignore_cache=not use_cache).to_list()
         )
+        SCRIPTED_AUTO_RESPONSES.cache.clear()
 
     async def delete(self, au_id: str) -> None:
         au = self.get(au_id)
@@ -401,8 +405,62 @@ class AutoResponses:
 
         return response
 
-    async def execute_au(self, id: str, message: Message) -> tuple[str, AutoResponse.AutoResponseData.AutoResponseFollowup]:
-        # ! implement this with python or something dumbass
-        raise NotImplementedError(
-            'scripted auto responses are not supported yet!')
+    async def execute_au(
+        self,
+        au: AutoResponse,
+        message: Message
+    ) -> str | tuple[str, list[AutoResponse.AutoResponseData.AutoResponseFollowup]] | None:
+        script = SCRIPTED_AUTO_RESPONSES.get(au.response)
+
+        if script is None:
+            return None
+
+        message.author.nick
+
+        au_message = AUMessage(
+            id=message.id,
+            author=AUUser(
+                name=message.author.name,
+                id=message.author.id,
+                created_at=message.author.created_at,
+                nickname=message.author.nick),
+            channel=AUChannel(
+                name=message.channel.name,
+                id=message.channel.id,
+                nsfw=message.channel.is_nsfw()),
+            guild=AUGuild(
+                name=message.guild.name,
+                id=message.guild.id,
+                me=AUUser(
+                    name=message.guild.me.name,
+                    id=message.guild.me.id,
+                    created_at=message.guild.me.created_at,
+                    nickname=message.guild.me.nick)),
+            content=message.content
+        )
+
+        with ThreadPoolExecutor() as executor:
+            future = get_event_loop().run_in_executor(
+                executor,
+                script,
+                au_message
+            )
+
+            try:
+                script_response = await wait_for(future, timeout=5)
+            except TimeoutError:
+                executor.shutdown(wait=False, cancel_futures=True)
+                return None
+
+        if isinstance(script_response, str):
+            return script_response
+
+        response, followups = script_response
+        followups = [
+            AutoResponse.AutoResponseData.AutoResponseFollowup(
+                delay=d,
+                response=r)
+            for d, r in followups
+        ]
+
         return response, followups

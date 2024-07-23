@@ -4,3 +4,6 @@
 [submodule "bots"]
 	path = bots
 	url = https://github.com/tyrantlink/regnal-bots
+[submodule "au_scripts"]
+	path = au_scripts
+	url = https://github.com/tyrantlink/auto_response_dev

@@ -5,6 +5,7 @@ from .subcog import ExtensionAutoResponsesSubCog
 from asyncio import create_task, sleep
 from discord import Message, Thread
 from .classes import ArgParser
+from time import perf_counter
 
 
 class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
@@ -67,7 +68,17 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
             case AutoResponseType.file:
                 response = await self.client.api.au.create_masked_url(au.id)
             case AutoResponseType.script:
-                response, followups = await self.client.au.execute_au(au.id, message)
+                st = perf_counter()
+                script_response = await self.client.au.execute_au(au, message)
+                et = perf_counter()
+
+                if script_response is None:
+                    return
+
+                if isinstance(script_response, tuple):
+                    response, followups = script_response
+                else:
+                    response = script_response
             case _:
                 return
 
@@ -102,8 +113,14 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
         clean_au.statistics.trigger_count += 1
         await clean_au.save_changes()
 
+        time_taken = (
+            f' (execution time: {(et-st)*1000:.2f}ms)'
+            if au.type == AutoResponseType.script
+            else ''
+        )
+
         self.client.log.info(
-            f'auto response {au.id} triggered by {message.author.name} in {message.guild.name}',
+            f'auto response {au.id} triggered by {message.author.name} in {message.guild.name}{time_taken}',
             guild_id=message.guild.id,
             metadata={
                 'au_id': au.id,
