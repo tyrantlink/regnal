@@ -43,11 +43,11 @@ class EditLogEmbed(Embed):
         )
 
         self.add_field(
-            name=f'ORIGINAL <t:{int((after.edited_at or after.created_at).timestamp())}:t>',
+            name=f'ORIGINAL <t:{int((before.edited_at or after.created_at).timestamp())}:t>',
             inline=False,
             value=(
-                after.content
-                if len(after.content) <= 1024 else
+                before.content
+                if len(before.content) <= 1024 else
                 '`message content too long, provided in additional embed`'
             ) or '`no content`'
             if before is not None else
