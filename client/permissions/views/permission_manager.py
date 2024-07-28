@@ -89,6 +89,7 @@ class PermissionManagerView(SubView):
 
             embed = Embed(
                 title='permissions modified!',
+                description=f'{self.selected_value.mention}',
                 color=0xffff69)
 
             embed.set_author(
