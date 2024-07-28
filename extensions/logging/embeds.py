@@ -43,7 +43,7 @@ class EditLogEmbed(Embed):
         )
 
         self.add_field(
-            name=f'ORIGINAL <t:{int((before.edited_at or after.created_at).timestamp())}:t>',
+            name=f'ORIGINAL <t:{int((before.edited_at if before is not None else after.created_at).timestamp())}:t>',
             inline=False,
             value=(
                 before.content
