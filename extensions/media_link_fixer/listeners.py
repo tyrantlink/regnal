@@ -1,7 +1,7 @@
+from discord.errors import NotFound, Forbidden, HTTPException
 from discord import Message, RawReactionActionEvent
 from .subcog import ExtensionMediaLinkFixerSubCog
 from discord.ext.commands import Cog
-from discord.errors import NotFound
 from regex import sub, findall
 from asyncio import sleep
 
@@ -135,6 +135,11 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
                 pass
 
         if message.id in self.embed_cache:
-            self_message = await message.channel.fetch_message(self.embed_cache[message.id])
+            try:
+                self_message = await message.channel.fetch_message(
+                    self.embed_cache[message.id]
+                )
+            except (NotFound, Forbidden, HTTPException):
+                return
             await self_message.delete()
             del self.embed_cache[message.id]
