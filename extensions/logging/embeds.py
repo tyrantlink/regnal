@@ -42,8 +42,19 @@ class EditLogEmbed(Embed):
             icon_url=after.author.display_avatar.url
         )
 
+        og_timestamp = int(
+            (
+                (
+                    before.edited_at or before.created_at
+                )
+                if before is not None
+                else
+                after.created_at
+            ).timestamp()
+        )
+
         self.add_field(
-            name=f'ORIGINAL <t:{int((before.edited_at if before is not None else after.created_at).timestamp())}:t>',
+            name=f'ORIGINAL <t:{og_timestamp}:t>',
             inline=False,
             value=(
                 before.content
