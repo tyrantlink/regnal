@@ -69,7 +69,7 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
                 response = await self.client.api.au.create_masked_url(au.id)
             case AutoResponseType.script:
                 st = perf_counter()
-                script_response = await self.client.au.execute_au(au, message)
+                script_response = await self.client.au.execute_au(au, message, args)
                 et = perf_counter()
 
                 if script_response is None:

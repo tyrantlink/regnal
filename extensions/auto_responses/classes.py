@@ -408,14 +408,13 @@ class AutoResponses:
     async def execute_au(
         self,
         au: AutoResponse,
-        message: Message
+        message: Message,
+        args: ArgParser
     ) -> str | tuple[str, list[AutoResponse.AutoResponseData.AutoResponseFollowup]] | None:
         script = SCRIPTED_AUTO_RESPONSES.get(au.response)
 
         if script is None:
             return None
-
-        message.author.nick
 
         au_message = AUMessage(
             id=message.id,
@@ -436,7 +435,7 @@ class AutoResponses:
                     id=message.guild.me.id,
                     created_at=message.guild.me.created_at,
                     nickname=message.guild.me.nick)),
-            content=message.content
+            content=args.message
         )
 
         with ThreadPoolExecutor() as executor:
