@@ -1,9 +1,9 @@
 from discord.errors import NotFound, Forbidden, HTTPException
 from discord import Message, RawReactionActionEvent
 from .subcog import ExtensionMediaLinkFixerSubCog
+from asyncio import sleep, create_task
 from discord.ext.commands import Cog
 from regex import sub, findall
-from asyncio import sleep
 
 
 class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
@@ -55,6 +55,8 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
         self_message = await message.reply(fix_message, mention_author=False)
         self.embed_cache[message.id] = self_message.id
 
+        good_bot_task = create_task(self.wait_for_good_bot(self_message))
+
         await sleep(max((fix.wait_time for fix in fixes)))
 
         try:
@@ -67,6 +69,7 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 
         await message.edit(suppress=False)
         await self_message.delete()
+        good_bot_task.cancel()
         del self.embed_cache[message.id]
 
     @Cog.listener()

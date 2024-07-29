@@ -1,5 +1,6 @@
 from .subcog import ExtensionMediaLinkFixerSubCog
 from .classes import MediaFixer
+from discord import Message
 from regex import findall
 
 
@@ -23,3 +24,21 @@ class ExtensionMediaLinkFixerLogic(ExtensionMediaLinkFixerSubCog):
                 fixes.append(fix)
 
         return fixes
+
+    async def wait_for_good_bot(self, message: Message) -> None:
+        try:
+            response: Message = await self.client.wait_for(
+                'message',
+                check=lambda m: all((
+                    'good bot' in m.content.lower(),
+                    m.channel == message.channel
+                )),
+                timeout=60
+            )
+        except TimeoutError:
+            return
+
+        await response.reply(
+            '<:cutesmile:1118502809772494899>',
+            mention_author=False
+        )
