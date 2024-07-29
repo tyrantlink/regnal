@@ -42,3 +42,6 @@ class ExtensionMediaLinkFixerLogic(ExtensionMediaLinkFixerSubCog):
             '<:cutesmile:1118502809772494899>',
             mention_author=False
         )
+        guild_doc = await self.client.db.guild(message.guild.id)
+        guild_doc.data.statistics.good_bots += 1
+        await guild_doc.save_changes()
