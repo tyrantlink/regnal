@@ -82,7 +82,22 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
             case _:
                 return
 
-        response_message = await message.channel.send(response)
+        # ? i made this poorly, basically, if args.reply and args.delete were passed,
+        # ? reply to the message that the trigger message was replying to, otherwise
+        # ? if args.reply was passed or the auto response is set to reply, reply to the trigger message
+        reference = (
+            message.reference
+            if args.reply and args.delete
+            else message
+            if au.data.reply or args.reply
+            else None
+        )
+
+        response_message = await message.channel.send(
+            content=response,
+            reference=reference,
+            mention_author=False
+        )
 
         if args.delete:
             self.client.recently_deleted.add(message.id)

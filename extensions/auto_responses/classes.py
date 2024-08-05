@@ -21,10 +21,12 @@ class ArgParser(ArgumentParser):
         self.add_argument('--seed', '-s', type=int)
         self.add_argument('--au', '-a', type=str)
         self.add_argument('--force', '-f', action='store_true')
+        self.add_argument('--reply', '-r', action='store_true')
         self.delete: bool = False
         self.seed: int | None = None
         self.au: str | None = None
         self.force: bool = False
+        self.reply: bool = False
         self.message: str = message
 
         try:
@@ -48,6 +50,7 @@ class ArgParser(ArgumentParser):
         self.seed = args.seed
         self.au = args.au
         self.force = args.force
+        self.reply = args.reply
 
 
 class AutoResponseCarrier:
