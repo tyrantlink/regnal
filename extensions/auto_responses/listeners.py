@@ -1,4 +1,5 @@
 from discord import Cog, Message, Thread, RawReactionActionEvent
+from discord.errors import Forbidden, NotFound, HTTPException
 from utils.db.documents.ext.flags import UserFlags
 from utils.db.documents.ext.enums import TWBFMode
 from .subcog import ExtensionAutoResponsesSubCog
@@ -44,6 +45,28 @@ class ExtensionAutoResponsesListeners(ExtensionAutoResponsesSubCog):
                     payload.member.id in self.client.owner_ids and self.client.project.config.dev_bypass
             ):
                 await message.delete()
+
+                related_messages: list = log.data.get('related_messages', [])
+
+                if message.id in related_messages:
+                    related_messages.remove(message.id)
+                
+                for related_message_id in related_messages:
+                    try:
+                        related_message = (
+                            self.client.get_message(related_message_id) or
+                            await self.client.get_guild(
+                                payload.guild_id
+                            ).get_channel(
+                                payload.channel_id
+                            ).fetch_message(related_message_id)
+                        )
+                    except (Forbidden, NotFound, HTTPException):
+                        continue
+
+                    if related_message is not None:
+                        await related_message.delete()
+            
             case _:
                 raise ValueError(f'unknown reaction {payload.emoji.name}!')
 

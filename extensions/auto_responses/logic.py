@@ -116,13 +116,8 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
                         'original_deleted': args.delete,
                         'error': str(e)}
                 )
-
-        await self.client.db.new.log(
-            id=response_message.id,
-            data={
-                'au': au.id,
-                'triggerer': message.author.id}
-        ).save()
+        
+        sent_messages = [response_message.id]
 
         clean_au = self.client.au.get(au.id)
         clean_au.statistics.trigger_count += 1
@@ -179,9 +174,13 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
 
                 msg = await message.channel.send(followup.response)
 
-                await self.client.db.new.log(
-                    id=msg.id,
-                    data={
-                        'au': au.id,
-                        'triggerer': message.author.id}
-                ).save()
+                sent_messages.append(msg.id)
+
+        for msg_id in sent_messages:
+            await self.client.db.new.log(
+            id=msg_id,
+            data={
+                'au': au.id,
+                'triggerer': message.author.id,
+                'related_messages': sent_messages
+            }).save()
