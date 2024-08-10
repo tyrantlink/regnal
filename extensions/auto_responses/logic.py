@@ -116,7 +116,7 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
                         'original_deleted': args.delete,
                         'error': str(e)}
                 )
-        
+
         sent_messages = [response_message.id]
 
         clean_au = self.client.au.get(au.id)
@@ -178,9 +178,10 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
 
         for msg_id in sent_messages:
             await self.client.db.new.log(
-            id=msg_id,
-            data={
-                'au': au.id,
-                'triggerer': message.author.id,
-                'related_messages': sent_messages
-            }).save()
+                id=msg_id,
+                data={
+                    'au': au.id,
+                    'triggerer': message.author.id,
+                    'related_messages': sent_messages
+                }
+            ).save()
