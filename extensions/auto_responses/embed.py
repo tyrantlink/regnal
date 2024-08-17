@@ -95,7 +95,7 @@ async def _extra_embed(
             case 'u': au_data_type = f'unique ({guild.name})'
             case 'm': au_data_type = f'mention (<@{auto_response.trigger}>)'
             case 'p': au_data_type = f'personal (<@{auto_response.data.user}>)'
-            case 's': au_data_type = f'[script](<https://github.com/tyrantlink/auto_response_dev>)'
+            case 's': au_data_type = f'[script](<https://github.com/tyrantlink/auto_response_dev/tree/main/auto_responses/{auto_response.response}>)'
             case  _: au_data_type = 'unknown'
 
     embed.add_field(
