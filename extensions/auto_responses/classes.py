@@ -1,17 +1,32 @@
-from au_scripts.auto_responses.lib.models import Message as AUMessage, Channel as AUChannel, Guild as AUGuild, User as AUUser
 from utils.db.documents.ext.enums import AutoResponseMethod, AutoResponseType
 from asyncio import create_task, get_event_loop, wait_for, TimeoutError
-from au_scripts.auto_responses import SCRIPTED_AUTO_RESPONSES
 from regex import search, fullmatch, escape, IGNORECASE
 from argparse import ArgumentParser, ArgumentError
 from concurrent.futures import ThreadPoolExecutor
+from discord import Message, Embed
+from dataclasses import dataclass
 from utils.db import AutoResponse
-from discord import Message
 from typing import TypeVar
 from random import random
 from client import Client
 
+from au_scripts import (
+    SCRIPTED_AUTO_RESPONSES,
+    Message as AUMessage,
+    Channel as AUChannel,
+    Guild as AUGuild,
+    User as AUUser,
+    Response
+)
+
 A = TypeVar('A')
+
+
+@dataclass
+class ScriptResponse:
+    content: str | None = None
+    embeds: list[dict] | None = None
+    followups: list[AutoResponse.AutoResponseData.AutoResponseFollowup] | None = None
 
 
 class ArgParser(ArgumentParser):
@@ -408,12 +423,65 @@ class AutoResponses:
 
         return response
 
+    async def script_response_parser(
+        self,
+        au: AutoResponse,
+        response: Response | None,
+        guild_id: int
+    ) -> ScriptResponse | None:
+        if response is None:
+            return None
+
+        if any((
+            response.content and response.embeds,
+            response.content and response.file,
+            response.embeds and response.file,
+            response.embeds and response.followups,
+            response.file and response.followups
+        )):
+            return None
+
+        if response.content:
+            if not response.followups:
+                return ScriptResponse(
+                    content=response.content
+                )
+
+            return ScriptResponse(
+                content=response.content,
+                followups=[
+                    AutoResponse.AutoResponseData.AutoResponseFollowup(
+                        delay=delay,
+                        response=response
+                    )
+                    for delay, response in response.followups
+                ]
+            )
+
+        if response.embeds:
+            embeds = [
+                Embed.from_dict(embed.to_dict())
+                for embed in response.embeds
+            ]
+            if any((embed.color is None for embed in embeds)):
+                color = await self.client.helpers.embed_color(guild_id=guild_id)
+                for embed in embeds:
+                    embed.color = embed.color or color
+            return ScriptResponse(
+                embeds=embeds
+            )
+
+        if response.file:
+            return ScriptResponse(
+                content=await self.client.api.au.create_masked_url(au.id)
+            )
+
     async def execute_au(
         self,
         au: AutoResponse,
         message: Message,
         args: ArgParser
-    ) -> str | tuple[str, list[AutoResponse.AutoResponseData.AutoResponseFollowup]] | None:
+    ) -> ScriptResponse | None:
         script = SCRIPTED_AUTO_RESPONSES.get(au.response)
 
         if script is None:
@@ -449,20 +517,13 @@ class AutoResponses:
             )
 
             try:
-                script_response = await wait_for(future, timeout=5)
+                script_response: Response | None = await wait_for(future, timeout=5)
             except TimeoutError:
                 executor.shutdown(wait=False, cancel_futures=True)
                 return None
 
-        if isinstance(script_response, str):
-            return script_response
-
-        response, followups = script_response
-        followups = [
-            AutoResponse.AutoResponseData.AutoResponseFollowup(
-                delay=d,
-                response=r)
-            for d, r in followups
-        ]
-
-        return response, followups
+        return await self.script_response_parser(
+            au,
+            script_response,
+            message.guild.id
+        )

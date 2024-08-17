@@ -61,6 +61,7 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
                     return
 
         followups = au.data.followups
+        embeds = None
 
         match au.type:
             case AutoResponseType.text:
@@ -75,16 +76,13 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
                 if script_response is None:
                     return
 
-                if isinstance(script_response, tuple):
-                    response, followups = script_response
-                else:
-                    response = script_response
+                response = script_response.content
+                embeds = script_response.embeds
+                followups = script_response.followups or au.data.followups
+
             case _:
                 return
 
-        # ? i made this poorly, basically, if args.reply and args.delete were passed,
-        # ? reply to the message that the trigger message was replying to, otherwise
-        # ? if args.reply was passed or the auto response is set to reply, reply to the trigger message
         reference = (
             message.reference
             if args.reply and args.delete
@@ -95,6 +93,7 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
 
         response_message = await message.channel.send(
             content=response,
+            embeds=embeds,
             reference=reference,
             mention_author=False
         )
@@ -116,6 +115,11 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
                         'original_deleted': args.delete,
                         'error': str(e)}
                 )
+        if not args.delete and au.data.suppress_trigger_embeds:
+            try:
+                await message.edit(suppress=True)
+            except (Forbidden, NotFound):
+                pass
 
         sent_messages = [response_message.id]
 
