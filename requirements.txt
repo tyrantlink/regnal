@@ -56,7 +56,6 @@ pytz==2024.1
 pyyaml==6.0.2
 pyyaml-env-tag==0.1
 regex==2024.7.24
--e file:///var/home/tyrantlink/reregnal/regnalrb
 requests==2.32.3
 rsa==4.9
 setuptools==65.5.0
