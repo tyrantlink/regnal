@@ -43,7 +43,7 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
         if message.guild.me.guild_permissions.view_audit_log is False:
             return None
 
-        async for log in message.guild.audit_logs(after=datetime.now()-timedelta(minutes=5), oldest_first=False):
+        async for log in message.guild.audit_logs(after=datetime.now()-timedelta(minutes=5)):
             if (
                     log.action.name == 'message_delete' and
                     log.target.id == message.author.id and
@@ -67,7 +67,7 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
         if guild.me.guild_permissions.view_audit_log is False:
             return None
 
-        async for log in guild.audit_logs(after=datetime.now()-timedelta(minutes=5), oldest_first=False):
+        async for log in guild.audit_logs(after=datetime.now()-timedelta(minutes=5)):
             if (
                     log.action.name == 'message_delete' and
                     log.extra.channel.id == channel_id and
@@ -89,7 +89,7 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
         if guild.me.guild_permissions.view_audit_log is False:
             return None
 
-        async for log in guild.audit_logs(after=datetime.now()-timedelta(minutes=5), oldest_first=False):
+        async for log in guild.audit_logs(after=datetime.now()-timedelta(minutes=5)):
             if (
                     log.action.name == 'unban' if unban else 'ban' and
                     log.target.id == user_id and
