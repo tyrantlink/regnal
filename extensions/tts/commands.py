@@ -1,4 +1,4 @@
-from discord import SlashCommandGroup, ApplicationContext, Embed
+from discord import SlashCommandGroup, ApplicationContext, Embed, InteractionContextType
 from .subcog import ExtensionTTSSubCog
 
 
@@ -8,7 +8,7 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
     @tts.command(
         name='join',
         description='join the current voice channel',
-        guild_only=True)
+        contexts={InteractionContextType.guild})
     async def join(self, ctx: ApplicationContext) -> None:
         if ctx.author.voice is None:
             await self.client.helpers.send_error(ctx, 'you must be in a voice channel to use this command!')
@@ -47,7 +47,7 @@ class ExtensionTTSCommands(ExtensionTTSSubCog):
     @tts.command(
         name='leave',
         description='leave the current voice channel',
-        guild_only=True)
+        contexts={InteractionContextType.guild})
     async def leave(self, ctx: ApplicationContext) -> None:
         if ctx.guild.voice_client is None:
             await ctx.response.send_message(
