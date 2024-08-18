@@ -91,6 +91,8 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
             else None
         )
 
+        await sleep(args.wait or 0)
+
         response_message = await message.channel.send(
             content=response,
             embeds=embeds,

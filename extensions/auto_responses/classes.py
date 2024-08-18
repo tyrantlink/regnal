@@ -38,11 +38,13 @@ class ArgParser(ArgumentParser):
         self.add_argument('--au', '-a', type=str)
         self.add_argument('--force', '-f', action='store_true')
         self.add_argument('--reply', '-r', action='store_true')
+        self.add_argument('--wait', '-w', type=int)
         self.delete: bool = False
         self.seed: int | None = None
         self.au: str | None = None
         self.force: bool = False
         self.reply: bool = False
+        self.wait: int | None = None
         self.message: str = message
 
         try:
@@ -51,12 +53,14 @@ class ArgParser(ArgumentParser):
             pass
 
     def __bool__(self) -> bool:
-        return (
-            self.delete is True or
-            self.seed is not None or
-            self.au is not None or
-            self.force is True
-        )
+        return any((
+            self.delete is True,
+            self.seed is not None,
+            self.au is not None,
+            self.force is True,
+            self.reply is True,
+            self.wait is not None
+        ))
 
     def parse(self, message: str) -> None:
         args, message = self.parse_known_args(message.split(' '))
@@ -67,6 +71,7 @@ class ArgParser(ArgumentParser):
         self.au = args.au
         self.force = args.force
         self.reply = args.reply
+        self.wait = args.wait
 
 
 class AutoResponseCarrier:
