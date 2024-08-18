@@ -1,8 +1,8 @@
 from utils.db.documents.ext.enums import AutoResponseMethod, AutoResponseType
 from asyncio import create_task, get_event_loop, wait_for, TimeoutError
 from regex import search, fullmatch, escape, IGNORECASE
+from concurrent.futures import ProcessPoolExecutor
 from argparse import ArgumentParser, ArgumentError
-from concurrent.futures import ThreadPoolExecutor
 from discord import Message, Embed
 from dataclasses import dataclass
 from utils.db import AutoResponse
@@ -482,10 +482,7 @@ class AutoResponses:
         message: Message,
         args: ArgParser
     ) -> ScriptResponse | None:
-        script = SCRIPTED_AUTO_RESPONSES.get(au.response)
-
-        if script is None:
-            return None
+        script = SCRIPTED_AUTO_RESPONSES.get(au.response).function
 
         au_message = AUMessage(
             id=message.id,
@@ -509,7 +506,7 @@ class AutoResponses:
             content=args.message
         )
 
-        with ThreadPoolExecutor() as executor:
+        with ProcessPoolExecutor() as executor:
             future = get_event_loop().run_in_executor(
                 executor,
                 script,
@@ -517,7 +514,7 @@ class AutoResponses:
             )
 
             try:
-                script_response: Response | None = await wait_for(future, timeout=5)
+                script_response = await wait_for(future, timeout=5)
             except TimeoutError:
                 executor.shutdown(wait=False, cancel_futures=True)
                 return None
