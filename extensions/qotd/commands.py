@@ -1,4 +1,4 @@
-from discord import SlashCommandGroup, Permissions, Option, ApplicationContext, Embed
+from discord import SlashCommandGroup, Permissions, Option, ApplicationContext, Embed, InteractionContextType
 from utils.db.documents.guild import GuildDataQOTDQuestion
 from .subcog import ExtensionQOTDSubCog
 
@@ -9,7 +9,8 @@ class ExtensionQOTDCommands(ExtensionQOTDSubCog):
     @qotd.command(
         name='custom',
         description='ask a custom question of the day!',
-        guild_only=True, default_member_permissions=Permissions(manage_messages=True),
+        contexts={InteractionContextType.guild},
+        default_member_permissions=Permissions(manage_messages=True),
         options=[
             Option(
                 str,

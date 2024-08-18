@@ -1,4 +1,4 @@
-from discord import message_command, Message, ApplicationContext, InputTextStyle, slash_command
+from discord import message_command, Message, ApplicationContext, InputTextStyle, slash_command, InteractionContextType
 from utils.pycord_classes import CustomModal, MasterView
 from .views import ModMailConfirmationView, ModMailView
 from .subcog import ExtensionModMailSubCog
@@ -8,7 +8,7 @@ from discord.ui import InputText
 class ExtensionModMailCommands(ExtensionModMailSubCog):
     @message_command(
         name='modmail report',
-        guild_only=True)
+        contexts={InteractionContextType.guild})
     async def message_modmail_report(self, ctx: ApplicationContext, message: Message) -> None:
         guild_doc = await self.client.db.guild(ctx.guild.id)
 

@@ -1,4 +1,4 @@
-from discord import slash_command, Permissions, Option, ApplicationContext, Embed, message_command, Message
+from discord import slash_command, Permissions, Option, ApplicationContext, Embed, message_command, Message, InteractionContextType
 from .subcog import ExtensionAdminSubCog
 
 
@@ -6,7 +6,8 @@ class ExtensionAdminCommands(ExtensionAdminSubCog):
     @slash_command(
         name='purge',
         description='bulk delete messages from current channel',
-        guild_only=True, default_member_permissions=Permissions(manage_messages=True),
+        default_member_permissions=Permissions(manage_messages=True),
+        contexts={InteractionContextType.guild},
         options=[
             Option(int, name='amount', description='amount of messages to delete', required=True)])
     async def slash_purge(self, ctx: ApplicationContext, amount: int) -> None:
@@ -24,7 +25,8 @@ class ExtensionAdminCommands(ExtensionAdminSubCog):
     @message_command(
         name='purge until here',
         description='bulk delete messages from current channel until this one',
-        guild_only=True, default_member_permissions=Permissions(manage_messages=True))
+        contexts={InteractionContextType.guild},
+        default_member_permissions=Permissions(manage_messages=True))
     async def message_purge_until_here(self, ctx: ApplicationContext, message: Message) -> None:
         purged = await ctx.channel.purge(
             limit=1000,

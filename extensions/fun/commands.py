@@ -1,5 +1,5 @@
+from discord import Embed, User, ApplicationContext, Role, InteractionContextType
 from discord.commands import Option, slash_command, user_command
-from discord import Embed, User, ApplicationContext, Role
 from .subcog import ExtensionFunSubCog
 from random import choice, randint
 from asyncio import sleep
@@ -278,17 +278,18 @@ class ExtensionFunCommands(ExtensionFunSubCog):
         )
 
     @slash_command(
-        name='random_user', guild_only=True,
+        name='random_user',
         description='get random user with role',
+        contexts={InteractionContextType.guild},
         options=[
-                    Option(
-                        Role,
-                        name='role',
-                        description='role to roll users from'),
-                    Option(
-                        bool,
-                        name='ping',
-                        description='ping the result user? (requires mention_everyone)')])
+            Option(
+                Role,
+                name='role',
+                description='role to roll users from'),
+            Option(
+                bool,
+                name='ping',
+                description='ping the result user? (requires mention_everyone)')])
     async def slash_random(self, ctx: ApplicationContext, role: Role, ping: bool) -> None:
         if ping and not ctx.author.guild_permissions.mention_everyone:
             await ctx.response.send_message('you need the `mention everyone` permission to ping users', ephemeral=True)
@@ -304,7 +305,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
     @slash_command(
         name='bees',
         description='bees.',
-        guild_only=True)
+        contexts={InteractionContextType.guild})
     async def slash_bees(self, ctx: ApplicationContext) -> None:
         if ctx.guild.id in self.bees_running:
             await ctx.response.send_message(

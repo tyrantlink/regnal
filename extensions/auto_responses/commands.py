@@ -1,4 +1,4 @@
-from discord import Message, slash_command, ApplicationContext, message_command
+from discord import Message, slash_command, ApplicationContext, message_command, InteractionContextType
 from .views import AutoResponseBrowserView, AutoResponseInfoView
 from .subcog import ExtensionAutoResponsesSubCog
 
@@ -7,7 +7,7 @@ class ExtensionAutoResponsesCommands(ExtensionAutoResponsesSubCog):
     @slash_command(
         name='auto_responses',
         description='browse auto responses you\'ve found',
-        guild_only=True)
+        contexts={InteractionContextType.guild})
     async def slash_auto_responses(self, ctx: ApplicationContext) -> None:
         view = AutoResponseBrowserView(self.client, ctx.author)
 
@@ -21,7 +21,7 @@ class ExtensionAutoResponsesCommands(ExtensionAutoResponsesSubCog):
 
     @message_command(
         name='au info',
-        guild_only=True)
+        contexts={InteractionContextType.guild})
     async def message_au_info(self, ctx: ApplicationContext, message: Message) -> None:
         log = await self.client.db.log(message.id)
 
