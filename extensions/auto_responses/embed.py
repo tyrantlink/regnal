@@ -1,4 +1,5 @@
 from utils.db.documents.ext.enums import AutoResponseType
+from au_scripts import SCRIPTED_AUTO_RESPONSES
 from utils.db.documents import AutoResponse
 from typing import TYPE_CHECKING
 from discord import Embed
@@ -95,7 +96,15 @@ async def _extra_embed(
             case 'u': au_data_type = f'unique ({guild.name})'
             case 'm': au_data_type = f'mention (<@{auto_response.trigger}>)'
             case 'p': au_data_type = f'personal (<@{auto_response.data.user}>)'
-            case 's': au_data_type = f'[script](<https://github.com/tyrantlink/auto_response_dev/tree/main/auto_responses/{auto_response.response}>)'
+            case 's':
+                _author = SCRIPTED_AUTO_RESPONSES.get(
+                    auto_response.response
+                ).author
+
+                au_data_type = (
+                    f'[script](<https://github.com/tyrantlink/auto_response_dev/tree/main/auto_responses/{auto_response.response}>)' +
+                    f' by <@{_author.id}> ({_author.name})'
+                )
             case  _: au_data_type = 'unknown'
 
     embed.add_field(
