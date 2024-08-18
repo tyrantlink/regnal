@@ -16,6 +16,7 @@ from au_scripts import (
     Channel as AUChannel,
     Guild as AUGuild,
     User as AUUser,
+    Attachment,
     Response
 )
 
@@ -503,7 +504,15 @@ class AutoResponses:
                     id=message.guild.me.id,
                     created_at=message.guild.me.created_at,
                     nickname=message.guild.me.nick)),
-            content=args.message
+            content=args.message,
+            attachments=[
+                Attachment(
+                    filename=attachment.filename,
+                    url=attachment.url,
+                    proxy_url=attachment.proxy_url
+                )
+                for attachment in message.attachments
+            ]
         )
 
         with ProcessPoolExecutor() as executor:
