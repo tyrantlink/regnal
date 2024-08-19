@@ -102,5 +102,8 @@ class ExtensionAdminListeners(ExtensionAdminSubCog):
         await logging_channel.send(
             content=content,
             embed=embed,
-            view=AntiScamBotView(self.client)
+            view=AntiScamBotView(
+                self.client,
+                'failed to timeout user' in warnings
+            )
         )

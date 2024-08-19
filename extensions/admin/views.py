@@ -14,13 +14,12 @@ class AntiScamBotView(View):
         'untimeout_user': 'You do not have permission to untimeout users through the bot!'
     }
 
-    def __init__(self, client: 'Client') -> None:
+    def __init__(self, client: 'Client', hide_timeout: bool = False) -> None:
         super().__init__(timeout=None)
         self.client = client
-        self.add_items(
-            self.button_ban_user,
-            self.button_untimeout_user
-        )
+        self.add_items(self.button_ban_user)
+        if not hide_timeout:
+            self.add_items(self.button_untimeout_user)
 
     async def _base_interaction(self, permission: str, interaction: Interaction) -> Member | None:
         if not await self.client.permissions.check(permission, interaction.user, interaction.guild):
