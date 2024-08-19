@@ -35,7 +35,7 @@ class ArgParser(ArgumentParser):
         super().__init__(exit_on_error=False, add_help=False)
         self.add_argument('--delete', '-d', action='store_true')
         self.add_argument('--seed', '-s', type=int)
-        self.add_argument('--au', '-a', type=str)
+        self.add_argument('--au', '-a', type=str.lower)
         self.add_argument('--force', '-f', action='store_true')
         self.add_argument('--reply', '-r', action='store_true')
         self.add_argument('--wait', '-w', type=int)
@@ -63,9 +63,9 @@ class ArgParser(ArgumentParser):
         ))
 
     def parse(self, message: str) -> None:
-        args, message = self.parse_known_args(message.split(' '))
+        args, non_args = self.parse_known_args(message.lower().split(' '))
 
-        self.message = ' '.join(message)
+        self.message = message[:len(non_args)]
         self.delete = args.delete
         self.seed = args.seed
         self.au = args.au
