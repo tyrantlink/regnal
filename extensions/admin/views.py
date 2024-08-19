@@ -1,5 +1,6 @@
-from discord import ButtonStyle, Interaction, Member, Embed
+from discord import ButtonStyle, Interaction, Member, Embed, Message
 from discord.errors import Forbidden, HTTPException
+from asyncio import Event, create_task, sleep
 from utils.pycord_classes import View
 from discord.ui import Button, button
 from typing import TYPE_CHECKING
@@ -17,7 +18,7 @@ class AntiScamBotView(View):
     def __init__(self, client: 'Client', hide_timeout: bool = False) -> None:
         super().__init__(timeout=None)
         self.client = client
-        self.confirmed = False
+        self.confirmation = Event()
         self.add_items(self.button_ban_user)
         if not hide_timeout:
             self.add_items(self.button_untimeout_user)
@@ -47,6 +48,16 @@ class AntiScamBotView(View):
 
         return user
 
+    async def confirmation_timeout(self, message: Message) -> None:
+        await sleep(60)
+        if self.confirmation.is_set():
+            self.button_ban_user.label = 'ban user'
+            try:
+                await message.edit(view=self)
+            except (Forbidden, HTTPException):
+                pass
+        self.confirmation.clear()
+
     @button(
         label='ban user',
         style=ButtonStyle.red,
@@ -57,10 +68,11 @@ class AntiScamBotView(View):
         if user is None:
             return
 
-        if not self.confirmed:
-            self.confirmed = True
+        if not self.confirmation.is_set():
+            self.confirmation.set()
             self.button_ban_user.label = 'confirm ban'
             await interaction.response.edit_message(view=self)
+            create_task(self.confirmation_timeout(interaction.message))
             return
 
         await user.ban(reason='anti scam bot protection')
@@ -81,6 +93,7 @@ class AntiScamBotView(View):
         await interaction.followup.send(
             embed=embed
         )
+        self.confirmation.clear()
 
     @button(
         label='untimeout user',
