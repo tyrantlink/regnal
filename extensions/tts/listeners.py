@@ -24,7 +24,11 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
             return
 
         # ignore empty messages
-        if not message.content and not message.attachments:
+        if all((
+            not message.content,
+            not message.attachments,
+            not message.stickers
+        )):
             return
 
         user_doc = await self.client.db.user(message.author.id)
@@ -77,11 +81,18 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
             if user_doc.config.tts.text_correction:
                 text = self.process_text_correction(text)
 
-        if message.attachments:
+        for attachment in message.attachments:
             text += (
-                ' along with an attachment'
+                f' along with {attachment.filename}'
                 if text else
-                'an attachment'
+                attachment.filename
+            )
+
+        for sticker in message.stickers:
+            text += (
+                f' along with {sticker.name}'
+                if text else
+                sticker.name
             )
 
         if user_doc.config.tts.text_correction:
