@@ -85,7 +85,6 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
             name = ' dot '.join(  # ? google tts is stupid and only reads the dots half the time
                 attachment.filename.replace('_', ' ').rsplit('.', 1)
             )
-            print(name)
             text += (
                 f' along with {name}'
                 if text else
