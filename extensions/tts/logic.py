@@ -1,10 +1,10 @@
 from google.cloud.texttospeech import VoiceSelectionParams, AudioConfig, AudioEncoding, SynthesisInput
-from discord import Member, Guild, VoiceClient, FFmpegOpusAudio, VoiceChannel
+from discord import Member, Guild, VoiceClient, VoiceChannel
 from .models import UserTTSProfile, TTSMessage, GuildTTS
-from asyncio import Queue, Event, create_task
-from asyncio.subprocess import DEVNULL
 from .valid_voices import valid_voices
+from asyncio import Queue, create_task
 from .subcog import ExtensionTTSSubCog
+from .tts_audio import TTSAudio
 from time import perf_counter
 from re import sub, finditer
 from io import BytesIO
@@ -62,8 +62,34 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
                 speaking_rate=user_doc.config.tts.speaking_rate)
         )
 
+    async def cache_audio(self, message: TTSMessage) -> None:
+        await self.client.db.new.tts_cache(
+            message.__hash__(),
+            message.data.getvalue()
+        ).save()
+        await self.client.db.tts_cache(message.__hash__())
+
     async def generate_audio(self, message: str, profile: UserTTSProfile) -> TTSMessage:
         st = perf_counter()
+
+        tts_message = TTSMessage(
+            profile=profile,
+            text=message,
+            data=BytesIO()
+        )
+
+        from_cache = await self.client.db.tts_cache(tts_message.__hash__())
+
+        if from_cache is not None:
+            tts_message.data.write(from_cache.data)
+            tts_message.data.seek(0)
+
+            self.client.log.debug(
+                f'loaded audio from cache for {profile.name} in {perf_counter()-st:.2f}s'
+            )
+
+            return tts_message
+
         req = await self.tts.synthesize_speech(
             input=SynthesisInput(
                 text=message),
@@ -75,14 +101,12 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
             f'generated audio for {profile.name} in {perf_counter()-st:.2f}s'
         )
 
-        audio_data = BytesIO(req.audio_content)
-        audio_data.seek(0)
+        tts_message.data.write(req.audio_content)
+        tts_message.data.seek(0)
 
-        return TTSMessage(
-            profile=profile,
-            text=message,
-            data=audio_data
-        )
+        create_task(self.cache_audio(tts_message))
+
+        return tts_message
 
     async def add_message_to_queue(self, message: TTSMessage, guild: Guild) -> None:
         if guild.id not in self._guilds:
@@ -184,7 +208,6 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
         if guild.id not in self._guilds:
             await self.create_queue(guild.id)
 
-        playing = Event()
         voice_client: VoiceClient = guild.voice_client
 
         while True:
@@ -199,18 +222,12 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
                     f'no voice client for {guild.name} ({guild.id}), deleting queue')
                 break
 
-            playing.clear()
-            voice_client.play(
-                FFmpegOpusAudio(
-                    source=message.data,
-                    pipe=True,
-                    codec='opus',
-                    bitrate=512,
-                    stderr=DEVNULL),
-                after=lambda e: playing.set()
+            await voice_client.play(
+                TTSAudio(
+                    source=message.data
+                ),
+                wait_finish=True
             )
-
-            await playing.wait()
 
         await self.disconnect(guild)
 
