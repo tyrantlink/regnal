@@ -4,6 +4,7 @@ from discord.ext.commands import Cog
 from discord import Message, Embed
 from .views import AntiScamBotView
 from datetime import timedelta
+from asyncio import sleep
 
 
 class ExtensionAdminListeners(ExtensionAdminSubCog):
@@ -51,11 +52,19 @@ class ExtensionAdminListeners(ExtensionAdminSubCog):
 
         for message in duplicate_messages:
             try:
+                self.client.recently_deleted.add(message.id)
                 await message.delete(reason='anti scam bot protection')
             except (Forbidden, NotFound, HTTPException):
+                self.client.recently_deleted.discard(message.id)
                 warnings.append(
                     f'failed to delete message in {message.channel.mention}'
                 )
+
+        duplicate_message_ids = {m.id for m in duplicate_messages}
+        for _ in range(3):
+            await sleep(1)
+            if duplicate_message_ids - self.client.recently_deleted == duplicate_message_ids:
+                break
 
         if guild_doc.config.logging.channel is None:
             return
