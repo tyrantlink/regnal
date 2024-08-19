@@ -251,7 +251,11 @@ class ExtensionFunCommands(ExtensionFunSubCog):
         )
 
         embed.set_author(
-            name=f'{self.client.user.name}\'s eighth ball',
+            name=(
+                'magic 8 ball'
+                if randint(0, 100) else
+                f'{self.client.user.name}\'s eighth ball'
+            ),
             icon_url='https://regn.al/8ball.png'
         )
 
