@@ -17,6 +17,7 @@ class AntiScamBotView(View):
     def __init__(self, client: 'Client', hide_timeout: bool = False) -> None:
         super().__init__(timeout=None)
         self.client = client
+        self.confirmed = False
         self.add_items(self.button_ban_user)
         if not hide_timeout:
             self.add_items(self.button_untimeout_user)
@@ -54,6 +55,12 @@ class AntiScamBotView(View):
         user = await self._base_interaction('admin.ban_user', interaction)
 
         if user is None:
+            return
+
+        if not self.confirmed:
+            self.confirmed = True
+            self.button_ban_user.label = 'confirm ban'
+            await interaction.response.edit_message(view=self)
             return
 
         await user.ban(reason='anti scam bot protection')
