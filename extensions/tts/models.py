@@ -21,11 +21,9 @@ class TTSMessage(NamedTuple):
     def __hash__(self) -> str:
         hash_data = '::'.join(
             [
-                self.profile.name,
                 self.profile.voice.language_code,
                 self.profile.voice.name,
                 str(self.profile.audio_config.speaking_rate),
-                str(self.profile.text_correction),
                 self.text
             ]
         )
