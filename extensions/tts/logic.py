@@ -7,6 +7,7 @@ from .subcog import ExtensionTTSSubCog
 from .tts_audio import TTSAudio
 from time import perf_counter
 from re import sub, finditer
+from random import randint
 from io import BytesIO
 
 
@@ -136,11 +137,19 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
             message
         ).replace('_', ' ')
         # pronounce urls
+        pre_sub_message = message
         message = sub(
             r'(?:^|\ )<?https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.>?',
             r'a \g<1> link',
             message
         )
+        # easter egg
+        if all((
+            message != pre_sub_message,
+            'a tenor link' in message,
+            not randint(0, 100)
+        )):
+            message = message.replace('a tenor link', 'an elevenor link')
         # strip linked urls
         message = sub(
             r'\[(.*)\]\(.*\)',
