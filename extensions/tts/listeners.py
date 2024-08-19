@@ -82,17 +82,19 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
                 text = self.process_text_correction(text)
 
         for attachment in message.attachments:
+            name = attachment.filename.replace('_', ' ')
             text += (
-                f' along with {attachment.filename}'
+                f' along with {name}'
                 if text else
-                attachment.filename
+                name
             )
 
         for sticker in message.stickers:
+            name = sticker.name.replace('_', ' ')
             text += (
-                f' along with {sticker.name}'
+                f' along with {name}'
                 if text else
-                sticker.name
+                name
             )
 
         if user_doc.config.tts.text_correction:

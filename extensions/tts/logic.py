@@ -134,7 +134,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
             r'<a?:(\w+):\d+>',
             r'\g<1>',
             message
-        )
+        ).replace('_', ' ')
         # pronounce urls
         message = sub(
             r'(?:^|\ )<?https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.>?',
