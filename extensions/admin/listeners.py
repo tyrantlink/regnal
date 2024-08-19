@@ -46,7 +46,7 @@ class ExtensionAdminListeners(ExtensionAdminSubCog):
         warnings: list[str] = []
 
         try:
-            await message.author.timeout_for(timedelta(minutes=10), reason='anti scam bot protection')
+            await message.author.timeout_for(timedelta(minutes=30), reason='anti scam bot protection')
         except (Forbidden, HTTPException):
             warnings.append('failed to timeout user')
 
