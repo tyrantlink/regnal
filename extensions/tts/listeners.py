@@ -146,7 +146,7 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
         await user_doc.save_changes()
         await guild_doc.save_changes()
 
-    @ Cog.listener()
+    @Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         if member.id == self.client.user.id and after.channel is None:
             await self.disconnect(member.guild)
