@@ -4,6 +4,7 @@ from discord import Message, Member, VoiceState
 from .subcog import ExtensionTTSSubCog
 from discord.ext.commands import Cog
 from asyncio import create_task
+from re import fullmatch
 
 
 class ExtensionTTSListeners(ExtensionTTSSubCog):
@@ -109,7 +110,18 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
             return
 
         if guild_data.last_name != profile.name:
-            text = f'{profile.name} said: {text}'
+            phrase = (
+                'said:'
+                if (
+                    message.content and
+                    not fullmatch(
+                        r'(?:^|\ )<?https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.>?',
+                        message.content
+                    )
+                ) else
+                'sent'
+            )
+            text = f'{profile.name} {phrase} {text}'
             self._guilds[message.guild.id].last_name = profile.name
 
         # ensure message word length
@@ -134,7 +146,7 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
         await user_doc.save_changes()
         await guild_doc.save_changes()
 
-    @Cog.listener()
+    @ Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
         if member.id == self.client.user.id and after.channel is None:
             await self.disconnect(member.guild)
