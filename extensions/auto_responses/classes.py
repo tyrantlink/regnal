@@ -65,7 +65,7 @@ class ArgParser(ArgumentParser):
     def parse(self, message: str) -> None:
         args, non_args = self.parse_known_args(message.lower().split(' '))
 
-        self.message = message[:len(non_args)]
+        self.message = message[:len(' '.join(non_args))]
         self.delete = args.delete
         self.seed = args.seed
         self.au = args.au
