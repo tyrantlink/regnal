@@ -83,8 +83,9 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
                 text = self.process_text_correction(text)
 
         for attachment in message.attachments:
-            name = ' dot '.join(  # ? google tts is stupid and only reads the dots half the time
-                attachment.filename.replace('_', ' ').rsplit('.', 1)
+            name = self.get_attachment_name(
+                attachment.filename,
+                user_doc.config.tts.read_filenames
             )
             text += (
                 f' along with {name}'

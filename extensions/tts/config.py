@@ -178,6 +178,17 @@ def register_user_config(config: 'Config') -> None:
             description='silently corrects text so it\'s more accurately pronounced')
     )
 
+    config.register_option(
+        category='user',
+        subcategory='tts',
+        option=ConfigOption(
+            name='read_filenames',
+            type=OptionType.BOOL,
+            default=False,
+            short_description='read filenames',
+            description='read filenames when tts is enabled (e.g. "USER sent crab.png")')
+    )
+
 
 def register_guild_config(config: 'Config') -> None:
     config.register_subcategory(

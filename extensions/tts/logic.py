@@ -117,6 +117,26 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 
         self._guilds[guild.id].queue.put_nowait(message)
 
+    def get_attachment_name(self, filename: str, full_name: bool = False) -> str:
+        if full_name:
+            return ' dot '.join(  # ? google tts is stupid and only reads the dots half the time
+                filename.replace('_', ' ').rsplit('.', 1)
+            )
+
+        match filename.split('.')[-1]:
+            case 'png' | 'jpg' | 'jpeg':
+                return 'an image'
+            case 'gif':
+                return 'a gif'
+            case 'mp4' | 'webm' | 'mov' | 'avi' | 'mkv':
+                return 'a video'
+            case 'mp3' | 'wav' | 'flac' | 'ogg':
+                return 'an audio file'
+            case 'txt' | 'md':
+                return 'a text file'
+            case ext:
+                return f'a{"n" if ext and ext[0] in {"a","e","i","o","u"} else ""} {ext} file'
+
     def process_message(self, message: str, guild: Guild) -> str:
         # strip markdown
         message = sub(
