@@ -339,7 +339,7 @@ class ClientBase:
             self.last_update_hour = new
 
             status = (
-                f'last update: {self.last_update_hour} hours ago'
+                f'last update: {self.last_update_hour} hour{"s" if self.last_update_hour-1 else ""} ago'
                 if self.last_update_hour else
                 'last update: just now'
             )
