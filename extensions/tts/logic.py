@@ -124,7 +124,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
             )
 
         match filename.split('.')[-1]:
-            case 'png' | 'jpg' | 'jpeg':
+            case 'png' | 'jpg' | 'jpeg' | 'webp':
                 return 'an image'
             case 'gif':
                 return 'a gif'
