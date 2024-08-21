@@ -50,7 +50,7 @@ class ExtensionAutoResponsesListeners(ExtensionAutoResponsesSubCog):
 
                 if message.id in related_messages:
                     related_messages.remove(message.id)
-                
+
                 for related_message_id in related_messages:
                     try:
                         related_message = (
@@ -66,7 +66,7 @@ class ExtensionAutoResponsesListeners(ExtensionAutoResponsesSubCog):
 
                     if related_message is not None:
                         await related_message.delete()
-            
+
             case _:
                 raise ValueError(f'unknown reaction {payload.emoji.name}!')
 

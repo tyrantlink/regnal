@@ -1,6 +1,6 @@
 from utils.db.documents.ext.enums import AutoResponseMethod, AutoResponseType
 from asyncio import create_task, get_event_loop, wait_for, TimeoutError
-from regex import search, fullmatch, escape, IGNORECASE
+from regex import search, fullmatch, escape, IGNORECASE, sub
 from concurrent.futures import ProcessPoolExecutor
 from argparse import ArgumentParser, ArgumentError
 from discord import Message, Embed
@@ -238,16 +238,19 @@ class AutoResponses:
 
             groups.update(
                 {
-                    f'g{k}': v
+                    f'g{k}': sub(r'<@(!|&)?\d+>', 'MENTIONS_NOT_ALLOWED', v)
                     for k, v in
                     enumerate(
                         match.groups()[:10], 1
                     )
-                    if v is not None
                 }
             )
             try:
-                formatted_response = response.response.format(**groups)
+                formatted_response = response.response.format(
+                    **groups,
+                    **{  # reinsert dynaimc variables to bypass keyerror
+                        'user': '{user}'
+                    })
             except KeyError:
                 return None
 
@@ -425,6 +428,22 @@ class AutoResponses:
 
             response = response.with_overrides(
                 {'response': formatted_response}
+            )
+        # insert dynamic variables
+        if search(r'\{[a-z]+\}', response.response):
+            try:
+                formatted_response = response.response.format(
+                    user=message.author.mention
+                )
+            except KeyError:
+                create_task(
+                    self.client.helpers.notify_reaction(message, delay=2)
+                )
+                return None
+            response = response.with_overrides(
+                {
+                    'response': formatted_response
+                }
             )
 
         return response

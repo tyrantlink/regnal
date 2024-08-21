@@ -91,19 +91,23 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
             else None
         )
 
-        await sleep(args.wait or 0)
-
-        response_message = await message.channel.send(
+        response_message_pending = message.channel.send(
             content=response,
             embeds=embeds,
             reference=reference,
             mention_author=False
         )
 
+        if not args.delete:
+            response_message = await response_message_pending
+            await sleep(args.wait or 0)
+
         if args.delete:
             self.client.recently_deleted.add(message.id)
             try:
                 await message.delete()
+                await sleep(args.wait or 0)
+                response_message = await response_message_pending
             except (
                 Forbidden,
                 NotFound,
@@ -117,6 +121,7 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
                         'original_deleted': args.delete,
                         'error': str(e)}
                 )
+
         if not args.delete and au.data.suppress_trigger_embeds:
             try:
                 await message.edit(suppress=True)
