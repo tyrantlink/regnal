@@ -131,11 +131,9 @@ class ConfigData:
                     button_id='manage_permissions',
                     view=PermissionManagerView),
             ])
-        self.dev = ConfigCategory(name='dev')
 
     def __getitem__(self, key: str) -> ConfigCategory:
         match key:
             case 'user': return self.user
             case 'guild': return self.guild
-            case 'dev': return self.dev
             case _: raise KeyError(f'no category with name `{key}` found.')

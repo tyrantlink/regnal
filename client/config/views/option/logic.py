@@ -58,9 +58,6 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
                         if self.user.guild.icon else
                         self.user.guild.me.display_avatar.url
                     ))
-            case 'dev':
-                self.embed.set_author(
-                    name=self.client.user.display_name, icon_url=self.client.user.display_avatar.url)
             case _:
                 raise ValueError('improper config category name')
 
@@ -175,7 +172,6 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
         match self.config_category.name:
             case 'user': print_id = self.user.id
             case 'guild': print_id = self.user.guild.id
-            case 'dev': print_id = self.client.user.id
             case _: raise ValueError('improper config category name')
 
         self.client.log.info(

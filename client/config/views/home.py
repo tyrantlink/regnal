@@ -14,15 +14,11 @@ class ConfigHomeView(SubView):
         options = [
             SelectOption(label='user', description='user config')]
 
-        is_dev = self.user.id in self.client.owner_ids and self.client.project.config.dev_bypass
-
         if getattr(self.user, 'guild', None) is not None:
             if (bool(await self.client.permissions.user(self.user, self.user.guild)-{'dev'}) or
                     self.user.guild_permissions.manage_guild):
                 options.append(SelectOption(
                     label='guild', description='guild config'))
-        if is_dev:
-            options.append(SelectOption(label='dev', description='dev config'))
 
         self.get_item('category_select').options = options
 
@@ -38,9 +34,6 @@ class ConfigHomeView(SubView):
             case 'guild':
                 view = self.master.create_subview(
                     ConfigCategoryView, self.client.config.data.guild, user=self.user)
-            case 'dev':
-                view = self.master.create_subview(
-                    ConfigCategoryView, self.client.config.data.dev, user=self.user)
             case _: raise ValueError('improper option selected, discord shouldn\'t allow this')
 
         await view.__ainit__()

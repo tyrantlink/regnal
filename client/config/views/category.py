@@ -25,8 +25,6 @@ class ConfigCategoryView(SubView):
                         pass
                     case 'guild' if await self.client.permissions.check(view.required_permissions, self.user, self.user.guild):
                         pass
-                    case 'dev' if await self.client.permissions.check('dev', self.user, self.user.guild):
-                        pass
                     case _: continue
 
             view_button = AdditionalViewButton(self, view)
@@ -39,8 +37,6 @@ class ConfigCategoryView(SubView):
                 case 'user':
                     pass
                 case 'guild' if await self.client.permissions.check(f'{subcategory.name}*', self.user, self.user.guild):
-                    pass
-                case 'dev' if await self.client.permissions.check('dev', self.user, self.user.guild):
                     pass
                 case _: continue
 
@@ -69,9 +65,6 @@ class ConfigCategoryView(SubView):
                 self.embed.set_author(
                     name=self.user.guild.name,
                     icon_url=self.user.guild.icon.url if self.user.guild.icon else self.user.guild.me.display_avatar.url)
-            case 'dev':
-                self.embed.set_author(
-                    name=self.client.user.display_name, icon_url=self.client.user.display_avatar.url)
             case _:
                 raise ValueError('improper config category name')
 

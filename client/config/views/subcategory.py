@@ -29,7 +29,6 @@ class ConfigSubcategoryView(SubView):
         match self.config_category.name:
             case 'user': current_config = getattr((await self.client.db.user(self.user.id)).config, self.config_subcategory.name)
             case 'guild': current_config = getattr((await self.client.db.guild(self.user.guild.id)).config, self.config_subcategory.name)
-            case 'dev': raise NotImplementedError('dev config not implemented yet!')
 
         user_permissions = await self.client.permissions.user(self.user, self.user.guild)
         for view in self.config_subcategory.additional_views:
@@ -48,10 +47,6 @@ class ConfigSubcategoryView(SubView):
                         self.config_subcategory.name in user_permissions
                     ):
                         self.get_item(view_button.custom_id).disabled = True
-                    case 'dev' if (
-                        await self.client.permissions.check('dev', self.user, self.user.guild)
-                    ):
-                        pass
                     case _:
                         continue
 
@@ -74,9 +69,6 @@ class ConfigSubcategoryView(SubView):
                     self.config_subcategory.name in user_permissions
                 ):
                     pass
-                case 'dev' if (
-                    await self.client.permissions.check('dev', self.user, self.user.guild)
-                ):
                     read_only = False
                 case _:
                     continue
@@ -140,10 +132,6 @@ class ConfigSubcategoryView(SubView):
                         if self.user.guild.icon else
                         self.user.guild.me.display_avatar.url
                     ))
-            case 'dev':
-                self.embed.set_author(
-                    name=self.client.user.display_name,
-                    icon_url=self.client.user.display_avatar.url)
             case _:
                 raise ValueError('improper config category name')
 
