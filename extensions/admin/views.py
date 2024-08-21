@@ -78,7 +78,7 @@ class AntiScamBotView(View):
         await user.ban(reason='anti scam bot protection')
 
         embed = Embed(
-            description=f'{user.mention} has been banned',
+            description=f'banned {user.mention}',
             color=0xff6969
         )
         embed.set_author(
