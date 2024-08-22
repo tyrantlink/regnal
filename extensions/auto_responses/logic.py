@@ -99,8 +99,8 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
         )
 
         if not args.delete:
-            response_message = await response_message_pending
             await sleep(args.wait or 0)
+            response_message = await response_message_pending
 
         if args.delete:
             self.client.recently_deleted.add(message.id)
