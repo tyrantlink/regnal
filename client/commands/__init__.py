@@ -62,6 +62,9 @@ class BaseCommands(Cog):
         embed.add_field(name='guilds', value=len(
             [guild for guild in self.client.guilds if guild.member_count >= 5]), inline=True)
 
+        embed.add_field(name='lines of code',
+                        value=f"{self.client.line_count:,}", inline=True)
+
         embed.add_field(name='base auto responses', value=len(
             self.client.au.au.base), inline=False)
 

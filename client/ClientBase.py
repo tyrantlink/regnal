@@ -1,10 +1,10 @@
 from discord import Interaction, ApplicationContext, Embed, Webhook, File, Activity, ActivityType, Guild, Message
 from discord.errors import CheckFailure, ApplicationCommandInvokeError, HTTPException
 from utils.db import MongoDatabase, Guild as GuildDocument
+from utils.tyrantlib import get_version, get_line_count
 from utils.db.documents.ext.flags import UserFlags
 from traceback import format_exc, format_tb
 from .permissions import PermissionHandler
-from utils.tyrantlib import get_version
 from utils.log import Logger, LogLevel
 from time import perf_counter, time
 from discord.ext.tasks import loop
@@ -52,6 +52,16 @@ class ClientBase:
             self.project.config.git_branch,
             self.project.config.start_commit,
             self.project.config.base_version
+        )
+
+        self.line_count = sum(
+            (
+                await get_line_count('main.py'),
+                await get_line_count('client', ['__pycache__'], [], ['py']),
+                await get_line_count('utils', ['__pycache__'], [], ['py']),
+                await get_line_count('extensions', ['__pycache__'], [], ['py']),
+                await get_line_count(f'bots/{self.project.bot.logstream}', ['__pycache__'], [], ['py'])
+            )
         )
 
         self._initialized = True
@@ -333,7 +343,7 @@ class ClientBase:
         await self.handle_guild_message(message)
 
     # ? Tasks
-    @loop(minutes=1)
+    @ loop(minutes=1)
     async def update_presence(self) -> None:
         if (new := round((time()-self.version.timestamp)/3600)) != self.last_update_hour:
             self.last_update_hour = new
