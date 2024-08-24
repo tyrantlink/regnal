@@ -467,19 +467,20 @@ class AutoResponses:
             return None
 
         if response.content:
-            if not response.followups:
-                return ScriptResponse(
-                    content=response.content
-                )
-
+            length = len(response.content)
             return ScriptResponse(
-                content=response.content,
+                content=(
+                    f'response too long ({length}/2000)'
+                    if length > 2000 else
+                    response.content
+                ),
                 followups=[
                     AutoResponse.AutoResponseData.AutoResponseFollowup(
                         delay=delay,
-                        response=response
+                        response=f'response too long ({len(content)}/2000)' if len(
+                            content) > 2000 else content
                     )
-                    for delay, response in response.followups
+                    for delay, content in response.followups or []
                 ]
             )
 
