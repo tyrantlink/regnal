@@ -550,6 +550,12 @@ class AutoResponses:
                 script_response = await wait_for(future, timeout=5)
             except TimeoutError:
                 executor.shutdown(wait=False, cancel_futures=True)
+                create_task(
+                    self.client.helpers.notify_reaction(
+                        message,
+                        '⏰',
+                        delay=5)
+                )
                 return None
 
         return await self.script_response_parser(
