@@ -1,9 +1,9 @@
-from discord import Member, Embed, Interaction, ButtonStyle, InputTextStyle
+from discord import Member, Embed, Interaction, ButtonStyle, InputTextStyle, SelectOption
+from discord.ui import button, Button, InputText, string_select, Select
 from utils.pycord_classes import SubView, MasterView, CustomModal
 from utils.db.documents.auto_response import AutoResponse
 from utils.db.documents.ext.enums import AutoResponseType
 from ..embed import au_info_embed, auto_response_404
-from discord.ui import button, Button, InputText
 from .editor import AutoResponseEditorView
 
 
@@ -41,8 +41,12 @@ class AutoResponseOverridesView(SubView):
             if au.type != AutoResponseType.deleted
         ]
 
-    async def reload_items(self) -> None:
+    async def reload_items(self, overrides: dict | None = None) -> None:
         self.clear_items()
+        if overrides is None:
+            overrides = (
+                await self.client.db.guild(self.user.guild.id)
+            ).data.auto_responses.overrides
 
         self.add_items(
             self.back_button,
@@ -54,12 +58,28 @@ class AutoResponseOverridesView(SubView):
             self.add_items(
                 self.button_edit
             )
-            if self.selected.id in (
-                await self.client.db.guild(self.user.guild.id)
-            ).data.auto_responses.overrides:
+            if self.selected.id in overrides:
                 self.add_items(
                     self.button_remove_overrides
                 )
+
+        if overrides:
+            self.add_items(self.select_override)
+
+            self.get_item('select_override').options = [
+                SelectOption(
+                    label=au.trigger,
+                    value=au.id,
+                    description=au.response[:50] or None
+                )
+                for au in
+                [
+                    self.client.au.get_with_overrides(
+                        au_id, overrides.get(au_id, {})
+                    )
+                    for au_id in overrides.keys()
+                ]
+            ][:25]
 
     async def reload_embed(self) -> None:
         if self.selected is None:
@@ -72,7 +92,21 @@ class AutoResponseOverridesView(SubView):
 
         self.embed = await au_info_embed(self.selected, self.client, self.master.embed_color, True)
 
-    @button(
+    @string_select(
+        placeholder='select an override',
+        custom_id='select_override')
+    async def select_override(self, select: Select, interaction: Interaction) -> None:
+        self.selected = self.client.au.get(select.values[0]).with_overrides(
+            (await self.client.db.guild(self.user.guild.id)
+             ).data.auto_responses.overrides.get(select.values[0], {})
+        )
+
+        await self.reload_items()
+        await self.reload_embed()
+
+        await interaction.response.edit_message(embed=self.embed, view=self)
+
+    @ button(
         label='🔎 by id',
         style=ButtonStyle.blurple,
         row=2,
@@ -117,7 +151,7 @@ class AutoResponseOverridesView(SubView):
 
         await modal.interaction.response.edit_message(embed=self.embed, view=self)
 
-    @button(
+    @ button(
         label='🔎 by message',
         style=ButtonStyle.blurple,
         row=2,
@@ -165,7 +199,7 @@ class AutoResponseOverridesView(SubView):
 
         await modal.interaction.response.edit_message(embed=self.embed, view=self)
 
-    @button(
+    @ button(
         label='edit',
         style=ButtonStyle.green,
         row=2,
@@ -179,7 +213,7 @@ class AutoResponseOverridesView(SubView):
 
         await interaction.response.edit_message(embed=view.embed, view=view)
 
-    @button(
+    @ button(
         label='remove overrides',
         style=ButtonStyle.red,
         row=3,
@@ -198,10 +232,7 @@ class AutoResponseOverridesView(SubView):
 
         self.selected = self.client.au.get(self.selected.id)
 
-        await self.reload_items()
-
-        # ? caching is stupid and dumb
-        self.remove_item(self.button_remove_overrides)
+        await self.reload_items(guild.data.auto_responses.overrides)
 
         await self.reload_embed()
 
