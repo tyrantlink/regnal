@@ -54,6 +54,12 @@ class AutoResponseOverridesView(SubView):
             self.add_items(
                 self.button_edit
             )
+            if self.selected.id in (
+                await self.client.db.guild(self.user.guild.id)
+            ).data.auto_responses.overrides:
+                self.add_items(
+                    self.button_remove_overrides
+                )
 
     async def reload_embed(self) -> None:
         if self.selected is None:
@@ -172,3 +178,31 @@ class AutoResponseOverridesView(SubView):
         await view.__ainit__()
 
         await interaction.response.edit_message(embed=view.embed, view=view)
+
+    @button(
+        label='remove overrides',
+        style=ButtonStyle.red,
+        row=3,
+        custom_id='button_remove_overrides')
+    async def button_remove_overrides(self, button: Button, interaction: Interaction) -> None:
+        if self.selected is None:
+            return
+
+        guild = await self.client.db.guild(self.user.guild.id)
+
+        if self.selected.id in guild.data.auto_responses.overrides:
+
+            del guild.data.auto_responses.overrides[self.selected.id]
+
+            await guild.save()
+
+        self.selected = self.client.au.get(self.selected.id)
+
+        await self.reload_items()
+
+        # ? caching is stupid and dumb
+        self.remove_item(self.button_remove_overrides)
+
+        await self.reload_embed()
+
+        await interaction.response.edit_message(embed=self.embed, view=self)
