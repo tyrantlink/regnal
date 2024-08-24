@@ -156,14 +156,14 @@ def register_user_config(config: 'Config') -> None:
             default=1.0,
             attrs=ConfigAttrs(
                 min_value=0.25,
-                max_value=4.0),
+                max_value=1.5),
             short_description='speaking rate',
             description='''
                 speaking rate for tts
-                - 0.25 to 4.0
+                - 0.25 to 2.0
                 - 0.25 is 25% of normal speed
                 - 1.0 is normal speed
-                - 4.0 is 4x normal speed
+                - 1.5 is 1.5x normal speed
             '''.replace('    ', '').strip())
     )
 
