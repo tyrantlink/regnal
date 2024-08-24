@@ -201,7 +201,7 @@ class AutoResponses:
                         0 if au.data.case_sensitive else IGNORECASE
                     )
                 case AutoResponseMethod.mention:
-                    match = search(
+                    match = fullmatch(
                         rf'<@!?{au.trigger}>(\s|$)',
                         message,
                         0 if au.data.case_sensitive else IGNORECASE
