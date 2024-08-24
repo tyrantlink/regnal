@@ -14,6 +14,7 @@ from au_scripts import (
     SCRIPTED_AUTO_RESPONSES,
     Message as AUMessage,
     Channel as AUChannel,
+    MessageReference,
     Guild as AUGuild,
     User as AUUser,
     Attachment,
@@ -530,6 +531,22 @@ class AutoResponses:
                     created_at=message.guild.me.created_at,
                     nickname=message.guild.me.nick)),
             content=args.message,
+            reference=(
+                MessageReference(
+                    id=message.reference.message_id,
+                    author=AUUser(
+                        name=message.reference.resolved.author.name,
+                        id=message.reference.resolved.author.id,
+                        created_at=message.reference.resolved.author.created_at,
+                        nickname=message.reference.resolved.author.nick),
+                    content=message.reference.resolved.content
+                )
+                if (
+                    message.reference is not None and
+                    message.reference.resolved is not None
+                )
+                else None
+            ),
             attachments=[
                 Attachment(
                     filename=attachment.filename,
