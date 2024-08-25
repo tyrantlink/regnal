@@ -119,11 +119,15 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 
     def get_attachment_name(self, filename: str, full_name: bool = False) -> str:
         if full_name:
+            _filename, extension = filename.replace('_', ' ').rsplit('.', 1)
             return ' dot '.join(  # ? google tts is stupid and only reads the dots half the time
-                filename.replace('_', ' ').rsplit('.', 1)
+                [
+                    _filename,
+                    extension.upper()
+                ]
             )
 
-        match filename.split('.')[-1]:
+        match filename.rsplit('.')[-1]:
             case 'png' | 'jpg' | 'jpeg' | 'webp':
                 return 'an image'
             case 'gif':
