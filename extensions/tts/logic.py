@@ -4,10 +4,10 @@ from .models import UserTTSProfile, TTSMessage, GuildTTS
 from .valid_voices import valid_voices
 from asyncio import Queue, create_task
 from .subcog import ExtensionTTSSubCog
+from random import randint, choice
 from .tts_audio import TTSAudio
 from time import perf_counter
 from re import sub, finditer
-from random import randint
 from io import BytesIO
 
 
@@ -187,12 +187,20 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
             message
         )
         # easter egg
+        # ? i know this is implemented poorly but i don't care enough to do like,
+        # ? an actual match to make sure i replace the right one
         if all((
             message != pre_sub_message,
             'a tenor link' in message,
             not randint(0, 100)
         )):
-            message = message.replace('a tenor link', 'an elevenor link')
+            message = message.replace(
+                'a tenor link',
+                choice((
+                    'an elevenor link',
+                    'a ninor link'
+                ))
+            )
         # strip linked urls
         message = sub(
             r'\[(.*)\]\(.*\)',
