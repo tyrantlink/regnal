@@ -191,7 +191,10 @@ class ConfigOptionLogic(ConfigOptionTypeHint):
 
         if (
             self.config_category.name == 'guild' and
-            self.object_doc.config.logging and
+            (
+                self.object_doc.config.logging.enabled or
+                f'{self.config_subcategory.name}.{self.option.name}' == 'logging.enabled'
+            ) and
             (
                 self.object_doc.config.logging.channel or
                 f'{self.config_subcategory.name}.{self.option.name}' == 'logging.channel' and
