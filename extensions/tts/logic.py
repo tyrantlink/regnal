@@ -138,7 +138,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
             return ' dot '.join(  # ? google tts is stupid and only reads the dots half the time
                 [
                     _filename,
-                    extension.upper()
+                    ' '.join(extension.upper())
                 ]
             )
 
