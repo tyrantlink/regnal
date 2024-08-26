@@ -12,7 +12,7 @@ class ClientHelpers:
     def __init__(self, client: 'Client') -> None:
         self.client = client
         self._cmd_ref_pattern = r'{cmd_ref\[([ -_\p{L}\p{N}]{1,32})\]}'
-        self.commands = set()
+        self.commands = {}
 
     def load_commands(self) -> None:
         self.commands = {
