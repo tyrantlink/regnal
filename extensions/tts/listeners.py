@@ -82,10 +82,28 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
             if user_doc.config.tts.text_correction:
                 text = self.process_text_correction(text)
 
+        attachment_types = {}
+        checked_types = set()
+        if not user_doc.config.tts.read_filenames:
+            for attachment in message.attachments:
+                file_type = self.get_file_type(attachment.filename)
+                attachment_types[
+                    file_type
+                ] = attachment_types.get(file_type, 0) + 1
+
         for attachment in message.attachments:
+            file_type = self.get_file_type(attachment.filename)
+            if (
+                not user_doc.config.tts.read_filenames and
+                file_type in checked_types
+            ):
+                continue
+
+            checked_types.add(file_type)
             name = self.get_attachment_name(
                 attachment.filename,
-                user_doc.config.tts.read_filenames
+                user_doc.config.tts.read_filenames,
+                attachment_types.get(file_type, 0)
             )
             text += (
                 f' along with {name}'

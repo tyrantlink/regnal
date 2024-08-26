@@ -34,10 +34,13 @@ class ExtensionTTSSubCog(SubCog):
         guild: Guild
     ) -> None: ...
 
+    def get_file_type(self, filename: str) -> str: ...
+
     def get_attachment_name(
         self,
         filename: str,
-        full_name: bool = False
+        full_name: bool = False,
+        count: int = 1
     ) -> str: ...
 
     def process_message(self, message: str) -> str: ...

@@ -117,7 +117,22 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
 
         self._guilds[guild.id].queue.put_nowait(message)
 
-    def get_attachment_name(self, filename: str, full_name: bool = False) -> str:
+    def get_file_type(self, filename: str) -> str:
+        match filename.rsplit('.')[-1]:
+            case 'png' | 'jpg' | 'jpeg' | 'webp':
+                return 'image'
+            case 'gif':
+                return 'gif'
+            case 'mp4' | 'webm' | 'mov' | 'avi' | 'mkv':
+                return 'video'
+            case 'mp3' | 'wav' | 'flac' | 'ogg':
+                return 'audio'
+            case 'txt' | 'md':
+                return 'text'
+            case ext:
+                return ext
+
+    def get_attachment_name(self, filename: str, full_name: bool = False, count: int = 1) -> str:
         if full_name:
             _filename, extension = filename.replace('_', ' ').rsplit('.', 1)
             return ' dot '.join(  # ? google tts is stupid and only reads the dots half the time
@@ -127,19 +142,23 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
                 ]
             )
 
-        match filename.rsplit('.')[-1]:
-            case 'png' | 'jpg' | 'jpeg' | 'webp':
-                return 'an image'
+        match self.get_file_type(filename):
+            case 'image':
+                return 'an image' if count == 1 else f'{count} images'
             case 'gif':
-                return 'a gif'
-            case 'mp4' | 'webm' | 'mov' | 'avi' | 'mkv':
-                return 'a video'
-            case 'mp3' | 'wav' | 'flac' | 'ogg':
-                return 'an audio file'
-            case 'txt' | 'md':
-                return 'a text file'
+                return 'a gif' if count == 1 else f'{count} gifs'
+            case 'video':
+                return 'a video' if count == 1 else f'{count} videos'
+            case 'audio':
+                return 'an audio file' if count == 1 else f'{count} audio files'
+            case 'text':
+                return 'a text file' if count == 1 else f'{count} text files'
             case ext:
-                return f'a{"n" if ext and ext[0] in {"a","e","i","o","u"} else ""} {ext} file'
+                return (
+                    f'a{"n" if ext and ext[0] in {"a","e","i","o","u"} else ""} {ext} file'
+                    if count == 1 else
+                    f'{count} {ext} files'
+                )
 
     def process_message(self, message: str, guild: Guild) -> str:
         # strip markdown
