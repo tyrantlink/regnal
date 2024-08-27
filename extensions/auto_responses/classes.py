@@ -260,6 +260,46 @@ class AutoResponses:
 
             return formatted_response
 
+    def apply_formatting(
+        self,
+        response: AutoResponse,
+        message: Message,
+        args: ArgParser
+    ) -> None:
+        # insert regex groups
+        if search(r'\{g\d+\}', response.response):
+            formatted_response = self.insert_regex_groups(
+                response, args.message
+            )
+
+            if formatted_response is None:
+                create_task(
+                    self.client.helpers.notify_reaction(message, delay=2)
+                )
+                return None
+
+            response = response.with_overrides(
+                {'response': formatted_response}
+            )
+        # insert dynamic variables
+        if search(r'\{[a-z]+\}', response.response):
+            try:
+                formatted_response = response.response.format(
+                    user=message.author.mention
+                )
+            except KeyError:
+                create_task(
+                    self.client.helpers.notify_reaction(message, delay=2)
+                )
+                return None
+            response = response.with_overrides(
+                {
+                    'response': formatted_response
+                }
+            )
+
+        return response
+
     async def get_response(
         self,
         message: Message,
@@ -297,23 +337,7 @@ class AutoResponses:
                         )
                     )
             ):
-                if search(r'\{g\d+\}', response.response):
-                    formatted_response = self.insert_regex_groups(
-                        response, args.message
-                    )
-
-                    if formatted_response is None:
-                        create_task(
-                            self.client.helpers.notify_reaction(
-                                message, delay=2)
-                        )
-                        return None
-
-                    response = response.with_overrides(
-                        {'response': formatted_response}
-                    )
-
-                return response
+                return self.apply_formatting(response, message, args)
 
             create_task(self.client.helpers.notify_reaction(message))
 
@@ -415,39 +439,8 @@ class AutoResponses:
             options.remove((choice, choice.data.weight))
         else:
             return None
-        # insert regex groups
-        if search(r'\{g\d+\}', response.response):
-            formatted_response = self.insert_regex_groups(
-                response, args.message
-            )
 
-            if formatted_response is None:
-                create_task(
-                    self.client.helpers.notify_reaction(message, delay=2)
-                )
-                return None
-
-            response = response.with_overrides(
-                {'response': formatted_response}
-            )
-        # insert dynamic variables
-        if search(r'\{[a-z]+\}', response.response):
-            try:
-                formatted_response = response.response.format(
-                    user=message.author.mention
-                )
-            except KeyError:
-                create_task(
-                    self.client.helpers.notify_reaction(message, delay=2)
-                )
-                return None
-            response = response.with_overrides(
-                {
-                    'response': formatted_response
-                }
-            )
-
-        return response
+        return self.apply_formatting(response, message, args)
 
     async def script_response_parser(
         self,
