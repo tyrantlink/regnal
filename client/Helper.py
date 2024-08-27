@@ -19,7 +19,10 @@ class ClientHelpers:
             command.qualified_name: command.qualified_id
             for command in
             self.client.walk_application_commands()
-            if command is not None
+            if (
+                command is not None and
+                getattr(command, 'qualified_id', None) is not None
+            )
         }
 
     async def embed_color(self, guild_id: int = None) -> int:
