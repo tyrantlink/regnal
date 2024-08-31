@@ -292,7 +292,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
         await self.disconnect(guild)
 
     async def join_channel(self, channel: VoiceChannel) -> None:
-        voice_client: VoiceClient = channel.guild.voice_client
+        voice_client: VoiceClient | None = channel.guild.voice_client
 
         if voice_client is None:
             await channel.connect()
