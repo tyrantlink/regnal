@@ -1,8 +1,11 @@
+from google.cloud.texttospeech import VoiceSelectionParams, AudioConfig, AudioEncoding
+from google.api_core.exceptions import ServiceUnavailable, InternalServerError
 from utils.db.documents.ext.flags import UserFlags
 from utils.db.documents.ext.enums import TTSMode
 from discord import Message, Member, VoiceState
 from .subcog import ExtensionTTSSubCog
 from discord.ext.commands import Cog
+from .models import UserTTSProfile
 from asyncio import create_task
 from re import fullmatch
 
@@ -12,6 +15,17 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
     async def on_connect(self) -> None:
         self.text_corrections = await self.client.db.inf.text_correction()
         await self.reload_voices()
+
+        self.error_profile = UserTTSProfile(
+            name=self.client.user.display_name,
+            text_correction=False,
+            voice=VoiceSelectionParams(
+                language_code='en-US',
+                name='en-US-Neural2-H'),
+            audio_config=AudioConfig(
+                audio_encoding=AudioEncoding.OGG_OPUS,
+                speaking_rate=0.8)
+        )
 
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
@@ -155,7 +169,13 @@ class ExtensionTTSListeners(ExtensionTTSSubCog):
             create_task(self.client.helpers.notify_reaction(message))
             return
         # generate audio
-        audio = await self.generate_audio(text, profile)
+        try:
+            audio = await self.generate_audio(text, profile)
+        except (ServiceUnavailable, InternalServerError):
+            audio = await self.generate_audio(
+                message='google text to speech is down, please try again later',
+                profile=self.error_profile
+            )
         # add message to queue
         await self.add_message_to_queue(audio, message.guild)
         # update statistics

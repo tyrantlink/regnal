@@ -12,6 +12,7 @@ class ExtensionTTSSubCog(SubCog):
         self.tts: TextToSpeechAsyncClient
         self._guilds: dict[int, GuildTTS]
         self.text_corrections: dict[str, str]
+        self.error_profile: UserTTSProfile
         super().__init__()
 
     async def get_guild_or_join(
