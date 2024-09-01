@@ -182,7 +182,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
         # pronounce urls
         pre_sub_message = message
         message = sub(
-            r'(?:^|\ )<?https?:\/\/(?:.*\.)?(.*)\.(?:.[^/]+)[^\s]+.>?',
+            r'(?:^|\s)<?(?:https?:\/\/)(?:([a-zA-Z0-9-]+)\.)+(?:.*)>?(?:$|\s)?',
             r'a \g<1> link',
             message
         )
