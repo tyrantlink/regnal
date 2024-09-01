@@ -6,6 +6,7 @@ from asyncio import Queue, create_task
 from .subcog import ExtensionTTSSubCog
 from random import randint, choice
 from .tts_audio import TTSAudio
+from datetime import datetime
 from time import perf_counter
 from re import sub, finditer
 from io import BytesIO
@@ -83,6 +84,8 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
         from_cache = await self.client.db.tts_cache(tts_message.__hash__())
 
         if from_cache is not None:
+            from_cache.ts = datetime.now()
+            create_task(from_cache.save_changes())
             tts_message.data.write(from_cache.data)
             tts_message.data.seek(0)
 
