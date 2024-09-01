@@ -68,6 +68,7 @@ class ExtensionTTSLogic(ExtensionTTSSubCog):
             message.__hash__(),
             message.data.getvalue()
         ).save()
+        # ? getting it from the db so it's in local cache
         await self.client.db.tts_cache(message.__hash__())
 
     async def generate_audio(self, message: str, profile: UserTTSProfile) -> TTSMessage:
