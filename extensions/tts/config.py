@@ -1,4 +1,5 @@
-from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs, ConfigStringOption, AdditionalView
+from __future__ import annotations
+from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs, ConfigStringOption, AdditionalView, NewConfigSubcategory, NewConfigOption
 from client.config.errors import ConfigValidationError
 from utils.db.documents.ext.enums import TTSMode
 from discord import Member, ChannelType
@@ -7,11 +8,11 @@ from .views import TTSBanningView
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from client import Client, Config
+    from client import Client
 
 
 async def validate_voice(
-    client: 'Client',
+    client: Client,
     option: ConfigOption,
     value: str,
     user: Member
@@ -25,7 +26,7 @@ async def validate_voice(
 
 
 async def validate_channels(
-        client: 'Client',
+        client: Client,
         option: ConfigOption,
         value: list[int],
         user: Member
@@ -45,18 +46,37 @@ async def validate_channels(
     return value, '\n'.join(warnings) if warnings else None
 
 
-def register_user_config(config: 'Config') -> None:
-    config.register_subcategory(
-        category='user',
-        subcategory=ConfigSubcategory(
+subcategories = [
+    NewConfigSubcategory(
+        'user',
+        ConfigSubcategory(
             name='tts',
-            description='text-to-speech options')
+            description='text-to-speech options'
+        )
+    ),
+    NewConfigSubcategory(
+        'guild',
+        ConfigSubcategory(
+            name='tts',
+            description='text-to-speech options',
+            additional_views=[
+                AdditionalView(
+                    required_permissions='tts.ban',
+                    button_label='ban users',
+                    button_row=2,
+                    button_id='tts_ban',
+                    view=TTSBanningView
+                )
+            ]
+        )
     )
+]
 
-    config.register_option(
-        category='user',
-        subcategory='tts',
-        option=ConfigOption(
+options = [
+    NewConfigOption(
+        'user',
+        'tts',
+        ConfigOption(
             name='mode',
             type=OptionType.STRING,
             default=TTSMode.only_when_muted.name,
@@ -81,30 +101,31 @@ def register_user_config(config: 'Config') -> None:
                 - only when muted: speak message only when you're muted
                 - always: speak every message
                 - never: never speak messages
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='user',
-        subcategory='tts',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'tts',
+        ConfigOption(
             name='name',
             type=OptionType.STRING,
             default=None,
             short_description='tts name',
             nullable=True,
             attrs=ConfigAttrs(
-                    min_length=1,
-                    max_length=32),
+                min_length=1,
+                max_length=32),
             description='''
                 voice name to use for tts
                 - if not set, your display name will be used
-            '''.replace('    ', '').strip()))
-
-    config.register_option(
-        category='user',
-        subcategory='tts',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'tts',
+        ConfigOption(
             name='auto_join',
             type=OptionType.BOOL,
             default=False,
@@ -112,13 +133,13 @@ def register_user_config(config: 'Config') -> None:
             description='''
                 join tts channel when you send a message
                 - you must be in a voice channel
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='user',
-        subcategory='tts',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'tts',
+        ConfigOption(
             name='voice',
             type=OptionType.STRING,
             default=None,
@@ -144,13 +165,13 @@ def register_user_config(config: 'Config') -> None:
                   - wavenet : 100ms
                   - news    : 80ms
                 - if set to None, the current server's default voice will be used
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='user',
-        subcategory='tts',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'tts',
+        ConfigOption(
             name='speaking_rate',
             type=OptionType.FLOAT,
             default=1.0,
@@ -164,61 +185,49 @@ def register_user_config(config: 'Config') -> None:
                 - 0.25 is 25% of normal speed
                 - 1.0 is normal speed
                 - 1.5 is 1.5x normal speed
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='user',
-        subcategory='tts',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'tts',
+        ConfigOption(
             name='text_correction',
             type=OptionType.BOOL,
             default=True,
             short_description='text correction',
-            description='silently corrects text so it\'s more accurately pronounced')
-    )
-
-    config.register_option(
-        category='user',
-        subcategory='tts',
-        option=ConfigOption(
+            description='silently corrects text so it\'s more accurately pronounced'
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'tts',
+        ConfigOption(
             name='read_filenames',
             type=OptionType.BOOL,
             default=False,
             short_description='read filenames',
-            description='read filenames when tts is enabled (e.g. "USER sent crab.png")')
-    )
-
-
-def register_guild_config(config: 'Config') -> None:
-    config.register_subcategory(
-        category='guild',
-        subcategory=ConfigSubcategory(
-            name='tts',
-            description='text-to-speech options',
-            additional_views=[
-                AdditionalView(
-                    required_permissions='tts.ban',
-                    button_label='ban users',
-                    button_row=2,
-                    button_id='tts_ban',
-                    view=TTSBanningView)])
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='tts',
-        option=ConfigOption(
+            description='''
+                read filenames when tts is enabled
+                (e.g. "USER sent crab.png" versus "USER sent an image")
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'tts',
+        ConfigOption(
             name='enabled',
             type=OptionType.BOOL,
             default=False,
             short_description='enable/disable tts',
-            description='enable/disable tts'))
-
-    config.register_option(
-        category='guild',
-        subcategory='tts',
-        option=ConfigOption(
+            description='enable/disable tts'
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'tts',
+        ConfigOption(
             name='channels',
             type=OptionType.CHANNEL,
             default=[],
@@ -230,13 +239,13 @@ def register_guild_config(config: 'Config') -> None:
             description='''
                 configure tts channels
                 users will be able to send tts messages from all these channels *in addition to* the current voice channel
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='tts',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'tts',
+        ConfigOption(
             name='default_voice',
             type=OptionType.STRING,
             default=None,
@@ -247,10 +256,8 @@ def register_guild_config(config: 'Config') -> None:
             description='''
                 default voice to use for tts
                 - if set to None, en-US-Neural2-H will be used
-            '''.replace('    ', '').strip())
+            '''.replace('    ', '').strip()
+        )
     )
 
-
-def register_config(config: 'Config') -> None:
-    register_user_config(config)
-    register_guild_config(config)
+]

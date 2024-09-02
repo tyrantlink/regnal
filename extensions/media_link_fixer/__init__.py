@@ -1,6 +1,6 @@
 from .listeners import ExtensionMediaLinkFixerListeners
 from .logic import ExtensionMediaLinkFixerLogic
-from .config import register_config
+from .config import options
 from client import Client
 from discord import Cog
 
@@ -16,5 +16,5 @@ class ExtensionMediaLinkFixer(
 
 
 def setup(client: Client) -> None:
-    register_config(client.config)
+    client.config._options += options
     client.add_cog(ExtensionMediaLinkFixer(client))

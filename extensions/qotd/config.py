@@ -1,13 +1,16 @@
-from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs
+from __future__ import annotations
+from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs, NewConfigSubcategory, NewConfigOption
 from client.config.errors import ConfigValidationError
-if not 'TYPE_HINT':
-    from client import Client, Config
 from discord import Member, ChannelType, ForumChannel
 from discord.abc import GuildChannel
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from client import Client
 
 
 async def validate_channel(
-    client: 'Client',
+    client: Client,
     option: ConfigOption,
     value: ForumChannel | GuildChannel,
     user: Member
@@ -38,18 +41,22 @@ async def validate_channel(
     return value, None
 
 
-def register_config(config: 'Config') -> None:
-    config.register_subcategory(
-        category='guild',
-        subcategory=ConfigSubcategory(
+subcategories = [
+    NewConfigSubcategory(
+        'guild',
+        ConfigSubcategory(
             name='qotd',
-            description='question of the day options')
+            description='question of the day options'
+        )
     )
+]
 
-    config.register_option(
-        category='guild',
-        subcategory='qotd',
-        option=ConfigOption(
+
+options = [
+    NewConfigOption(
+        'guild',
+        'qotd',
+        ConfigOption(
             name='enabled',
             type=OptionType.BOOL,
             default=False,
@@ -57,13 +64,13 @@ def register_config(config: 'Config') -> None:
             description='''
                 random daily questions\n
                 let members suggest custom questions with {cmd_ref[qotd custom]}
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='qotd',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'qotd',
+        ConfigOption(
             name='channel',
             type=OptionType.CHANNEL,
             default=None,
@@ -73,14 +80,14 @@ def register_config(config: 'Config') -> None:
             short_description='channel where qotd is sent',
             description='''
                 channel where qotd is sent
-                channel *must* be a forum channel with no required tags
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='qotd',
-        option=ConfigOption(
+                channel **must** be a forum channel with no required tags
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'qotd',
+        ConfigOption(
             name='time',
             type=OptionType.STRING,
             default='09:00',
@@ -93,5 +100,7 @@ def register_config(config: 'Config') -> None:
                 time of day qotd is asked
                 format: HH:MM (24 hour) (includes leading zeros)
                 follows guild set timezone
-            '''.replace('    ', '').strip())
+            '''.replace('    ', '').strip()
+        )
     )
+]

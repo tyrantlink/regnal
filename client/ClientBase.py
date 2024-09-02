@@ -44,6 +44,7 @@ class ClientBase:
         self._initialized = False
 
     async def initialize(self) -> None:
+        self.config.load_config()
         await self.db.connect()
         await self.api.connect()
         await self.log.logstream_init()
@@ -222,8 +223,8 @@ class ClientBase:
                 str(e),
                 traceback="".join(format_tb(e.__traceback__))
             )
-
-        self.log.info(f'loaded extension {name.split(".")[-1]}')
+        else:
+            self.log.info(f'loaded extension {name.split(".")[-1]}')
 
     async def stop(self) -> None:
         await self.close()

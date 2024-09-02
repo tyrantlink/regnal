@@ -1,8 +1,8 @@
 from .listeners import ExtensionAutoResponsesListeners
 from .commands import ExtensionAutoResponsesCommands
 from .logic import ExtensionAutoResponsesLogic
+from .config import subcategories, options
 from au_scripts.aulib import SECRETS
-from .config import register_config
 from .classes import AutoResponses
 from client import Client
 from discord import Cog
@@ -23,8 +23,8 @@ class ExtensionAutoResponses(
 def setup(client: Client) -> None:
     client.permissions.register_permission('auto_responses.custom')
     client.permissions.register_permission('auto_responses.override')
-
-    register_config(client.config)
+    client.config._subcategories += subcategories
+    client.config._options += options
 
     client.add_cog(ExtensionAutoResponses(client))
 

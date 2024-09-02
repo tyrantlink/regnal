@@ -1,15 +1,16 @@
-from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs, AdditionalView
+from __future__ import annotations
+from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs, AdditionalView, NewConfigSubcategory, NewConfigOption
 from client.config.errors import ConfigValidationError
 from .views import ActivityRolesIgnoreView
 from discord import Member, Role
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from client import Client, Config
+    from client import Client
 
 
 async def validate_role(
-    client: 'Client',
+    client: Client,
     option: ConfigOption,
     value: Role,
     user: Member
@@ -24,11 +25,10 @@ async def validate_role(
 
     return value, None
 
-
-def register_config(config: 'Config') -> None:
-    config.register_subcategory(
-        category='guild',
-        subcategory=ConfigSubcategory(
+subcategories = [
+    NewConfigSubcategory(
+        'guild',
+        ConfigSubcategory(
             name='activity_roles',
             description='activity role options',
             additional_views=[
@@ -37,37 +37,42 @@ def register_config(config: 'Config') -> None:
                     button_label='ignore roles',
                     button_row=2,
                     button_id='ignore_roles',
-                    view=ActivityRolesIgnoreView)])
+                    view=ActivityRolesIgnoreView
+                )
+            ]
+        )
     )
+]
 
-    config.register_option(
-        category='guild',
-        subcategory='activity_roles',
-        option=ConfigOption(
+options = [
+    NewConfigOption(
+        'guild',
+        'activity_roles',
+        ConfigOption(
             name='enabled',
             type=OptionType.BOOL,
             default=False,
             short_description='enable/disable activity roles',
-            description='give your most active members a role')
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='activity_roles',
-        option=ConfigOption(
+            description='give your most active members a role'
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'activity_roles',
+        ConfigOption(
             name='role',
             type=OptionType.ROLE,
             default=None,
             attrs=ConfigAttrs(validation=validate_role),
             nullable=True,
             short_description='role given to active users',
-            description='role given to active users')
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='activity_roles',
-        option=ConfigOption(
+            description='role given to active users'
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'activity_roles',
+        ConfigOption(
             name='timeframe',
             type=OptionType.INT,
             default=7,
@@ -76,13 +81,13 @@ def register_config(config: 'Config') -> None:
             description='''
                 number of days counted for activity
                 (e.g. last 7 days)
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='activity_roles',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'activity_roles',
+        ConfigOption(
             name='max_roles',
             type=OptionType.INT,
             default=10,
@@ -91,19 +96,18 @@ def register_config(config: 'Config') -> None:
             description='''
                 maximum number of roles to give
                 (e.g. the 10 most active members get a role)
-            '''.replace('    ', '').strip())
-    )
-
-    if 'logging' in {s.name for s in config.data.guild.subcategories}:
-        # ? this doesn't actually work because the logging extensions is always loaded after this one
-        # ? will require a full rework of the config system to fix
-        config.register_option(
-            category='guild',
-            subcategory='logging',
-            option=ConfigOption(
-                name='activity_roles',
-                type=OptionType.BOOL,
-                default=True,
-                short_description='enable/disable logging of activity role changes',
-                description='enable/disable logging of activity role changes')
+            '''.replace('    ', '').strip()
         )
+    ),
+    NewConfigOption(
+        'guild',
+        'logging',
+        ConfigOption(
+            name='activity_roles',
+            type=OptionType.BOOL,
+            default=True,
+            short_description='enable/disable logging of activity role changes',
+            description='enable/disable logging of activity role changes'
+        )
+    )
+]

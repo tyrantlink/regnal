@@ -1,28 +1,35 @@
 from .validation import user_general_no_track, guild_general_embed_color, guild_general_timezone
-from .models import ConfigSubcategory, ConfigOption, OptionType, ConfigAttrs
+from .models import ConfigSubcategory, ConfigOption, OptionType, ConfigAttrs, NewConfigSubcategory, NewConfigOption
 from utils.db.documents.ext.enums import TWBFMode
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from . import Config
 
 
-def register_user_config(config: 'Config') -> None:
-    config.register_subcategory(
-        category='user',
-        subcategory=ConfigSubcategory(
+subcategories = [
+    NewConfigSubcategory(
+        'user',
+        ConfigSubcategory(
             name='general',
-            description='general options'))
+            description='general options'
+        )
+    ),
+    NewConfigSubcategory(
+        'guild',
+        ConfigSubcategory(
+            name='general',
+            description='general options'
+        )
+    )
+]
 
-    config.register_option(
-        category='user',
-        subcategory='general',
-        option=ConfigOption(
+options = [
+    NewConfigOption(
+        'user',
+        'general',
+        ConfigOption(
             name='no_track',
             type=OptionType.BOOL,
             default=False,
             attrs=ConfigAttrs(
-                    validation=user_general_no_track),
+                validation=user_general_no_track),
             short_description='disables tracking',
             description='''
                 disables the following features:
@@ -33,13 +40,13 @@ def register_user_config(config: 'Config') -> None:
                   - auto responses will still be triggered
                   - since they are not found, you will not be able to trigger them with --au <id> or --alt <alt_id>
                 NOTE: some data, like api usage will still be tracked
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='user',
-        subcategory='general',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'general',
+        ConfigOption(
             name='hide_commands',
             type=OptionType.BOOL,
             default=True,
@@ -47,13 +54,13 @@ def register_user_config(config: 'Config') -> None:
             description='''
                 whether or not all commands are sent ehpemerally (only you can see them)
                 NOTE: sensitive commands, like {cmd_ref[config]}, {cmd_ref[auto_responses]}, and {cmd_ref[get_data]} are always ephemeral
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='user',
-        subcategory='general',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'general',
+        ConfigOption(
             name='developer_mode',
             type=OptionType.BOOL,
             default=False,
@@ -61,22 +68,13 @@ def register_user_config(config: 'Config') -> None:
             description='''
                 enables developer mode
                 shows more information in some commands, mainly auto responses
-            '''.replace('    ', '').strip())
-    )
-
-
-def register_guild_config(config: 'Config') -> None:
-    config.register_subcategory(
-        category='guild',
-        subcategory=ConfigSubcategory(
-            name='general',
-            description='general options')
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='general',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'general',
+        ConfigOption(
             name='hide_commands',
             type=OptionType.TWBF,
             default=TWBFMode.false,
@@ -87,13 +85,13 @@ def register_guild_config(config: 'Config') -> None:
                 - whitelist: commands are force hidden in specified channels
                 - blacklist: commands are force hidden except in specified channels
                 - false: fall back to user config
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='general',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'general',
+        ConfigOption(
             name='embed_color',
             type=OptionType.STRING,
             default='#69ff69',
@@ -107,13 +105,13 @@ def register_guild_config(config: 'Config') -> None:
             description='''
                 color of embeds sent by the bot
                 does not apply to logs
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='general',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'general',
+        ConfigOption(
             name='timezone',
             type=OptionType.STRING,
             default='America/Los_Angeles',
@@ -126,10 +124,7 @@ def register_guild_config(config: 'Config') -> None:
             description='''
                 used for all time-based events
                 please refer to [this list on wikipedia](<https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>) for a list of options
-            '''.replace('    ', '').strip())
+            '''.replace('    ', '').strip()
+        )
     )
-
-
-def register_config(config: 'Config') -> None:
-    register_user_config(config)
-    register_guild_config(config)
+]

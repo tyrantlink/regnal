@@ -1,10 +1,10 @@
 from utils.db.documents import Guild as GuildDocument
 from .listeners import ExtensionQOTDListeners
 from .commands import ExtensionQOTDCommands
+from .config import subcategories, options
 from .logic import ExtensionQOTDLogic
 from .tasks import ExtensionQOTDTasks
 from discord.ext.commands import Cog
-from .config import register_config
 from .views import QOTDAskLog
 from .models import QOTDPack
 from discord import Guild
@@ -30,5 +30,6 @@ class ExtensionQOTD(
 
 def setup(client: Client) -> None:
     client.permissions.register_permission('qotd.remove_custom')
+    client.config._subcategories += subcategories
+    client.config._options += options
     client.add_cog(ExtensionQOTD(client))
-    register_config(client.config)

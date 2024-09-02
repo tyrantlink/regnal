@@ -1,9 +1,9 @@
 from google.cloud.texttospeech import TextToSpeechAsyncClient
 from .listeners import ExtensionTTSListeners
 from .commands import ExtensionTTSCommands
+from .config import subcategories, options
 from discord.ext.commands import Cog
 from .logic import ExtensionTTSLogic
-from .config import register_config
 from .models import GuildTTS
 from client import Client
 
@@ -25,5 +25,6 @@ class ExtensionTTS(
 
 def setup(client: Client) -> None:
     client.permissions.register_permission('tts.ban')
-    register_config(client.config)
+    client.config._subcategories += subcategories
+    client.config._options += options
     client.add_cog(ExtensionTTS(client))

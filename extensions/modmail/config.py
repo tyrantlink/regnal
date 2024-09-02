@@ -1,18 +1,18 @@
-from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs
+from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs, NewConfigSubcategory, NewConfigOption
 from client.config.errors import ConfigValidationError
 from discord import Member, ChannelType, ForumChannel
 from discord.abc import GuildChannel
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from client import Client, Config
+    from client import Client
 
 
 async def validate_channel(
-        client: 'Client',
-        option: ConfigOption,
-        value: ForumChannel | GuildChannel,
-        user: Member
+    client: 'Client',
+    option: ConfigOption,
+    value: ForumChannel | GuildChannel,
+    user: Member
 ) -> tuple[ForumChannel, str | None]:
     if value.type != ChannelType.forum:
         raise ConfigValidationError('channel must be a forum channel!')
@@ -39,18 +39,21 @@ async def validate_channel(
     return value, None
 
 
-def register_config(config: 'Config') -> None:
-    config.register_subcategory(
-        category='guild',
-        subcategory=ConfigSubcategory(
+subcategories = [
+    NewConfigSubcategory(
+        'guild',
+        ConfigSubcategory(
             name='modmail',
-            description='modmail options')
+            description='modmail options'
+        )
     )
+]
 
-    config.register_option(
-        category='guild',
-        subcategory='modmail',
-        option=ConfigOption(
+options = [
+    NewConfigOption(
+        'guild',
+        'modmail',
+        ConfigOption(
             name='enabled',
             type=OptionType.BOOL,
             default=False,
@@ -58,12 +61,11 @@ def register_config(config: 'Config') -> None:
             description='''
                 let users report messages to staff with the modmail report message command
             '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='modmail',
-        option=ConfigOption(
+    ),
+    NewConfigOption(
+        'guild',
+        'modmail',
+        ConfigOption(
             name='channel',
             type=OptionType.CHANNEL,
             default=None,
@@ -74,15 +76,15 @@ def register_config(config: 'Config') -> None:
                 channel where modmail messages are sent
                 channel *must* be a forum channel with no required tags
             '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='modmail',
-        option=ConfigOption(
+    ),
+    NewConfigOption(
+        'guild',
+        'modmail',
+        ConfigOption(
             name='allow_anonymous',
             type=OptionType.BOOL,
             default='09:00',
             short_description='allow anonymous modmail messages',
             description='allow anonymous modmail messages')
     )
+]

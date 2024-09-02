@@ -1,6 +1,6 @@
 from .listeners import ExtensionAdminListeners
 from .commands import ExtensionAdminCommands
-from .config import register_config
+from .config import options
 from .views import AntiScamBotView
 from discord import Cog, Message
 from client import Client
@@ -19,6 +19,6 @@ class ExtensionAdmin(
 
 def setup(client: Client) -> None:
     client.add_cog(ExtensionAdmin(client))
-    register_config(client.config)
+    client.config._options += options
     client.permissions.register_permission('admin.ban_user')
     client.permissions.register_permission('admin.untimeout_user')

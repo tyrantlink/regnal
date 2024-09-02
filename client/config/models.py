@@ -137,3 +137,16 @@ class ConfigData:
             case 'user': return self.user
             case 'guild': return self.guild
             case _: raise KeyError(f'no category with name `{key}` found.')
+
+
+class NewConfigSubcategory(NamedTuple):
+    category: str
+    subcategory: ConfigSubcategory
+    register_permission: bool = True
+
+
+class NewConfigOption(NamedTuple):
+    category: str
+    subcategory: str
+    option: ConfigOption
+    register_permission: bool = True

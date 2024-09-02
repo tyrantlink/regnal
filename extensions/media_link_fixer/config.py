@@ -1,15 +1,11 @@
-from client.config.models import ConfigOption, OptionType
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from client import Config
+from client.config.models import ConfigOption, OptionType, NewConfigOption
 
 
-def register_config(config: 'Config') -> None:
-    config.register_option(
-        category='guild',
-        subcategory='general',
-        option=ConfigOption(
+options = [
+    NewConfigOption(
+        'guild',
+        'general',
+        ConfigOption(
             name='replace_media_links',
             type=OptionType.BOOL,
             default=False,
@@ -21,13 +17,13 @@ def register_config(config: 'Config') -> None:
                 - instagram (through [ddinstagram](<https://github.com/Wikidepia/InstaFix>))
                 - tiktok (through [tnktok](<https://github.com/okdargy/fxtiktok>))
                 - pixiv (through [phixiv](<https://github.com/thelaao/phixiv>))
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='user',
-        subcategory='general',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'user',
+        'general',
+        ConfigOption(
             name='disable_media_link_replacement',
             type=OptionType.BOOL,
             default=False,
@@ -36,5 +32,7 @@ def register_config(config: 'Config') -> None:
                 media link replacement is a feature that replaces social media links with urls that have better discord embed support
                 - if enabled, media links will not be replaced with their respective embed friendly urls
                 - only effective if the server has media link replacement enabled
-            '''.replace('    ', '').strip())
+            '''.replace('    ', '').strip()
+        )
     )
+]

@@ -1,11 +1,11 @@
-from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs
+from client.config.models import ConfigOption, ConfigSubcategory, OptionType, ConfigAttrs, NewConfigSubcategory, NewConfigOption
 from discord import Member, TextChannel, ChannelType, Role
 from client.config.errors import ConfigValidationError
 from discord.abc import GuildChannel
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from client import Client, Config
+    from client import Client
 
 
 async def validate_channel(
@@ -39,18 +39,21 @@ async def validate_role(
     return value, None
 
 
-def register_config(config: 'Config') -> None:
-    config.register_subcategory(
-        category='guild',
-        subcategory=ConfigSubcategory(
+subcategories = [
+    NewConfigSubcategory(
+        'guild',
+        ConfigSubcategory(
             name='talking_stick',
-            description='talking stick options')
+            description='talking stick options'
+        )
     )
+]
 
-    config.register_option(
-        category='guild',
-        subcategory='talking_stick',
-        option=ConfigOption(
+options = [
+    NewConfigOption(
+        'guild',
+        'talking_stick',
+        ConfigOption(
             name='enabled',
             type=OptionType.BOOL,
             default=False,
@@ -58,39 +61,39 @@ def register_config(config: 'Config') -> None:
             description='''
                 daily random roll to give an active user a specific role\n
                 intended to give users send_messages permissions in a channel, but can be used for anything
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='talking_stick',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'talking_stick',
+        ConfigOption(
             name='channel',
             type=OptionType.CHANNEL,
             default=None,
             attrs=ConfigAttrs(
                 validation=validate_channel),
             short_description='channel used to announce the talking stick',
-            description='channel used to announce the talking stick')
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='talking_stick',
-        option=ConfigOption(
+            description='channel used to announce the talking stick'
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'talking_stick',
+        ConfigOption(
             name='role',
             type=OptionType.ROLE,
             default=None,
             attrs=ConfigAttrs(
                 validation=validate_role),
             short_description='role given to the user',
-            description='role given to the user')
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='talking_stick',
-        option=ConfigOption(
+            description='role given to the user'
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'talking_stick',
+        ConfigOption(
             name='limit',
             type=OptionType.ROLE,
             default=None,
@@ -98,13 +101,13 @@ def register_config(config: 'Config') -> None:
             description='''
                 role that limits who can get the talking stick\n
                 if not set, all users can get the talking stick
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='talking_stick',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'talking_stick',
+        ConfigOption(
             name='time',
             type=OptionType.STRING,
             default='09:00',
@@ -117,13 +120,13 @@ def register_config(config: 'Config') -> None:
                 time of day talking stick is announced
                 format: HH:MM (24 hour) (includes leading zeros)
                 follows guild set timezone
-            '''.replace('    ', '').strip())
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='talking_stick',
-        option=ConfigOption(
+            '''.replace('    ', '').strip()
+        )
+    ),
+    NewConfigOption(
+        'guild',
+        'talking_stick',
+        ConfigOption(
             name='announcement_message',
             type=OptionType.STRING,
             default='congrats {user} you have the talking stick.',
@@ -133,5 +136,7 @@ def register_config(config: 'Config') -> None:
             description='''
                 message sent when a user gets the talking stick\n
                 format: {user} is replaced with the user's mention
-            '''.replace('    ', '').strip())
+            '''.replace('    ', '').strip()
+        )
     )
+]

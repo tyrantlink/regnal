@@ -1,27 +1,22 @@
-from client.config.models import ConfigOption, OptionType
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from client import Config
+from client.config.models import ConfigOption, OptionType, NewConfigOption
 
 
-def register_config(config: 'Config') -> None:
-    config.register_option(
-        category='guild',
-        subcategory='general',
-        option=ConfigOption(
+options = [
+    NewConfigOption(
+        'guild',
+        'general',
+        ConfigOption(
             name='moderator_role',
             type=OptionType.ROLE,
             default=None,
             short_description='moderator role',
             description='role that will be pinged for emergency situations (e.g. anti scam bot protection)'
         )
-    )
-
-    config.register_option(
-        category='guild',
-        subcategory='general',
-        option=ConfigOption(
+    ),
+    NewConfigOption(
+        'guild',
+        'general',
+        ConfigOption(
             name='anti_scam_bot',
             type=OptionType.BOOL,
             default=False,
@@ -36,3 +31,4 @@ def register_config(config: 'Config') -> None:
                 note: i plan to make the options such number of channels and timeframe configurable in the future, but for now this feature is in a testing phase
             '''.replace('    ', '').strip())
     )
+]

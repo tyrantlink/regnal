@@ -1,8 +1,8 @@
 from .listeners import ExtensionModMailListeners
 from .commands import ExtensionModMailCommands
+from .config import subcategories, options
 from .views import ModMailPostedReportView
 from discord.ext.commands import Cog
-from .config import register_config
 from client import Client
 
 
@@ -19,5 +19,6 @@ class ExtensionModMail(
 def setup(client: Client) -> None:
     client.permissions.register_permission('modmail.close_thread')
     # client.permissions.register_permission('modmail.reopen_thread')
+    client.config._subcategories += subcategories
+    client.config._options += options
     client.add_cog(ExtensionModMail(client))
-    register_config(client.config)

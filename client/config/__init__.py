@@ -1,6 +1,9 @@
-from .models import ConfigData, ConfigOption, ConfigSubcategory
-from .base import register_config as register_base_config
-from typing import TYPE_CHECKING
+from .models import ConfigData, ConfigOption, ConfigSubcategory, NewConfigSubcategory, NewConfigOption
+from typing import TYPE_CHECKING, Literal
+from .base import (
+    subcategories as base_subcategories,
+    options as base_options
+)
 
 if TYPE_CHECKING:
     from client import Client
@@ -10,7 +13,26 @@ class Config:
     def __init__(self, client: 'Client') -> None:
         self.client = client
         self.data = ConfigData()
-        register_base_config(self)
+        self._subcategories: list[NewConfigSubcategory] = base_subcategories
+        self._options: list[NewConfigOption] = base_options
+
+    def load_config(self) -> None:
+        for new in self._subcategories:
+            try:
+                self.register_subcategory(*new)
+            except ValueError:
+                self.client.log.debug(
+                    f'subcategory {new.category}.{new.subcategory.name} already registered')
+
+        for new in self._options:
+            try:
+                self.register_option(*new)
+            except ValueError:
+                self.client.log.debug(
+                    f'option {new.category}.{new.subcategory}.{new.option.name} already registered')
+            except KeyError:
+                self.client.log.debug(
+                    f'subcategory {new.category}.{new.subcategory} not registered')
 
     def register_option(
         self,
