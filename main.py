@@ -91,10 +91,12 @@ async def main() -> None:
         # ? have to load as extension because python ownership bullshit
         bots[dir].load_extension('client.commands')
 
-        for extension in extensions:
-            if extension in bot_data.disabled_extensions:
-                continue
+        bots[dir].enabled_extensions = {
+            extension for extension in extensions
+            if extension not in bot_data.disabled_extensions
+        }
 
+        for extension in bots[dir].enabled_extensions.copy():
             bots[dir].load_extension(f'extensions.{extension}')
 
         if bot_data.custom_extension:

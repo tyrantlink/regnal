@@ -37,6 +37,7 @@ class ClientBase:
         self.au: AutoResponses = None  # set by auto responses extension
         self.logging_ignore: set = None  # set by logging extension
         self.recently_deleted: set = set()  # used by logging extension
+        self.enabled_extensions: set = set()  # set by main.py
         self.api = CrAPI(self)
         self.permissions = PermissionHandler(self)
         self.config = Config(self)
@@ -223,6 +224,7 @@ class ClientBase:
                 str(e),
                 traceback="".join(format_tb(e.__traceback__))
             )
+            self.enabled_extensions.discard(name)
         else:
             self.log.info(f'loaded extension {name.split(".")[-1]}')
 
