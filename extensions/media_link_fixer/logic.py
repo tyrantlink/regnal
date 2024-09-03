@@ -20,6 +20,7 @@ class ExtensionMediaLinkFixerLogic(ExtensionMediaLinkFixerSubCog):
             if fix.only_if_includes and fix.only_if_includes not in content:
                 continue
 
+            # ? intentionally don't replace if the link is suppressed by <>
             if findall(f'(?<!<)https:\/\/(.*\.)?{fix.find}', content):
                 fixes.append(fix)
 
