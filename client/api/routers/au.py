@@ -23,10 +23,6 @@ class AutoResponses(CrAPIRouter):
     async def new(self, au: AutoResponse) -> AutoResponse:
         data = au.model_dump(mode='json')
 
-        # ? pydantic is stupid
-        data['method'] = data['method'].value
-        data['type'] = data['type'].value
-
         request = await self.session.post('/au/', json=data)
 
         match request.status:
