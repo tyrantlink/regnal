@@ -9,8 +9,10 @@ from regex import sub, findall
 class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
     @Cog.listener()
     async def on_message(self, message: Message) -> None:
+        if message.guild is None:
+            return
+
         if any((
-            message.guild is None,
             message.author.bot,
             message.flags.suppress_embeds,
             not message.channel.can_send()
