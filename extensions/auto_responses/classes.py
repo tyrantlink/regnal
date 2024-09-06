@@ -412,7 +412,10 @@ class AutoResponses:
 
         if args.seed is not None:
             if not (args.seed >= len(matches)):
-                response = matches[args.seed]
+                response = sorted(
+                    matches,
+                    key=lambda a: int(a.id[1:])
+                )[args.seed]
 
                 if args.force or response.id in user_found:
                     return response
