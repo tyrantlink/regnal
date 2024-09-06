@@ -1,7 +1,9 @@
 from discord import Embed, User, ApplicationContext, Role, InteractionContextType
 from discord.commands import Option, slash_command, user_command
+from datetime import timedelta, datetime
 from .subcog import ExtensionFunSubCog
 from random import choice, randint
+from .models import Reminder
 from asyncio import sleep
 from time import time
 from re import sub
@@ -142,7 +144,7 @@ class ExtensionFunCommands(ExtensionFunSubCog):
         description='say hello to /reg/nal?')
     async def slash_hello(self, ctx: ApplicationContext) -> None:
         await ctx.response.send_message(
-            f'https://regn.al/{"regnal" if randint(0,100) else "erglud"}.png',
+            f'https://regn.al/{"regnal" if randint(0, 100) else "erglud"}.png',
             ephemeral=await self.client.helpers.ephemeral(ctx)
         )
 
@@ -337,3 +339,66 @@ class ExtensionFunCommands(ExtensionFunSubCog):
             await sleep(5)
 
         self.bees_running.discard(ctx.guild.id)
+
+    @slash_command(
+        name='remind_me',
+        description='set a reminder; defaults to 1 hour',
+        options=[
+            Option(
+                str,
+                name='message',
+                description='what do you want to be reminded of?',
+                required=True),
+            Option(
+                int,
+                name='hours',
+                description='hours',
+                min_value=0,
+                max_value=23,
+                required=False),
+            Option(
+                int,
+                name='minutes',
+                description='minutes',
+                min_value=1,
+                max_value=59,
+                required=False)])
+    async def slash_remind_me(self, ctx: ApplicationContext, message: str, hours: int = 0, minutes: int = 0) -> None:
+        if hours is None:
+            hours = 0
+
+        if minutes is None:
+            minutes = 0
+
+        if minutes == 0 and hours == 0:
+            hours = 1
+
+        reminder = Reminder(
+            user=ctx.author,
+            trigger_time=(
+                datetime.now() + timedelta(
+                    hours=hours,
+                    minutes=minutes)
+            ).timestamp(),
+            reminder=message
+        )
+
+        response = f'ok, i\'ll remind you to {message} in'
+
+        if hours:
+            response += f' {hours} hour{"s" if hours > 1 else ""}'
+
+        if minutes:
+            if hours:
+                response += ' and'
+            response += f' {minutes} minute{"s" if minutes > 1 else ""}'
+
+        if not ctx.author.can_send():
+            response += '\n\nwarning: you have direct messages disabled, so i won\'t be able to remind you'
+
+        self.pending_reminders.add(reminder)
+
+        await ctx.response.send_message(
+            response,
+            ephemeral=await self.client.helpers.ephemeral(ctx)
+        )
