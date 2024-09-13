@@ -19,8 +19,8 @@ class ExtensionAdminCommands(ExtensionAdminSubCog):
         )
 
         await ctx.response.send_message(embed=Embed(
-            title=f'successfully purged {len(purged)} message{
-                "" if len(purged) == 1 else "s"}',
+            title=(
+                f'successfully purged {len(purged)} message{"" if len(purged) == 1 else "s"}'),
             color=await self.client.helpers.embed_color(ctx.guild_id)),
             ephemeral=await self.client.helpers.ephemeral(ctx)
         )
@@ -76,8 +76,8 @@ class ExtensionAdminCommands(ExtensionAdminSubCog):
         await member.timeout_for(timeout, reason=f'{ctx.author.name} used /timeout')
 
         await ctx.response.send_message(embed=Embed(
-            title=f'successfully timed out {member.mention} for until <t:{
-                int(time()+timeout.total_seconds())}:f>',
+            title=(
+                f'successfully timed out {member.mention} for until <t:{int(time()+timeout.total_seconds())}:f>'),
             color=await self.client.helpers.embed_color(ctx.guild_id)),
             ephemeral=await self.client.helpers.ephemeral(ctx)
         )
@@ -95,8 +95,8 @@ class ExtensionAdminCommands(ExtensionAdminSubCog):
         )
 
         await ctx.response.send_message(embed=Embed(
-            title=f'successfully purged {len(purged)} message{
-                "" if len(purged) == 1 else "s"}',
+            title=(
+                f'successfully purged {len(purged)} message{"" if len(purged) == 1 else "s"}'),
             color=await self.client.helpers.embed_color(ctx.guild_id)),
             ephemeral=await self.client.helpers.ephemeral(ctx)
         )
