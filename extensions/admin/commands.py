@@ -33,13 +33,13 @@ class ExtensionAdminCommands(ExtensionAdminSubCog):
         options=[
             Option(Member, name='member',
                    description='member to timeout', required=True),
-            Option(int, name='days', description='message to purge until',
+            Option(int, name='days', description='days to timeout user',
                    default=0, max_value=28),
-            Option(int, name='hours', description='message to purge until',
+            Option(int, name='hours', description='hours to timeout user',
                    default=0, max_value=28*24),
-            Option(int, name='minutes', description='message to purge until',
+            Option(int, name='minutes', description='minutes to timeout user',
                    default=0, max_value=28*24*60),
-            Option(int, name='seconds', description='message to purge until',
+            Option(int, name='seconds', description='seconds to timeout user',
                    default=0, max_value=28*24*60*60)])
     async def slash_timeout(
         self,
