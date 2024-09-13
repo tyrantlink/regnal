@@ -76,8 +76,8 @@ class ExtensionAdminCommands(ExtensionAdminSubCog):
         await member.timeout_for(timeout, reason=f'{ctx.author.name} used /timeout')
 
         await ctx.response.send_message(embed=Embed(
-            title=(
-                f'successfully timed out {member.mention} for until <t:{int(time()+timeout.total_seconds())}:f>'),
+            description=(
+                f'successfully timed out {member.mention} until <t:{int(time()+timeout.total_seconds())}:f>'),
             color=await self.client.helpers.embed_color(ctx.guild_id)),
             ephemeral=await self.client.helpers.ephemeral(ctx)
         )
