@@ -36,11 +36,11 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
             if isinstance(message.channel, Thread)
             else message.channel
         )
-
-        if (
-            not args.force and
-            guild.config.auto_responses.cooldown_mode != AUCooldownMode.none
-        ):
+        if all((
+            not args.force,
+            guild.config.auto_responses.cooldown_mode != AUCooldownMode.none,
+            not au.data.ignore_cooldown
+        )):
             match guild.config.auto_responses.cooldown_mode:
                 case AUCooldownMode.user if (
                     message.author.id not in self._cooldowns
@@ -114,7 +114,8 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
                 HTTPException
             ) as e:
                 self.client.log.error(
-                    f'failed to delete message by {message.author.name} in {message.guild.name}',
+                    (
+                        f'failed to delete message by {message.author.name} in {message.guild.name}'),
                     guild_id=message.guild.id,
                     metadata={
                         'au_id': au.id,
@@ -141,14 +142,15 @@ class ExtensionAutoResponsesLogic(ExtensionAutoResponsesSubCog):
         )
 
         self.client.log.info(
-            f'auto response {au.id} triggered by {message.author.name} in {message.guild.name}{time_taken}',
+            (
+                f'auto response {au.id} triggered by {message.author.name} in {message.guild.name}{time_taken}'),
             guild_id=message.guild.id,
             metadata={
                 'au_id': au.id,
                 'original_deleted': args.delete}
         )
 
-        if not args.force:
+        if not any((args.force, au.data.ignore_cooldown)):
             match guild.config.auto_responses.cooldown_mode:
                 case AUCooldownMode.user:
                     cooldown_id = message.author.id
