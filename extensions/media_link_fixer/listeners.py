@@ -32,21 +32,11 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
         ):
             return
 
-        fixes = self.find_fixes(message.content)
-        if not fixes:
+        fix_message, used_fixes = self.fix(message.content)
+        if fix_message is None or not used_fixes:
             return
 
-        fix_message = 'links converted to embed friendly urls:\n'
-        clear_embeds = any((fix.clear_embeds for fix in fixes))
-
-        for fix in fixes:
-            for word in message.content.split():
-                if word.startswith('http') and findall(fix.find, word):
-                    if fix.remove_params:
-                        word = word.split('?')[0]
-                    fix_message += f'{sub(fix.find,fix.replace,word)}\n'
-
-        if clear_embeds:
+        if any((fix.clear_embeds for fix in used_fixes)):
             await sleep(1)
             await message.edit(suppress=True)
 
@@ -55,7 +45,7 @@ class ExtensionMediaLinkFixerListeners(ExtensionMediaLinkFixerSubCog):
 
         good_bot_task = create_task(self.wait_for_good_bot(self_message))
 
-        await sleep(max((fix.wait_time for fix in fixes)))
+        await sleep(max((fix.wait_time for fix in used_fixes)))
 
         try:
             self_message = await self_message.channel.fetch_message(self_message.id)
