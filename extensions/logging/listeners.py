@@ -85,7 +85,13 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
         if not guild_doc.config.logging.deleted_messages:
             return
 
-        if guild_doc.config.logging.pluralkit_support and await self.deleted_by_pk(payload.message_id):
+        if (
+            guild_doc.config.logging.pluralkit_support and
+            (
+                await self.deleted_by_pk(payload.message_id) or
+                await self.deleted_by_plural(payload.message_id)
+            )
+        ):
             return
 
         if payload.cached_message is not None:
