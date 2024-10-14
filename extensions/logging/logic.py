@@ -142,7 +142,7 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
                 }
         ) as session:
             try:
-                async with session.get(f'/messages/{message_id}?only_check_existence=true') as response:
+                async with session.get(f'/message/{message_id}?only_check_existence=true') as response:
                     match response.status:
                         case 200:
                             return await response.json()
