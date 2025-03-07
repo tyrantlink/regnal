@@ -133,14 +133,13 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
 
     async def deleted_by_plural(self, message_id: int, delay: int | None = None) -> bool:
         async with ClientSession(
-                base_url='https://api.plural.gg',
-                headers={
-                    'User-Agent': f'{self.client.user.display_name} Discord Bot/{self.client.version.semantic} (contact: {self.client.project.config.contact_email})'
-                }
+            base_url='https://api.plural.gg',
+            headers={
+                'User-Agent': f'{self.client.user.display_name} Discord Bot/{self.client.version.semantic} (contact: {self.client.project.config.contact_email})'}
         ) as session:
             try:
-                async with session.get(f'/message/{message_id}?only_check_existence=true') as response:
-                    return response.status == 204
+                async with session.head(f'/messages/{message_id}') as response:
+                    return response.status == 200
             except TimeoutError:
                 return False
 
