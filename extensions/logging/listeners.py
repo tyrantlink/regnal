@@ -33,7 +33,14 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
         if after is None:
             return
 
-        if after.author.bot and not guild_doc.config.logging.log_bots:
+        if (
+            after.author.bot and
+            not guild_doc.config.logging.log_bots and
+            not (
+                guild_doc.config.logging.pluralkit_support and
+                await self.deleted_by_plural(payload.message_id)
+            )
+        ):
             return
 
         if before is not None and before.content == after.content:
@@ -98,7 +105,14 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
             if payload.cached_message.author.id == self.client.user.id:
                 return
 
-            if payload.cached_message.author.bot and not guild_doc.config.logging.log_bots:
+            if (
+                payload.cached_message.author.bot and
+                not guild_doc.config.logging.log_bots and
+                not (
+                    guild_doc.config.logging.pluralkit_support and
+                    await self.deleted_by_plural(payload.message_id)
+                )
+            ):
                 return
 
             deleter = await self.find_deleter_from_message(payload.cached_message)
@@ -119,7 +133,14 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
         if author is not None and author.id == self.client.user.id:
             return
 
-        if author is not None and author.bot and not guild_doc.config.logging.log_bots:
+        if (
+            author.bot and
+            not guild_doc.config.logging.log_bots and
+            not (
+                guild_doc.config.logging.pluralkit_support and
+                await self.deleted_by_plural(payload.message_id)
+            )
+        ):
             return
 
         await log_channel.send(
