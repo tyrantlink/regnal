@@ -131,14 +131,14 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
             except TimeoutError:  # ? pk api is down
                 return False
 
-    async def deleted_by_plural(self, message_id: int, delay: int | None = None) -> bool:
+    async def deleted_by_plural(self, channel_id: int, message_id: int) -> bool:
         async with ClientSession(
             base_url='https://api.plural.gg',
             headers={
                 'User-Agent': f'{self.client.user.display_name} Discord Bot/{self.client.version.semantic} (contact: {self.client.project.config.contact_email})'}
         ) as session:
             try:
-                async with session.head(f'/messages/{message_id}') as response:
+                async with session.head(f'/messages/{channel_id}/{message_id}') as response:
                     return response.status == 200
             except TimeoutError:
                 return False

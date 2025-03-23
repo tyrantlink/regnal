@@ -38,7 +38,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
             not guild_doc.config.logging.log_bots and
             not (
                 guild_doc.config.logging.pluralkit_support and
-                await self.deleted_by_plural(payload.message_id)
+                await self.deleted_by_plural(payload.channel_id, payload.message_id)
             )
         ):
             return
@@ -96,7 +96,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
             guild_doc.config.logging.pluralkit_support and
             (
                 await self.deleted_by_pk(payload.message_id) or
-                await self.deleted_by_plural(payload.message_id)
+                await self.deleted_by_plural(payload.channel_id, payload.message_id)
             )
         ):
             return
@@ -110,7 +110,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
                 not guild_doc.config.logging.log_bots and
                 not (
                     guild_doc.config.logging.pluralkit_support and
-                    await self.deleted_by_plural(payload.message_id)
+                    await self.deleted_by_plural(payload.channel_id, payload.message_id)
                 )
             ):
                 return
@@ -138,7 +138,7 @@ class ExtensionLoggingListeners(ExtensionLoggingSubCog):
             not guild_doc.config.logging.log_bots and
             not (
                 guild_doc.config.logging.pluralkit_support and
-                await self.deleted_by_plural(payload.message_id)
+                await self.deleted_by_plural(payload.channel_id, payload.message_id)
             )
         ):
             return
