@@ -352,6 +352,11 @@ class AutoResponses:
                     args.message,
                     overrides,
                     self.au.custom(message.guild.id)
+                ),
+                *self.match(
+                    args.message,
+                    overrides,
+                    self.au.scripted(imported_scripts)
                 )
             ]
         else:
