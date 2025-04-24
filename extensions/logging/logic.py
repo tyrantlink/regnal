@@ -135,7 +135,10 @@ class ExtensionLoggingLogic(ExtensionLoggingSubCog):
         async with ClientSession(
             base_url='https://api.plural.gg',
             headers={
-                'User-Agent': f'{self.client.user.display_name} Discord Bot/{self.client.version.semantic} (contact: {self.client.project.config.contact_email})'}
+                'User-Agent': f'{self.client.user.display_name} Discord Bot/{self.client.version.semantic} (contact: {self.client.project.config.contact_email})'
+            } | ({
+                'Authorization': self.client.project.config.plural_token
+            } if self.client.project.config.plural_token else {})
         ) as session:
             try:
                 async with session.head(f'/messages/{channel_id}/{message_id}') as response:
